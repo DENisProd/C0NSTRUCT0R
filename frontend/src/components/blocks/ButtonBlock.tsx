@@ -3,6 +3,8 @@ import { useEffect, useRef } from 'react';
 import type { ButtonBlock as ButtonBlockType } from '../../types';
 import { useProjectStore } from '../../store/useProjectStore';
 import { executeBlockEventFunctions } from '../../lib/functionExecutor';
+import { useResponsiveStore } from '../../store/useResponsiveStore';
+import { getStyleForBreakpoint } from '../../lib/responsiveUtils';
 
 interface ButtonBlockProps {
   block: ButtonBlockType;
@@ -12,34 +14,31 @@ interface ButtonBlockProps {
 
 export const ButtonBlock = ({ block, isSelected, isPreview }: ButtonBlockProps) => {
   const { selectBlock, deleteBlock, project } = useProjectStore();
+  const { currentBreakpoint } = useResponsiveStore();
   const blockRef = useRef<HTMLDivElement>(null);
+  
+  const responsiveStyle = getStyleForBreakpoint(block.style, currentBreakpoint);
 
-  // Устанавливаем data-block-id для поиска элемента
   useEffect(() => {
     if (blockRef.current) {
       blockRef.current.setAttribute('data-block-id', block.id);
     }
   }, [block.id]);
 
-  // Обработка событий в режиме предпросмотра
   const handleClick = (e: React.MouseEvent) => {
     if (isPreview) {
-      // В режиме предпросмотра выполняем привязанные функции
       if (block.events?.onClick) {
         e.preventDefault();
         e.stopPropagation();
         executeBlockEventFunctions(block.id, 'onClick', block.events);
       }
-      // Если есть ссылка и нет функций, используем стандартное поведение
       if (!block.events?.onClick && block.link && block.link !== '#') {
-        // Стандартное поведение ссылки
         return;
       }
       if (!block.events?.onClick && (!block.link || block.link === '#')) {
         e.preventDefault();
       }
     } else {
-      // В режиме редактора просто выбираем блок
       e.preventDefault();
       e.stopPropagation();
       selectBlock(block.id);
@@ -76,13 +75,16 @@ export const ButtonBlock = ({ block, isSelected, isPreview }: ButtonBlockProps) 
       data-block-id={block.id}
       style={{
         ...block.style,
+        padding: responsiveStyle.padding || block.style.padding,
+        margin: responsiveStyle.margin || block.style.margin,
+        width: responsiveStyle.width || block.style.width,
         boxShadow: isSelected && !isPreview ? `0 0 0 2px ${project.theme.accent}` : 'none',
         cursor: isPreview ? (block.events?.onClick ? 'pointer' : 'default') : 'pointer',
       }}
-      borderRadius={block.style.borderRadius}
+      borderRadius={responsiveStyle.borderRadius || block.style.borderRadius}
       _hover={{
         border: !isPreview ? '1px dashed #ccc' : 'none',
-        '& .delete-btn': {
+        '& > .delete-btn': {
           display: !isPreview ? 'block' : 'none',
         },
       }}
@@ -137,11 +139,11 @@ export const ButtonBlock = ({ block, isSelected, isPreview }: ButtonBlockProps) 
             <Button
               backgroundColor={block.buttonColor || project.theme.accent}
               color="white"
-              padding="10px 20px"
-              borderRadius={block.style.borderRadius || '4px'}
+              padding={responsiveStyle.padding || "10px 20px"}
+              borderRadius={responsiveStyle.borderRadius || block.style.borderRadius || '4px'}
               cursor="pointer"
               pointerEvents="auto"
-              style={{ width: block.style.width || 'auto' }}
+              style={{ width: responsiveStyle.width || block.style.width || 'auto' }}
             >
               {block.text}
             </Button>
@@ -163,11 +165,11 @@ export const ButtonBlock = ({ block, isSelected, isPreview }: ButtonBlockProps) 
             as="div"
             backgroundColor={block.buttonColor || project.theme.accent}
             color="white"
-            padding="10px 20px"
-            borderRadius={block.style.borderRadius || '4px'}
+            padding={responsiveStyle.padding || "10px 20px"}
+            borderRadius={responsiveStyle.borderRadius || block.style.borderRadius || '4px'}
             cursor="default"
             pointerEvents="none"
-            style={{ width: block.style.width || 'auto' }}
+            style={{ width: responsiveStyle.width || block.style.width || 'auto' }}
           >
             {block.text}
           </Button>

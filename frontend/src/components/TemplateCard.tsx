@@ -76,7 +76,6 @@ export const TemplateCard = ({ template, showDeleteButton = false }: TemplateCar
       )}
       
       <VStack alignItems="stretch" gap="8px">
-        {/* Превью блока */}
         <Box
           minHeight="120px"
           backgroundColor="#f5f5f5"
@@ -111,7 +110,6 @@ export const TemplateCard = ({ template, showDeleteButton = false }: TemplateCar
           )}
         </Box>
 
-        {/* Информация о шаблоне */}
         <VStack alignItems="stretch" gap="4px">
           <HStack justifyContent="space-between" alignItems="flex-start">
             <Text
@@ -152,7 +150,6 @@ export const TemplateCard = ({ template, showDeleteButton = false }: TemplateCar
           </Text>
         </VStack>
 
-        {/* Кнопка быстрого добавления */}
         <Box
           as="button"
           onClick={handleClick}

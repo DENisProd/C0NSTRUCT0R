@@ -71,6 +71,12 @@ interface WebSocketStore {
 
 const generateUserId = () => `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
+const DEFAULT_WS_BASE_URL =
+  (import.meta as any).env?.VITE_WS_BASE_URL ||
+  ((import.meta as any).env?.VITE_API_BASE_URL
+    ? String((import.meta as any).env.VITE_API_BASE_URL).replace(/^http/i, 'ws')
+    : 'ws://localhost:8001');
+
 export const useWebSocketStore = create<WebSocketStore>((set, get) => ({
   ws: null,
   isConnected: false,
@@ -108,7 +114,7 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => ({
     return color;
   },
 
-  connect: (roomId: string, userName: string, serverUrl = 'ws://localhost:8000') => {
+  connect: (roomId: string, userName: string, serverUrl = DEFAULT_WS_BASE_URL) => {
     const state = get();
     if (state.isConnecting || state.isConnected) {
       console.warn('WebSocket уже подключен или подключается');

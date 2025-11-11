@@ -14,13 +14,15 @@ import {
 } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 import { useLibraryStore } from '../store/useLibraryStore';
-import { getSystemBlocks, getUserBlocks } from '../lib/api/library';
+import { getUserBlocks, getCommunityBlocks, type LibraryBlock } from '../lib/api/library';
+import { useTemplatesStore } from '../store/useTemplatesStore';
 import { BlockCard } from '../components/BlockCard';
 import { BlockPreviewModal } from '../components/BlockPreviewModal';
 
 export const LibraryPage = () => {
   const navigate = useNavigate();
-  const { systemBlocks, userBlocks, isLoading, error, setSystemBlocks, setUserBlocks, setLoading, setError } = useLibraryStore();
+  const { systemBlocks, communityBlocks, userBlocks, isLoading, error, setSystemBlocks, setCommunityBlocks, setUserBlocks, setLoading, setError } = useLibraryStore();
+  const { getTemplatesByCategory } = useTemplatesStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedBlock, setSelectedBlock] = useState<string | null>(null);
 
@@ -31,11 +33,27 @@ export const LibraryPage = () => {
   const loadBlocks = async () => {
     setLoading(true);
     try {
-      const [system, user] = await Promise.all([
-        getSystemBlocks(),
+      // Берём красивые готовые шаблоны из фронтенда как системные блоки
+      const templates = getTemplatesByCategory();
+      const mappedTemplates: LibraryBlock[] = templates.map((t) => ({
+        id: t.id,
+        name: t.name,
+        description: t.description,
+        category: t.category || 'other',
+        tags: [],
+        author: undefined,
+        preview: t.preview,
+        blocks: t.blocks,
+        isCustom: t.isCustom ?? false,
+        createdAt: t.createdAt,
+      }));
+
+      const [community, user] = await Promise.all([
+        getCommunityBlocks(),
         getUserBlocks(),
       ]);
-      setSystemBlocks(system);
+      setSystemBlocks(mappedTemplates);
+      setCommunityBlocks(community);
       setUserBlocks(user);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка загрузки блоков');
@@ -51,6 +69,12 @@ export const LibraryPage = () => {
   );
 
   const filteredUserBlocks = userBlocks.filter((block) =>
+    block.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    block.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    block.category.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredCommunityBlocks = communityBlocks.filter((block) =>
     block.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     block.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     block.category.toLowerCase().includes(searchQuery.toLowerCase())
@@ -90,6 +114,7 @@ export const LibraryPage = () => {
             <Tabs.Root defaultValue="system">
               <Tabs.List>
                 <Tabs.Trigger value="system">Системные блоки ({systemBlocks.length})</Tabs.Trigger>
+                <Tabs.Trigger value="community">Сообщество ({communityBlocks.length})</Tabs.Trigger>
                 <Tabs.Trigger value="user">Мои блоки ({userBlocks.length})</Tabs.Trigger>
               </Tabs.List>
 
@@ -101,6 +126,24 @@ export const LibraryPage = () => {
                 ) : (
                   <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} gap="16px">
                     {filteredSystemBlocks.map((block) => (
+                      <BlockCard
+                        key={block.id}
+                        block={block}
+                        onSelect={() => setSelectedBlock(block.id)}
+                      />
+                    ))}
+                  </SimpleGrid>
+                )}
+              </Tabs.Content>
+
+              <Tabs.Content value="community" padding="24px 0">
+                {filteredCommunityBlocks.length === 0 ? (
+                  <Text textAlign="center" color="gray.500" padding="40px">
+                    Блоки не найдены
+                  </Text>
+                ) : (
+                  <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} gap="16px">
+                    {filteredCommunityBlocks.map((block) => (
                       <BlockCard
                         key={block.id}
                         block={block}

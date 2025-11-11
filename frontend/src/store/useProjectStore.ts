@@ -1,8 +1,61 @@
 import { create } from 'zustand';
 import type { Project, Block, BlockType, TextBlock, ImageBlock, ButtonBlock, VideoBlock, GridBlock, GridCell, Theme } from '../types';
 import { theme } from '../styles/theme';
+import { generateResponsiveStyles, migrateBlockToResponsive } from '../lib/responsiveUtils';
+import { DEFAULT_SCALE_FACTORS } from './useResponsiveStore';
 
 const STORAGE_KEY = 'landing-constructor-project';
+
+// Вспомогательная функция для добавления responsive стилей к блоку
+function addResponsiveToBlock(block: Block): Block {
+  if (!block.style.responsive) {
+    const responsive = generateResponsiveStyles(block.style, DEFAULT_SCALE_FACTORS);
+    return {
+      ...block,
+      style: {
+        ...block.style,
+        responsive,
+      },
+    };
+  }
+  return block;
+}
+
+// Рекурсивная миграция всех блоков в проекте
+function migrateProjectBlocks(blocks: Block[]): Block[] {
+  return blocks.map((block) => {
+    const migrated = migrateBlockToResponsive(block, DEFAULT_SCALE_FACTORS);
+    
+    // Рекурсивно мигрируем вложенные блоки
+    if (block.type === 'container') {
+      const children = (block as any).children as Block[];
+      return {
+        ...migrated,
+        children: migrateProjectBlocks(children),
+      } as Block;
+    }
+    
+    if (block.type === 'grid') {
+      const gb = block as GridBlock;
+      const cells = gb.cells.map((cell) => {
+        if (!cell.block) return cell;
+        // Рекурсивно мигрируем блок в ячейке (может быть контейнером с вложенными блоками)
+        const migratedBlocks = migrateProjectBlocks([cell.block]);
+        const migratedCellBlock = migratedBlocks[0] || cell.block;
+        return {
+          ...cell,
+          block: migratedCellBlock,
+        };
+      });
+      return {
+        ...migrated,
+        cells,
+      } as Block;
+    }
+    
+    return migrated;
+  });
+}
 
 const defaultProject: Project = {
   projectName: 'Новый лендинг',
@@ -51,6 +104,7 @@ type UpdatePayload =
     updateGridSettings: (gridId: string, updates: Partial<GridBlock['settings']>) => void;
     updateGridCellAlign: (gridId: string, cellIndex: number, updates: { align?: GridCell['align']; justify?: GridCell['justify'] }) => void;
     addTemplateBlocks: (blocks: Block[]) => void; // Добавление готового блока (в корень)
+    addTemplateBlocksAt: (index: number, blocks: Block[]) => void; // Добавление готового блока по индексу (в корень)
     addTemplateToContainer: (containerId: string, index: number, blocks: Block[]) => void; // Вставка шаблонов внутрь контейнера
     addTemplateToGridCell: (gridId: string, cellIndex: number, blocks: Block[]) => void; // Вставка шаблонов в ячейку сетки
     updateBlock: (id: string, updates: UpdatePayload) => void;
@@ -167,7 +221,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       }
     };
 
-    const newBlock = createNewBlock(type);
+    const newBlock = addResponsiveToBlock(createNewBlock(type));
 
     set((state) => ({
       project: {
@@ -204,9 +258,10 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       },
       cells: Array.from({ length: columns * rows }, () => ({ block: null })),
     };
+    const migratedGrid = addResponsiveToBlock(grid);
     set((state) => ({
-      project: { ...state.project, blocks: [...state.project.blocks, grid] },
-      selectedBlockId: grid.id,
+      project: { ...state.project, blocks: [...state.project.blocks, migratedGrid] },
+      selectedBlockId: migratedGrid.id,
     }));
   },
 
@@ -255,7 +310,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       }
     };
 
-    const newChild = createNewBlock(type);
+    const newChild = addResponsiveToBlock(createNewBlock(type));
 
     // Вычисляем глубину целевого контейнера (количество уровней контейнеров от корня до него)
     const computeContainerDepth = (blocks: Block[], targetId: string, depth: number = 0): number => {
@@ -367,7 +422,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       }
     };
 
-    const newChild = createNewBlock(type);
+    const newChild = addResponsiveToBlock(createNewBlock(type));
 
     set((state) => ({
       project: {
@@ -559,7 +614,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       return base;
     };
 
-    const newBlocks: Block[] = templateBlocks.map((b, i) => cloneDeep(b, i));
+    const newBlocks: Block[] = templateBlocks.map((b, i) => addResponsiveToBlock(cloneDeep(b, i)));
 
     set((state) => ({
       project: {
@@ -568,6 +623,46 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       },
       selectedBlockId: newBlocks[0]?.id || null,
     }));
+
+    get().saveToLocalStorage();
+  },
+
+  addTemplateBlocksAt: (insertIndex, templateBlocks) => {
+    // Глубокое копирование блоков шаблона с уникальными ID
+    const timestamp = Date.now();
+    const makeId = (idx?: number) => `block-${timestamp}-${idx ?? 0}-${Math.random().toString(36).substr(2, 9)}`;
+
+    const cloneDeep = (block: Block, idxHint?: number): Block => {
+      const base = { ...block, id: makeId(idxHint) } as Block;
+      if (block.type === 'container') {
+        const children = ((block as any).children as Block[]).map((child, i) => cloneDeep(child, i));
+        return { ...(base as any), children } as Block;
+      }
+      if (block.type === 'grid') {
+        const gb = block as GridBlock;
+        const cells = gb.cells.map((cell, i) => {
+          if (!cell.block) return { ...cell } as GridCell;
+          return { ...cell, block: cloneDeep(cell.block, i) } as GridCell;
+        });
+        return { ...(base as any), settings: { ...gb.settings }, cells } as Block;
+      }
+      return base;
+    };
+
+    const newBlocks: Block[] = templateBlocks.map((b, i) => addResponsiveToBlock(cloneDeep(b, i)));
+
+    set((state) => {
+      const blocks = [...state.project.blocks];
+      const safeIndex = Math.max(0, Math.min(insertIndex, blocks.length));
+      blocks.splice(safeIndex, 0, ...newBlocks);
+      return {
+        project: {
+          ...state.project,
+          blocks,
+        },
+        selectedBlockId: newBlocks[0]?.id || null,
+      };
+    });
 
     get().saveToLocalStorage();
   },
@@ -593,7 +688,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       return base;
     };
 
-    const clones = templateBlocks.map((b, i) => cloneDeep(b, i));
+    const clones = templateBlocks.map((b, i) => addResponsiveToBlock(cloneDeep(b, i)));
 
     set((state) => ({
       project: {
@@ -657,12 +752,12 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
 
     // Если в шаблоне несколько блоков, оборачиваем их в контейнер
     const prepared: Block = templateBlocks.length === 1
-      ? cloneDeep(templateBlocks[0], 0)
-      : ({
+      ? addResponsiveToBlock(cloneDeep(templateBlocks[0], 0))
+      : addResponsiveToBlock({
           id: makeId(0),
           type: 'container',
           style: { margin: '10px 0', padding: '10px', width: '100%', backgroundColor: '#fafafa' },
-          children: templateBlocks.map((b, i) => cloneDeep(b, i)),
+          children: templateBlocks.map((b, i) => addResponsiveToBlock(cloneDeep(b, i))),
         } as Block);
 
     set((state) => ({
@@ -871,10 +966,13 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const project = JSON.parse(stored) as Project;
+        // Мигрируем блоки для backward compatibility
+        const migratedBlocks = migrateProjectBlocks(project.blocks || []);
         set({
           project: {
             ...defaultProject,
             ...project,
+            blocks: migratedBlocks,
             theme: {
               ...defaultProject.theme,
               ...(project as any).theme || {},

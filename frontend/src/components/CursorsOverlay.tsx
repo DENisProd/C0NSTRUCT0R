@@ -32,15 +32,12 @@ export const CursorsOverlay = () => {
       setSelections(rects);
     };
 
-    // Initial compute
     computeRects();
 
-    // Recompute on scroll/resize to keep outlines aligned when viewport moves
     const recompute = () => computeRects();
     window.addEventListener('scroll', recompute, true);
     window.addEventListener('resize', recompute);
 
-    // Periodic recompute in case of layout changes without events
     const interval = setInterval(computeRects, 200);
 
     return () => {
@@ -52,7 +49,6 @@ export const CursorsOverlay = () => {
 
   return (
     <>
-      {/* Remote cursors */}
       {entries.map((c) => {
         if (c.userId === selfId) return null;
         const color = getColorForUser(c.userId);
@@ -66,7 +62,6 @@ export const CursorsOverlay = () => {
             zIndex={2000}
             pointerEvents="none"
           >
-            {/* Более заметный курсор-стрелка */}
             <Icon viewBox="0 0 24 24" boxSize="16px" color={color} overflow="visible">
               <path d="M3 2 L18 12 L12 12 L14 22 L11 21 L9 12 L4 13 Z" fill="currentColor" stroke="#fff" strokeWidth="1" />
             </Icon>
@@ -77,7 +72,6 @@ export const CursorsOverlay = () => {
         );
       })}
 
-      {/* Remote selections */}
       {selections.map((s) => (
         <Box
           key={`sel-${s.userId}`}

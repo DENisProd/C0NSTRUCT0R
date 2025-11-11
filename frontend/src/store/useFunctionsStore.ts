@@ -6,8 +6,7 @@ const STORAGE_KEY = 'landing-constructor-functions';
 interface FunctionsStore {
   functions: ProjectFunction[];
   selectedFunctionId: string | null;
-
-  // Actions
+  
   addFunction: () => void;
   updateFunction: (id: string, updates: Partial<ProjectFunction>) => void;
   deleteFunction: (id: string) => void;
@@ -15,8 +14,7 @@ interface FunctionsStore {
   selectFunction: (id: string | null) => void;
   setFunctions: (functions: ProjectFunction[]) => void;
   clearFunctions: () => void;
-
-  // Persistence
+  
   saveToLocalStorage: () => void;
   loadFromLocalStorage: () => void;
 }

@@ -1,53 +1,35 @@
-/**
- * Исполнитель функций для блоков
- * Выполняет привязанные функции при срабатывании событий
- */
-
 import { useFunctionsStore } from '../store/useFunctionsStore';
 import { executeAction } from './actions';
 import type { ProjectFunction, TriggerType } from '../types';
 
-/**
- * Выполняет функции, привязанные к событию блока
- */
 export function executeBlockFunctions(
   blockId: string,
   trigger: TriggerType,
   functions: ProjectFunction[]
 ): void {
-  // Получаем все функции, которые должны выполниться для этого блока и события
   const block = document.querySelector(`[data-block-id="${blockId}"]`);
   if (!block) return;
 
-  // Находим функции, привязанные к этому блоку и событию
   const relevantFunctions = functions.filter((fn) => {
     if (!fn.enabled) return false;
     
-    // Функция должна соответствовать триггеру
     if (fn.trigger !== trigger) return false;
     
-    // Функция должна быть привязана к этому блоку или быть глобальной
     if (fn.blockId && fn.blockId !== blockId) return false;
     if (!fn.blockId) {
-      // Глобальная функция - проверяем, есть ли она в events блока
-      // Если функция глобальная, она выполнится только если явно указана в events
-      return false; // Глобальные функции не выполняются автоматически через events
+      return false;
     }
     
     return true;
   });
 
-  // Выполняем каждую функцию
   relevantFunctions.forEach((fn) => {
     try {
-      // Выполняем условия (если есть)
       let shouldExecute = true;
       
       if (fn.conditions && fn.conditions.length > 0) {
-        // Простая проверка условий (можно расширить)
         shouldExecute = fn.conditions.every((condition) => {
           if (condition.expression) {
-            // Выполняем кастомное выражение (осторожно с eval!)
             try {
               return eval(condition.expression);
             } catch {
@@ -59,10 +41,8 @@ export function executeBlockFunctions(
       }
       
       if (shouldExecute) {
-        // Выполняем действия
         fn.actions.forEach((action) => {
           if (action.type === 'custom' && action.code) {
-            // Выполняем кастомный код
             try {
               const func = new Function('block', 'event', action.code);
               func(block, trigger);
@@ -70,7 +50,6 @@ export function executeBlockFunctions(
               console.error('Ошибка выполнения кастомного действия:', error);
             }
           } else {
-            // Выполняем стандартное действие
             executeAction(action.type, {
               ...action.args,
               selector: `[data-block-id="${blockId}"]`,
@@ -84,9 +63,6 @@ export function executeBlockFunctions(
   });
 }
 
-/**
- * Получает функции, привязанные к блоку через events
- */
 export function getBlockEventFunctions(
   trigger: TriggerType,
   functions: ProjectFunction[],

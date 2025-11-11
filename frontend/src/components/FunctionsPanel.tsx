@@ -71,7 +71,6 @@ export const FunctionsPanel = () => {
     updateFunction(id, { trigger });
   };
 
-  // Работа с действиями функции
   const handleAddAction = (fnId: string, type: ActionType) => {
     const def = getActionDefinition(type);
     const now = Date.now();
@@ -112,7 +111,6 @@ export const FunctionsPanel = () => {
     updateFunction(id, { enabled });
   };
 
-  // Удалён сбор блоков: панель должна показывать только функции
 
   return (
     <Box
@@ -123,7 +121,6 @@ export const FunctionsPanel = () => {
       display="flex"
       flexDirection="column"
     >
-      {/* Заголовок и кнопка создания */}
       <Box padding="16px" borderBottom="1px solid #e0e0e0">
         <HStack justify="space-between" marginBottom="12px">
           <Text fontSize="18px" fontWeight="bold">
@@ -140,7 +137,6 @@ export const FunctionsPanel = () => {
         </Button>
       </Box>
 
-      {/* Список функций */}
       <Box flex="1" overflowY="auto" padding="12px">
         {functions.length === 0 ? (
           <Text fontSize="14px" color="#666" textAlign="center" padding="20px">
@@ -160,7 +156,6 @@ export const FunctionsPanel = () => {
                 _hover={{ borderColor: '#007bff' }}
               >
                 <VStack gap="8px" align="stretch">
-                  {/* Название функции */}
                   {editingName === fn.id ? (
                     <HStack gap="4px">
                       <Input
@@ -207,7 +202,6 @@ export const FunctionsPanel = () => {
                     </HStack>
                   )}
 
-                  {/* Триггер */}
                   <select
                     value={fn.trigger}
                     onChange={(e: ChangeEvent<HTMLSelectElement>) => {
@@ -222,12 +216,10 @@ export const FunctionsPanel = () => {
                     ))}
                   </select>
 
-                  {/* Действия */}
                   <Text fontSize="12px" color="#666">
                     Действий: {fn.actions.length}
                   </Text>
 
-                  {/* Кнопки управления */}
                   <HStack gap="4px" justify="flex-end">
                     <Button
                       size="xs"
@@ -256,7 +248,6 @@ export const FunctionsPanel = () => {
         )}
       </Box>
 
-      {/* Детали выбранной функции */}
       {selectedFunction && (
         <Box
           padding="16px"
@@ -282,7 +273,6 @@ export const FunctionsPanel = () => {
               <strong>Статус:</strong> {selectedFunction.enabled ? 'Включена' : 'Отключена'}
             </Text>
 
-            {/* Редактор действий */}
             <Box marginTop="12px" padding="12px" border="1px solid #e0e0e0" borderRadius="6px" backgroundColor="#fff">
               <VStack align="stretch" gap="8px">
                 <HStack justify="space-between">
@@ -353,7 +343,6 @@ export const FunctionsPanel = () => {
                                   const parsed = JSON.parse(e.target.value || '{}');
                                   handleUpdateAction(selectedFunction.id, action.id, { args: parsed });
                                 } catch {
-                                  // Игнорируем ошибки парсинга для живого ввода
                                 }
                               }}
                               placeholder="Аргументы действия (JSON)"

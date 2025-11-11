@@ -1,9 +1,10 @@
-import { Box, HStack, Button, Input } from '@chakra-ui/react';
+import { Box, HStack, Button, Input, NativeSelect } from '@chakra-ui/react';
 import { useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useProjectStore } from '../store/useProjectStore';
 import { useFunctionsStore } from '../store/useFunctionsStore';
 import { useTemplatesStore } from '../store/useTemplatesStore';
+import { useResponsiveStore, type Breakpoint } from '../store/useResponsiveStore';
 
 export const Toolbar = () => {
   const navigate = useNavigate();
@@ -12,6 +13,7 @@ export const Toolbar = () => {
     useProjectStore();
   const { functions, setFunctions } = useFunctionsStore();
   const { templates, importCustomTemplates } = useTemplatesStore();
+  const { currentBreakpoint, setBreakpoint } = useResponsiveStore();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleSave = () => {
@@ -126,6 +128,21 @@ export const Toolbar = () => {
                 <Box as="span">Библиотека</Box>
               </HStack>
             </Button>
+            <Box>
+              <NativeSelect.Root size="sm" width="140px" backgroundColor="#fff">
+                <NativeSelect.Field
+                  value={currentBreakpoint}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                    setBreakpoint(e.target.value as Breakpoint)
+                  }
+                >
+                  <option value="desktop">🖥 Desktop</option>
+                  <option value="tablet">📱 Tablet</option>
+                  <option value="mobile">📱 Mobile</option>
+                </NativeSelect.Field>
+                <NativeSelect.Indicator />
+              </NativeSelect.Root>
+            </Box>
           </>
         )}
         <Button onClick={handleSave} colorScheme="blue" size="sm">

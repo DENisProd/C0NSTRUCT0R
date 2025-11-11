@@ -1,5 +1,23 @@
 export type BlockType = 'text' | 'image' | 'button' | 'video' | 'container' | 'grid';
 
+export interface ResponsiveStyle {
+  fontSize?: string;
+  padding?: string;
+  margin?: string;
+  width?: string;
+  textAlign?: 'left' | 'center' | 'right';
+  borderRadius?: string;
+  flexDirection?: 'row' | 'column' | 'row-reverse' | 'column-reverse';
+  flexWrap?: 'nowrap' | 'wrap' | 'wrap-reverse';
+  display?: 'flex' | 'grid' | 'block';
+}
+
+export interface ResponsiveConfig {
+  desktop?: ResponsiveStyle;
+  tablet?: ResponsiveStyle;
+  mobile?: ResponsiveStyle;
+}
+
 export interface BlockStyle {
   color?: string;
   fontSize?: string;
@@ -10,6 +28,11 @@ export interface BlockStyle {
   padding?: string;
   width?: string;
   borderRadius?: string; // px value like '8px'
+  flexDirection?: 'row' | 'column' | 'row-reverse' | 'column-reverse';
+  flexWrap?: 'nowrap' | 'wrap' | 'wrap-reverse';
+  display?: 'flex' | 'grid' | 'block';
+  // Адаптивные параметры для разных брейкпоинтов
+  responsive?: ResponsiveConfig;
 }
 
 export interface BaseBlock {
@@ -147,33 +170,33 @@ export type ActionType =
 // Условие для выполнения действия
 export interface Condition {
   id: string;
-  field?: string; // Поле для проверки
+  field?: string;
   operator?: 'equals' | 'notEquals' | 'greaterThan' | 'lessThan' | 'contains' | 'isEmpty';
-  value?: any; // Значение для сравнения
-  expression?: string; // Кастомное выражение (для кодового режима)
+  value?: any;
+  expression?: string;
 }
 
 // Действие функции
 export interface Action {
   id: string;
   type: ActionType;
-  name: string; // Название действия (например, "Открыть попап")
-  args: Record<string, any>; // Аргументы действия
-  code?: string; // Код для кастомного действия
+  name: string;
+  args: Record<string, any>;
+  code?: string;
 }
 
 // Функция проекта
 export interface ProjectFunction {
   id: string;
-  name: string; // Название функции
-  description?: string; // Описание
-  trigger: TriggerType; // Тип триггера
-  blockId: string | null; // ID блока, к которому привязана функция (null = глобальная)
-  conditions: Condition[]; // Условия выполнения
-  actions: Action[]; // Действия для выполнения
-  type: 'visual' | 'code'; // Режим редактирования
-  code?: string; // Код функции (для кодового режима)
-  enabled: boolean; // Включена ли функция
+  name: string;
+  description?: string;
+  trigger: TriggerType;
+  blockId: string | null;
+  conditions: Condition[];
+  actions: Action[];
+  type: 'visual' | 'code';
+  code?: string;
+  enabled: boolean;
   createdAt: number;
   updatedAt: number;
 }

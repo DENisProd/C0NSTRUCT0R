@@ -3,6 +3,8 @@ import { useEffect, useRef } from 'react';
 import type { ImageBlock as ImageBlockType } from '../../types';
 import { useProjectStore } from '../../store/useProjectStore';
 import { executeBlockEventFunctions } from '../../lib/functionExecutor';
+import { useResponsiveStore } from '../../store/useResponsiveStore';
+import { getStyleForBreakpoint } from '../../lib/responsiveUtils';
 
 interface ImageBlockProps {
   block: ImageBlockType;
@@ -12,8 +14,11 @@ interface ImageBlockProps {
 
 export const ImageBlock = ({ block, isSelected, isPreview }: ImageBlockProps) => {
   const { selectBlock, deleteBlock, project } = useProjectStore();
+  const { currentBreakpoint } = useResponsiveStore();
   const blockRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
+  
+  const responsiveStyle = getStyleForBreakpoint(block.style, currentBreakpoint);
 
   useEffect(() => {
     if (blockRef.current) {
@@ -21,12 +26,10 @@ export const ImageBlock = ({ block, isSelected, isPreview }: ImageBlockProps) =>
     }
   }, [block.id]);
 
-  // Обработка onLoad для изображения
   useEffect(() => {
     if (isPreview && block.events?.onLoad && imageRef.current) {
       const img = imageRef.current;
       if (img.complete) {
-        // Изображение уже загружено
         executeBlockEventFunctions(block.id, 'onLoad', block.events);
       } else {
         img.onload = () => {
@@ -65,14 +68,17 @@ export const ImageBlock = ({ block, isSelected, isPreview }: ImageBlockProps) =>
       data-block-id={block.id}
       style={{
         ...block.style,
+        padding: responsiveStyle.padding || block.style.padding,
+        margin: responsiveStyle.margin || block.style.margin,
+        width: responsiveStyle.width || block.style.width,
         boxShadow: isSelected && !isPreview ? `0 0 0 2px ${project.theme.accent}` : 'none',
         cursor: isPreview ? (block.events?.onClick ? 'pointer' : 'default') : 'pointer',
       }}
-      borderRadius={block.style.borderRadius}
+      borderRadius={responsiveStyle.borderRadius || block.style.borderRadius}
       overflow={block.style.borderRadius ? 'hidden' : undefined}
       _hover={{
         border: !isPreview ? '1px dashed #ccc' : 'none',
-        '& .delete-btn': {
+        '& > .delete-btn': {
           display: !isPreview ? 'block' : 'none',
         },
       }}

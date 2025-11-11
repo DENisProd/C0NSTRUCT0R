@@ -1,6 +1,8 @@
 import { Box, Text } from '@chakra-ui/react';
 import type { VideoBlock as VideoBlockType } from '../../types';
 import { useProjectStore } from '../../store/useProjectStore';
+import { useResponsiveStore } from '../../store/useResponsiveStore';
+import { getStyleForBreakpoint } from '../../lib/responsiveUtils';
 
 interface VideoBlockProps {
   block: VideoBlockType;
@@ -11,12 +13,10 @@ interface VideoBlockProps {
 const getYouTubeEmbedUrl = (url: string): string | null => {
   if (!url) return null;
   
-  // Проверяем, является ли URL уже embed URL
   if (url.includes('youtube.com/embed/')) {
     return url;
   }
   
-  // Извлекаем ID из различных форматов YouTube URL
   const patterns = [
     /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
     /youtube\.com\/watch\?.*v=([^&\n?#]+)/,
@@ -34,7 +34,10 @@ const getYouTubeEmbedUrl = (url: string): string | null => {
 
 export const VideoBlock = ({ block, isSelected, isPreview }: VideoBlockProps) => {
   const { selectBlock, deleteBlock, project } = useProjectStore();
+  const { currentBreakpoint } = useResponsiveStore();
   const embedUrl = getYouTubeEmbedUrl(block.url);
+  
+  const responsiveStyle = getStyleForBreakpoint(block.style, currentBreakpoint);
 
   const handleClick = (e: React.MouseEvent) => {
     if (!isPreview) {
@@ -50,13 +53,16 @@ export const VideoBlock = ({ block, isSelected, isPreview }: VideoBlockProps) =>
       onClick={handleClick}
       style={{
         ...block.style,
+        padding: responsiveStyle.padding || block.style.padding,
+        margin: responsiveStyle.margin || block.style.margin,
+        width: responsiveStyle.width || block.style.width,
         boxShadow: isSelected && !isPreview ? `0 0 0 2px ${project.theme.accent}` : 'none',
         cursor: isPreview ? 'default' : 'pointer',
       }}
-      borderRadius={block.style.borderRadius}
+      borderRadius={responsiveStyle.borderRadius || block.style.borderRadius}
       _hover={{
         border: !isPreview ? '1px dashed #ccc' : 'none',
-        '& .delete-btn': {
+        '& > .delete-btn': {
           display: !isPreview ? 'block' : 'none',
         },
       }}
@@ -64,7 +70,7 @@ export const VideoBlock = ({ block, isSelected, isPreview }: VideoBlockProps) =>
       {embedUrl ? (
         <Box
           position="relative"
-          paddingBottom="56.25%" // 16:9 aspect ratio
+          paddingBottom="56.25%"
           height="0"
           overflow="hidden"
           borderRadius="inherit"

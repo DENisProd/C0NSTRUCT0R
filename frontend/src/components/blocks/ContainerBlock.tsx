@@ -3,6 +3,8 @@ import { useDroppable } from '@dnd-kit/core';
 import type { ContainerBlock as ContainerBlockType, Block } from '../../types';
 import { useProjectStore } from '../../store/useProjectStore';
 import { BlockRenderer } from './BlockRenderer';
+import { useResponsiveStore } from '../../store/useResponsiveStore';
+import { getStyleForBreakpoint } from '../../lib/responsiveUtils';
 
 interface ContainerBlockProps {
   block: ContainerBlockType;
@@ -40,7 +42,11 @@ const InnerDropZone = ({ id, isEmpty = false }: { id: string; isEmpty?: boolean 
 
 export const ContainerBlock = ({ block, isSelected, isPreview }: ContainerBlockProps) => {
   const { selectBlock, project, deleteBlock } = useProjectStore();
+  const { currentBreakpoint } = useResponsiveStore();
   const children = (block.children || []) as Block[];
+  
+  // Получаем стили для текущего брейкпоинта
+  const responsiveStyle = getStyleForBreakpoint(block.style, currentBreakpoint);
 
   const handleClick = (e: React.MouseEvent) => {
     if (!isPreview) {
@@ -59,15 +65,18 @@ export const ContainerBlock = ({ block, isSelected, isPreview }: ContainerBlockP
       onClick={handleClick}
       style={{
         ...block.style,
+        padding: responsiveStyle.padding || block.style.padding,
+        margin: responsiveStyle.margin || block.style.margin,
+        width: responsiveStyle.width || block.style.width,
         boxShadow: isSelected && !isPreview ? `0 0 0 2px ${project.theme.accent}` : 'none',
         backgroundColor: block.style.backgroundColor || '#fafafa',
         position: 'relative',
       }}
-      borderRadius={block.style.borderRadius}
+      borderRadius={responsiveStyle.borderRadius || block.style.borderRadius}
       overflow={block.style.borderRadius ? 'hidden' : undefined}
       _hover={{
         border: !isPreview ? '1px dashed #ccc' : 'none',
-        '& .delete-btn': {
+        '& > .delete-btn': {
           display: !isPreview ? 'block' : 'none',
         },
       }}
@@ -94,19 +103,33 @@ export const ContainerBlock = ({ block, isSelected, isPreview }: ContainerBlockP
           Контейнер
         </Box>
       )}
-      <VStack gap="0" align="stretch">
+      <Box
+        gap="0"
+        style={{
+          display: responsiveStyle.display || block.style.display || 'block',
+          flexDirection: responsiveStyle.flexDirection || block.style.flexDirection || (currentBreakpoint === 'mobile' ? 'column' : undefined),
+          flexWrap: responsiveStyle.flexWrap || block.style.flexWrap || (currentBreakpoint === 'mobile' ? 'wrap' : undefined),
+        }}
+      >
         {!isPreview && (
           <InnerDropZone id={`container-drop-zone-${block.id}-0`} isEmpty={children.length === 0} />
         )}
-        {children.map((child, idx) => (
-          <Box key={child.id}>
-            <BlockRenderer block={child} isPreview={isPreview} />
-            {!isPreview && (
-              <InnerDropZone id={`container-drop-zone-${block.id}-${idx + 1}`} />
-            )}
-          </Box>
-        ))}
-      </VStack>
+        {children.map((child, idx) => {
+          const displayValue = responsiveStyle.display || block.style.display || 'block';
+          return (
+            <Box 
+              key={child.id} 
+              flex={displayValue === 'flex' ? '1 1 auto' : undefined}
+              style={displayValue === 'flex' ? { flex: '1 1 auto' } : undefined}
+            >
+              <BlockRenderer block={child} isPreview={isPreview} />
+              {!isPreview && (
+                <InnerDropZone id={`container-drop-zone-${block.id}-${idx + 1}`} />
+              )}
+            </Box>
+          );
+        })}
+      </Box>
       {!isPreview && (
         <Box
           className="delete-btn"

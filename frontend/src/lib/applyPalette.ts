@@ -1,9 +1,5 @@
 import type { ColorPalette } from './api/generateLanding';
 import type { Theme } from '../types';
-
-/**
- * Преобразует палитру из API в тему проекта
- */
 export function paletteToTheme(palette: ColorPalette): Partial<Theme> {
   return {
     accent: palette.accent || palette.primary,
@@ -12,13 +8,10 @@ export function paletteToTheme(palette: ColorPalette): Partial<Theme> {
     background: palette.background,
     surface: palette.secondary || palette.background,
     border: palette.secondary || '#e0e0e0',
-    mode: 'light', // Можно определить на основе яркости цветов
+    mode: 'light',
   };
 }
 
-/**
- * Применяет палитру к проекту через обновление темы
- */
 export function applyPaletteToProject(
   palette: ColorPalette,
   updateTheme: (updates: Partial<Theme>) => void

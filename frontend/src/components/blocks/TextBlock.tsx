@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from 'react';
 import type { TextBlock as TextBlockType } from '../../types';
 import { useProjectStore } from '../../store/useProjectStore';
 import { executeBlockEventFunctions } from '../../lib/functionExecutor';
+import { useResponsiveStore } from '../../store/useResponsiveStore';
+import { getStyleForBreakpoint } from '../../lib/responsiveUtils';
 
 interface TextBlockProps {
   block: TextBlockType;
@@ -12,9 +14,12 @@ interface TextBlockProps {
 
 export const TextBlock = ({ block, isSelected, isPreview }: TextBlockProps) => {
   const { selectBlock, updateBlock, deleteBlock, project } = useProjectStore();
+  const { currentBreakpoint } = useResponsiveStore();
   const contentRef = useRef<HTMLDivElement | null>(null);
   const blockRef = useRef<HTMLDivElement | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  
+  const responsiveStyle = getStyleForBreakpoint(block.style, currentBreakpoint);
 
   useEffect(() => {
     if (blockRef.current) {
@@ -22,7 +27,6 @@ export const TextBlock = ({ block, isSelected, isPreview }: TextBlockProps) => {
     }
   }, [block.id]);
 
-  // Синхронизируем отображаемый текст с состоянием блока, когда не редактируем
   useEffect(() => {
     if (!isEditing && contentRef.current) {
       contentRef.current.textContent = block.content ?? '';
@@ -62,7 +66,7 @@ export const TextBlock = ({ block, isSelected, isPreview }: TextBlockProps) => {
       onMouseEnter={handleMouseEnter}
       data-block-id={block.id}
       _hover={{
-        '& .delete-btn': {
+        '& > .delete-btn': {
           display: !isPreview ? 'block' : 'none',
         },
         border: !isPreview ? '1px dashed #ccc' : 'none',
@@ -75,29 +79,30 @@ export const TextBlock = ({ block, isSelected, isPreview }: TextBlockProps) => {
       <Box
         contentEditable={!isPreview}
         suppressContentEditableWarning
-        onInput={() => {
-          // Не обновляем стор на каждый ввод, чтобы не терять позицию курсора
-        }}
+        onInput={() => {}}
         onFocus={() => setIsEditing(true)}
         onBlur={handleBlur}
-        fontSize={block.style.fontSize}
+        fontSize={responsiveStyle.fontSize || block.style.fontSize}
         color={block.style.color}
-        textAlign={block.style.textAlign}
+        textAlign={responsiveStyle.textAlign || block.style.textAlign}
         fontWeight={block.style.fontWeight}
         backgroundColor={block.style.backgroundColor}
-        padding={block.style.padding}
-        margin={block.style.margin}
-        width={block.style.width}
+        padding={responsiveStyle.padding || block.style.padding}
+        margin={responsiveStyle.margin || block.style.margin}
+        width={responsiveStyle.width || block.style.width}
+        borderRadius={responsiveStyle.borderRadius || block.style.borderRadius}
         style={{
           cursor: isPreview ? 'default' : 'text',
           minHeight: '30px',
+          wordBreak: 'break-word',
+          overflowWrap: 'anywhere',
+          lineHeight: 1.25,
         }}
         _hover={{
           outline: !isPreview ? '1px dashed #ccc' : 'none',
         }}
         ref={contentRef}
       >
-        {/* Контент устанавливается напрямую через ref, чтобы избежать сброса курсора */}
       </Box>
 
       {!isPreview && (

@@ -50,7 +50,6 @@ export const Workspace = () => {
       overflowY="auto"
       minHeight="calc(100vh - 60px)"
     >
-      {/* Оверлей курсоров и выделений других участников */}
       {!isPreviewMode && <CursorsOverlay />}
       <Box maxWidth="1200px" margin="0 auto" padding="20px">
         <SortableContext

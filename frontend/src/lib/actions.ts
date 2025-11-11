@@ -1,11 +1,5 @@
-/**
- * Стандартная библиотека действий для модуля функций
- * Реализует базовые функции для использования в визуальном и кодовом редакторе
- */
-
 import type { ActionType } from '../types';
 
-// Типы аргументов для каждого действия
 export interface ActionDefinition {
   type: ActionType;
   name: string;
@@ -20,11 +14,6 @@ export interface ActionDefinition {
   execute: (args: Record<string, any>) => void | Promise<void>;
 }
 
-// Реализация действий
-
-/**
- * SF1: Смена темы (light/dark)
- */
 export const changeThemeAction: ActionDefinition = {
   type: 'changeTheme',
   name: 'Смена темы',
@@ -40,14 +29,10 @@ export const changeThemeAction: ActionDefinition = {
   execute: (args) => {
     const mode = args.mode || 'light';
     document.documentElement.setAttribute('data-theme', mode);
-    // Можно также обновить через store
     console.log('Смена темы на:', mode);
   },
 };
 
-/**
- * SF2: Редирект на URL
- */
 export const redirectAction: ActionDefinition = {
   type: 'redirect',
   name: 'Редирект',
@@ -188,7 +173,6 @@ export const scrollToAction: ActionDefinition = {
     const offset = args.offset || 0;
     
     if (selector) {
-      // Если это ID блока из конструктора
       const element = selector.startsWith('block-')
         ? document.querySelector(`[data-block-id="${selector}"]`)
         : document.querySelector(selector);
@@ -204,9 +188,6 @@ export const scrollToAction: ActionDefinition = {
   },
 };
 
-/**
- * SF5: Показать элемент
- */
 export const showAction: ActionDefinition = {
   type: 'show',
   name: 'Показать элемент',
@@ -234,9 +215,6 @@ export const showAction: ActionDefinition = {
   },
 };
 
-/**
- * SF6: Скрыть элемент
- */
 export const hideAction: ActionDefinition = {
   type: 'hide',
   name: 'Скрыть элемент',
@@ -262,9 +240,6 @@ export const hideAction: ActionDefinition = {
   },
 };
 
-/**
- * SF7: Переключить видимость элемента
- */
 export const toggleAction: ActionDefinition = {
   type: 'toggle',
   name: 'Переключить видимость',
@@ -320,16 +295,12 @@ export const setValueAction: ActionDefinition = {
       const element = document.querySelector(selector) as HTMLInputElement | HTMLTextAreaElement;
       if (element) {
         element.value = String(value);
-        // Триггерим событие change
         element.dispatchEvent(new Event('change', { bubbles: true }));
       }
     }
   },
 };
 
-/**
- * SF9: Логирование
- */
 export const logAction: ActionDefinition = {
   type: 'log',
   name: 'Логирование',
@@ -355,9 +326,6 @@ export const logAction: ActionDefinition = {
   },
 };
 
-/**
- * SF10: Анимация элемента
- */
 export const animateAction: ActionDefinition = {
   type: 'animate',
   name: 'Анимация',
@@ -436,9 +404,6 @@ export const actionsRegistry: Record<ActionType, ActionDefinition> = {
   },
 };
 
-/**
- * Выполняет действие по его типу
- */
 export function executeAction(type: ActionType, args: Record<string, any>): void | Promise<void> {
   const action = actionsRegistry[type];
   if (action) {
@@ -448,16 +413,10 @@ export function executeAction(type: ActionType, args: Record<string, any>): void
   }
 }
 
-/**
- * Получает определение действия по типу
- */
 export function getActionDefinition(type: ActionType): ActionDefinition | undefined {
   return actionsRegistry[type];
 }
 
-/**
- * Получает список всех доступных действий
- */
 export function getAllActions(): ActionDefinition[] {
   return Object.values(actionsRegistry).filter((a) => a.type !== 'custom');
 }

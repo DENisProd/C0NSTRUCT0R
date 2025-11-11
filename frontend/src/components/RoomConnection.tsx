@@ -16,11 +16,14 @@ export const RoomConnection = () => {
 
   const [localRoomId, setLocalRoomId] = useState('');
   const [localUserName, setLocalUserName] = useState('');
-  const [serverUrl, setServerUrl] = useState('ws://localhost:8000');
+  const defaultWsUrl =
+    (import.meta as any).env?.VITE_WS_BASE_URL ||
+    ((import.meta as any).env?.VITE_API_BASE_URL
+      ? String((import.meta as any).env.VITE_API_BASE_URL).replace(/^http/i, 'ws')
+      : 'ws://localhost:8001');
   const [showConnectionForm, setShowConnectionForm] = useState(!isConnected);
 
   useEffect(() => {
-    // Если уже подключены, скрываем форму
     if (isConnected) {
       setShowConnectionForm(false);
     }
@@ -31,7 +34,7 @@ export const RoomConnection = () => {
       alert('Пожалуйста, введите ID комнаты и имя');
       return;
     }
-    connect(localRoomId.trim(), localUserName.trim(), serverUrl);
+    connect(localRoomId.trim(), localUserName.trim());
   };
 
   const handleDisconnect = () => {
@@ -77,14 +80,6 @@ export const RoomConnection = () => {
 
             <VStack gap="12px" align="stretch">
               <Box>
-                <Text fontSize="14px" marginBottom="4px">
-                  URL сервера
-                </Text>
-                <Input
-                  value={serverUrl}
-                  onChange={(e) => setServerUrl(e.target.value)}
-                  placeholder="ws://localhost:8000"
-                />
               </Box>
 
               <Box>
@@ -128,7 +123,6 @@ export const RoomConnection = () => {
     );
   }
 
-  // Панель статуса подключения
   return (
     <Box
       position="fixed"

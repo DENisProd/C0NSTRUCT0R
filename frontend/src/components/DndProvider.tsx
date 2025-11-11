@@ -12,6 +12,7 @@ import {
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { useProjectStore } from '../store/useProjectStore';
 import { useTemplatesStore } from '../store/useTemplatesStore';
+import { useLibraryStore } from '../store/useLibraryStore';
 import type { BlockType } from '../types';
 
 interface DndProviderProps {
@@ -19,8 +20,9 @@ interface DndProviderProps {
 }
 
 export const DndProvider = ({ children }: DndProviderProps) => {
-  const { project, moveBlock, addBlock, addBlockToContainer, addBlockToGridCell, moveGridItem, addTemplateBlocks, addTemplateToContainer, addTemplateToGridCell } = useProjectStore();
+  const { project, moveBlock, addBlock, addBlockToContainer, addBlockToGridCell, moveGridItem, addTemplateBlocks, addTemplateBlocksAt, addTemplateToContainer, addTemplateToGridCell } = useProjectStore();
   const { getTemplate } = useTemplatesStore();
+  const { systemBlocks, communityBlocks, userBlocks } = useLibraryStore();
   const { blocks } = project;
 
   const [keyboardEnabled, setKeyboardEnabled] = useState(true);
@@ -42,8 +44,6 @@ export const DndProvider = ({ children }: DndProviderProps) => {
   }, []);
 
   const pointerSensor = useSensor(PointerSensor, {
-    // Требуем небольшое движение мыши перед активацией перетаскивания,
-    // чтобы обычный клик не запускал drag
     activationConstraint: { distance: 8 },
   });
   const keyboardSensor = useSensor(KeyboardSensor, {
@@ -59,12 +59,34 @@ export const DndProvider = ({ children }: DndProviderProps) => {
   });
   const sensors = useSensors(pointerSensor, keyboardSensor);
 
+  const getTargetIndexForWorkspace = (overId: string): number => {
+    let targetIndex = blocks.length > 0 ? blocks.length : 0;
+
+    if (blocks.length === 0) {
+      return 0;
+    }
+
+    if (overId.startsWith('workspace-drop-zone-')) {
+      const idxStr = overId.replace('workspace-drop-zone-', '');
+      const parsed = parseInt(idxStr, 10);
+      if (!Number.isNaN(parsed)) {
+        targetIndex = parsed;
+      }
+    } else {
+      const foundIndex = useProjectStore.getState().project.blocks.findIndex((b) => b.id === overId);
+      if (foundIndex >= 0) {
+        targetIndex = foundIndex;
+      }
+    }
+
+    return targetIndex;
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
     if (!over) return;
 
-    // Если перетаскиваем готовый блок (шаблон)
     if (active.id.toString().startsWith('template-')) {
       const templateId = active.data.current?.templateId as string;
       if (templateId) {
@@ -72,18 +94,15 @@ export const DndProvider = ({ children }: DndProviderProps) => {
         if (!template) return;
 
         const overId = over.id.toString();
-        // Вставка внутрь контейнера
         if (overId.startsWith('container-drop-zone-')) {
           const parts = overId.replace('container-drop-zone-', '').split('-');
           const containerId = parts.slice(0, -1).join('-');
           const idxStr = parts[parts.length - 1];
           const insertIndex = parseInt(idxStr, 10);
           if (!Number.isNaN(insertIndex)) {
-            // Вставляем шаблон как есть (с вложенными контейнерами)
             addTemplateToContainer(containerId, insertIndex, template.blocks);
           }
         } else if (overId.startsWith('grid-cell-')) {
-          // Базовая логика: вставляем первый блок шаблона в выбранную ячейку
           const [gridId, cellIdxStr] = (() => {
             const parts = overId.replace('grid-cell-', '').split('-');
             const id = parts.slice(0, -1).join('-');
@@ -95,20 +114,54 @@ export const DndProvider = ({ children }: DndProviderProps) => {
             addTemplateToGridCell(gridId, cellIndex, template.blocks);
           }
         } else if (overId === 'workspace-drop-zone' || blocks.length === 0 || overId.startsWith('workspace-drop-zone-')) {
-          addTemplateBlocks(template.blocks);
+          const targetIndex = getTargetIndexForWorkspace(overId);
+          addTemplateBlocksAt(targetIndex, template.blocks);
         }
       }
       return;
     }
 
-    // Если перетаскиваем новый блок из панели
+    if (active.id.toString().startsWith('library-block-')) {
+      const libraryBlockId = active.data.current?.libraryBlockId as string;
+      if (libraryBlockId) {
+        const all = [...systemBlocks, ...communityBlocks, ...userBlocks];
+        const lib = all.find((b) => b.id === libraryBlockId);
+        if (!lib) return;
+
+        const overId = over.id.toString();
+        if (overId.startsWith('container-drop-zone-')) {
+          const parts = overId.replace('container-drop-zone-', '').split('-');
+          const containerId = parts.slice(0, -1).join('-');
+          const idxStr = parts[parts.length - 1];
+          const insertIndex = parseInt(idxStr, 10);
+          if (!Number.isNaN(insertIndex)) {
+            addTemplateToContainer(containerId, insertIndex, lib.blocks ?? []);
+          }
+        } else if (overId.startsWith('grid-cell-')) {
+          const parts = overId.replace('grid-cell-', '').split('-');
+          const gridId = parts.slice(0, -1).join('-');
+          const idxStr = parts[parts.length - 1];
+          const cellIndex = parseInt(idxStr, 10);
+          if (!Number.isNaN(cellIndex)) {
+            addTemplateToGridCell(gridId, cellIndex, lib.blocks ?? []);
+          }
+        } else if (overId === 'workspace-drop-zone' || blocks.length === 0 || overId.startsWith('workspace-drop-zone-')) {
+          const targetIndex = getTargetIndexForWorkspace(overId);
+          addTemplateBlocksAt(targetIndex, lib.blocks ?? []);
+        } else {
+          const targetIndex = getTargetIndexForWorkspace(overId);
+          addTemplateBlocksAt(targetIndex, lib.blocks ?? []);
+        }
+      }
+      return;
+    }
+
     if (active.id.toString().startsWith('new-block-')) {
       const blockType = active.data.current?.type as BlockType;
       if (!blockType) return;
 
       const overId = over.id.toString();
 
-      // Вставка внутрь контейнера
       if (overId.startsWith('container-drop-zone-')) {
         const parts = overId.replace('container-drop-zone-', '').split('-');
         const containerId = parts.slice(0, -1).join('-');
@@ -126,11 +179,9 @@ export const DndProvider = ({ children }: DndProviderProps) => {
           addBlockToGridCell(gridId, cellIndex, blockType);
         }
       } else {
-        // Добавляем блок в конец, затем перемещаем на нужную позицию
         addBlock(blockType);
 
-        // Определяем целевую позицию вставки
-        let targetIndex = blocks.length; // по умолчанию конец
+        let targetIndex = blocks.length;
 
         if (overId.startsWith('workspace-drop-zone-')) {
           const idxStr = overId.replace('workspace-drop-zone-', '');
@@ -139,14 +190,12 @@ export const DndProvider = ({ children }: DndProviderProps) => {
             targetIndex = parsed;
           }
         } else {
-          // Если навели на существующий блок — вставляем перед ним
           const foundIndex = useProjectStore.getState().project.blocks.findIndex((b) => b.id === overId);
           if (foundIndex >= 0) {
             targetIndex = foundIndex;
           }
         }
 
-        // Перемещаем только что добавленный блок (последний) на targetIndex
         const latestBlocks = useProjectStore.getState().project.blocks;
         const lastIndex = latestBlocks.length - 1;
         if (lastIndex >= 0) {
@@ -156,10 +205,8 @@ export const DndProvider = ({ children }: DndProviderProps) => {
       return;
     }
 
-    // Если перемещаем существующий блок
     if (over && active.id !== over.id && !active.id.toString().startsWith('new-block-') && !active.id.toString().startsWith('template-')) {
       const overId = over.id.toString();
-      // Перемещение nested-блока между ячейками сетки
       if (active.id.toString().startsWith('nested-block-') && overId.startsWith('grid-cell-')) {
         const activeData = active.data.current as { gridId: string; cellIndex: number } | undefined;
         if (activeData) {
@@ -171,10 +218,8 @@ export const DndProvider = ({ children }: DndProviderProps) => {
           }
         }
       } else {
-        // Перемещение верхнеуровневых блоков
         const oldIndex = blocks.findIndex((block) => block.id === active.id);
         let newIndex = blocks.findIndex((block) => block.id === over.id);
-        // Если сбрасываем на разделитель рабочей области (между блоками)
         if (newIndex === -1 && overId.startsWith('workspace-drop-zone-')) {
           const idxStr = overId.replace('workspace-drop-zone-', '');
           const parsed = parseInt(idxStr, 10);

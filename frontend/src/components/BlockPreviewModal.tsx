@@ -19,11 +19,11 @@ interface BlockPreviewModalProps {
 }
 
 export const BlockPreviewModal = ({ blockId, isOpen, onClose }: BlockPreviewModalProps) => {
-  const { systemBlocks, userBlocks } = useLibraryStore();
-  const { addTemplateBlocks } = useProjectStore();
+  const { systemBlocks, communityBlocks, userBlocks } = useLibraryStore();
+  const { addTemplateBlocks, project } = useProjectStore();
   const navigate = useNavigate();
 
-  const allBlocks = [...systemBlocks, ...userBlocks];
+  const allBlocks = [...systemBlocks, ...communityBlocks, ...userBlocks];
   const block = allBlocks.find((b) => b.id === blockId);
 
   if (!block) {
@@ -46,7 +46,14 @@ export const BlockPreviewModal = ({ blockId, isOpen, onClose }: BlockPreviewModa
       }}
     >
       <Dialog.Backdrop />
-      <Dialog.Content maxW="xl">
+      <Dialog.Positioner>
+        <Dialog.Content maxW="4xl" w="100%" maxH="80vh" overflowY="auto" p="6">
+          <Dialog.Title>
+            Предпросмотр блока
+          </Dialog.Title>
+          <Dialog.Description>
+            Ознакомьтесь с блоком и добавьте его в проект
+          </Dialog.Description>
         <Button
           variant="ghost"
           position="absolute"
@@ -83,19 +90,34 @@ export const BlockPreviewModal = ({ blockId, isOpen, onClose }: BlockPreviewModa
 
             <Box
               padding="24px"
-              backgroundColor="#f5f5f5"
-              borderRadius="8px"
+              backgroundColor="gray.50"
+              borderRadius="12px"
               border="1px solid"
               borderColor="gray.200"
             >
-              <Text mb="12px" fontWeight="medium" fontSize="14px">
-                Предпросмотр:
+              <Text mb="12px" fontWeight="medium" fontSize="14px" color="gray.700">
+                Предпросмотр
               </Text>
-              {block.blocks.map((b) => (
-                <Box key={b.id} mb="12px">
-                  <BlockRenderer block={b} isPreview={true} />
+              <Box display="flex" justifyContent="center">
+                <Box
+                  width={{ base: '100%', md: '860px' }}
+                  padding="16px"
+                  backgroundColor={project.theme.background}
+                  borderRadius="10px"
+                  border="1px solid"
+                  borderColor="gray.300"
+                  boxShadow="sm"
+                >
+                  {block.blocks.map((b, idx) => (
+                    <Box key={b.id} mb={idx !== block.blocks.length - 1 ? '16px' : 0}>
+                      <BlockRenderer block={b} isPreview={true} />
+                      {idx !== block.blocks.length - 1 && (
+                        <Box height="1px" backgroundColor="gray.200" my="16px" />
+                      )}
+                    </Box>
+                  ))}
                 </Box>
-              ))}
+              </Box>
             </Box>
 
             <HStack gap="12px" justify="flex-end">
@@ -108,7 +130,8 @@ export const BlockPreviewModal = ({ blockId, isOpen, onClose }: BlockPreviewModa
             </HStack>
           </VStack>
         </VStack>
-      </Dialog.Content>
+        </Dialog.Content>
+      </Dialog.Positioner>
     </Dialog.Root>
   );
 };

@@ -18,7 +18,10 @@ export interface GenerateLandingResponse {
   palette: ColorPalette;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+const API_BASE_URL =
+  import.meta.env.VITE_ML_API_BASE_URL ||
+  import.meta.env.VITE_API_BASE_URL ||
+  'http://localhost:3000';
 
 export async function generateLanding(
   request: GenerateLandingRequest

@@ -3,8 +3,12 @@ import { useDraggable } from '@dnd-kit/core';
 import { useState, useEffect } from 'react';
 import { useProjectStore } from '../store/useProjectStore';
 import { useTemplatesStore } from '../store/useTemplatesStore';
+import { useLayoutStore } from '../store/useLayoutStore';
 import { useFunctionsStore } from '../store/useFunctionsStore';
 import { TemplateCard } from './TemplateCard';
+import { useLibraryStore } from '../store/useLibraryStore';
+import { getCommunityBlocks, getUserBlocks, type LibraryBlock } from '../lib/api/library';
+import { BlockCard } from './BlockCard';
 import type { BlockType, TriggerType } from '../types';
 
 const blockTypes: { type: BlockType; label: string; icon: string }[] = [
@@ -74,8 +78,8 @@ const triggerLabels: Record<TriggerType, string> = {
 };
 
 export const BlocksPanel = () => {
-  const { project, updateTheme } = useProjectStore();
-  const { templates, loadFromLocalStorage, addTemplate } = useTemplatesStore();
+  const { project, updateTheme, addTemplateBlocks } = useProjectStore();
+  const { templates, loadFromLocalStorage, addTemplate, getTemplatesByCategory } = useTemplatesStore();
   const {
     functions,
     selectedFunctionId,
@@ -92,13 +96,50 @@ export const BlocksPanel = () => {
   const [templateName, setTemplateName] = useState('');
   const [templateDescription, setTemplateDescription] = useState('');
   const [selectedBlocks, setSelectedBlocks] = useState<string[]>([]);
-  const [activeTab, setActiveTab] = useState<'blocks' | 'templates' | 'theme' | 'logic'>('blocks');
+  const [activeTab, setActiveTab] = useState<'blocks' | 'library' | 'theme' | 'logic'>('blocks');
   const [editingName, setEditingName] = useState<string | null>(null);
   const [tempName, setTempName] = useState('');
+  const { blocksPanelWidth, setBlocksPanelWidth } = useLayoutStore();
+  const [isResizing, setIsResizing] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [startWidth, setStartWidth] = useState(0);
+  const { systemBlocks, communityBlocks, userBlocks, setSystemBlocks, setCommunityBlocks, setUserBlocks, setLoading, setError } = useLibraryStore();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeLibraryTab, setActiveLibraryTab] = useState<'system' | 'community' | 'user'>('system');
 
   useEffect(() => {
     loadFromLocalStorage();
     loadFunctions();
+    const loadLibrary = async () => {
+      setLoading(true);
+      try {
+        const templatesAll = getTemplatesByCategory();
+        const mapped: LibraryBlock[] = templatesAll.map((t) => ({
+          id: t.id,
+          name: t.name,
+          description: t.description,
+          category: t.category || 'other',
+          tags: [],
+          author: undefined,
+          preview: t.preview,
+          blocks: t.blocks,
+          isCustom: t.isCustom ?? false,
+          createdAt: t.createdAt,
+        }));
+        const [community, user] = await Promise.all([
+          getCommunityBlocks(),
+          getUserBlocks(),
+        ]);
+        setSystemBlocks(mapped);
+        setCommunityBlocks(community);
+        setUserBlocks(user);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Ошибка загрузки библиотеки');
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadLibrary();
   }, [loadFromLocalStorage, loadFunctions]);
 
   const handleSaveAsTemplate = () => {
@@ -124,13 +165,41 @@ export const BlocksPanel = () => {
 
   return (
     <Box
-      width="300px"
+      width={`${blocksPanelWidth}px`}
       height="100vh"
       backgroundColor="#f5f5f5"
       borderRight="1px solid #e0e0e0"
       display="flex"
       flexDirection="column"
+      position="relative"
     >
+      {/* Ресайзер справа */}
+      <Box
+        position="absolute"
+        right="-3px"
+        top={0}
+        height="100%"
+        width="6px"
+        cursor="col-resize"
+        backgroundColor={isResizing ? '#cde4ff' : 'transparent'}
+        _hover={{ backgroundColor: '#eaf3ff' }}
+        onMouseDown={(e) => {
+          setIsResizing(true);
+          setStartX(e.clientX);
+          setStartWidth(blocksPanelWidth);
+          const onMouseMove = (ev: MouseEvent) => {
+            const delta = ev.clientX - startX;
+            setBlocksPanelWidth(startWidth + delta);
+          };
+          const onMouseUp = () => {
+            setIsResizing(false);
+            window.removeEventListener('mousemove', onMouseMove);
+            window.removeEventListener('mouseup', onMouseUp);
+          };
+          window.addEventListener('mousemove', onMouseMove);
+          window.addEventListener('mouseup', onMouseUp);
+        }}
+      />
       {/* Вкладки */}
       <HStack gap={0} borderBottom="1px solid #e0e0e0">
         <Button
@@ -143,13 +212,13 @@ export const BlocksPanel = () => {
           Блоки
         </Button>
         <Button
-          variant={activeTab === 'templates' ? 'solid' : 'ghost'}
+          variant={activeTab === 'library' ? 'solid' : 'ghost'}
           borderRadius="0"
-          onClick={() => setActiveTab('templates')}
+          onClick={() => setActiveTab('library')}
           flex="1"
           fontSize="12px"
         >
-          Готовые
+          Библиотека
         </Button>
         <Button
           variant={activeTab === 'theme' ? 'solid' : 'ghost'}
@@ -185,29 +254,51 @@ export const BlocksPanel = () => {
           </>
         )}
 
-        {activeTab === 'templates' && (
-          <>
-            <HStack justify="space-between" marginBottom="20px">
-              <Text fontSize="18px" fontWeight="bold">
-                Готовые блоки
-              </Text>
-              <Button size="sm" onClick={onOpen}>
-                + Сохранить
-              </Button>
+        {activeTab === 'library' && (
+          <VStack gap="12px" align="stretch">
+            <Text fontSize="18px" fontWeight="bold">Библиотека блоков</Text>
+            <Input
+              placeholder="Поиск по названию, описанию или категории..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              size="sm"
+              backgroundColor="white"
+            />
+
+            <HStack gap="4px">
+              <Button size="xs" variant={activeLibraryTab === 'system' ? 'solid' : 'ghost'} onClick={() => setActiveLibraryTab('system')}>Системные ({systemBlocks.length})</Button>
+              <Button size="xs" variant={activeLibraryTab === 'community' ? 'solid' : 'ghost'} onClick={() => setActiveLibraryTab('community')}>Сообщество ({communityBlocks.length})</Button>
+              <Button size="xs" variant={activeLibraryTab === 'user' ? 'solid' : 'ghost'} onClick={() => setActiveLibraryTab('user')}>Мои ({userBlocks.length})</Button>
             </HStack>
 
-            {templates.length === 0 ? (
-              <Text fontSize="14px" color="#666" textAlign="center" padding="20px">
-                Нет готовых блоков
-              </Text>
-            ) : (
-              <SimpleGrid columns={1} gap="12px">
-                {templates.map((template) => (
-                  <TemplateCard key={template.id} template={template} showDeleteButton={true} />
-                ))}
-              </SimpleGrid>
-            )}
-          </>
+            {(() => {
+              const filter = (list: LibraryBlock[]) => list.filter((block) =>
+                block.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                block.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                block.category.toLowerCase().includes(searchQuery.toLowerCase())
+              );
+              const source = activeLibraryTab === 'system' ? filter(systemBlocks) : activeLibraryTab === 'community' ? filter(communityBlocks) : filter(userBlocks);
+              if (source.length === 0) {
+                return <Text fontSize="14px" color="#666" textAlign="center" padding="12px">Блоки не найдены</Text>;
+              }
+              return (
+                <SimpleGrid columns={1} gap="12px">
+                  {source.map((block) => (
+                    <BlockCard
+                      key={block.id}
+                      block={block}
+                      draggable
+                      onSelect={() => {
+                        if (block.blocks && block.blocks.length > 0) {
+                          addTemplateBlocks(block.blocks);
+                        }
+                      }}
+                    />
+                  ))}
+                </SimpleGrid>
+              );
+            })()}
+          </VStack>
         )}
 
         {activeTab === 'theme' && (

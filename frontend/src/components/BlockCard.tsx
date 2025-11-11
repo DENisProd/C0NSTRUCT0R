@@ -1,14 +1,33 @@
 import { Box, VStack, Text, Badge, Image, HStack } from '@chakra-ui/react';
+import { useDraggable } from '@dnd-kit/core';
 import type { LibraryBlock } from '../lib/api/library';
 
 interface BlockCardProps {
   block: LibraryBlock;
   onSelect: () => void;
+  draggable?: boolean;
 }
 
-export const BlockCard = ({ block, onSelect }: BlockCardProps) => {
+export const BlockCard = ({ block, onSelect, draggable = false }: BlockCardProps) => {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: `library-block-${block.id}`,
+    data: { libraryBlockId: block.id, type: 'library' },
+    disabled: !draggable,
+  });
+
+  const style = draggable && transform
+    ? {
+        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+        opacity: isDragging ? 0.6 : 1,
+      }
+    : undefined;
+
   return (
     <Box
+      ref={draggable ? setNodeRef : undefined}
+      style={style}
+      {...(draggable ? listeners : {})}
+      {...(draggable ? attributes : {})}
       as="button"
       onClick={onSelect}
       backgroundColor="white"
@@ -16,13 +35,14 @@ export const BlockCard = ({ block, onSelect }: BlockCardProps) => {
       padding="16px"
       border="1px solid"
       borderColor="gray.200"
-      cursor="pointer"
+      cursor={draggable ? 'grab' : 'pointer'}
       transition="all 0.2s"
       _hover={{
         borderColor: 'blue.500',
         boxShadow: 'md',
         transform: 'translateY(-2px)',
       }}
+      _active={draggable ? { cursor: 'grabbing' } : undefined}
       textAlign="left"
       width="100%"
     >

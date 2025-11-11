@@ -4,6 +4,8 @@ import { useState } from 'react';
 import type { GridBlock as GridBlockType, Block, GridCell } from '../../types';
 import { useProjectStore } from '../../store/useProjectStore';
 import { BlockRenderer } from './BlockRenderer';
+import { useResponsiveStore } from '../../store/useResponsiveStore';
+import { getStyleForBreakpoint } from '../../lib/responsiveUtils';
 
 interface GridBlockProps {
   block: GridBlockType;
@@ -11,7 +13,6 @@ interface GridBlockProps {
   isPreview: boolean;
 }
 
-// Убираем отдельный overlay: делаем всю ячейку зонами drop и подсвечиваем целиком
 
 const GridDragMonitor = ({ onChange }: { onChange: (dragging: boolean) => void }) => {
   useDndMonitor({
@@ -30,8 +31,11 @@ const GridDragMonitor = ({ onChange }: { onChange: (dragging: boolean) => void }
 
 export const GridBlock = ({ block, isSelected, isPreview }: GridBlockProps) => {
   const { selectBlock, project } = useProjectStore();
+  const { currentBreakpoint } = useResponsiveStore();
   const { columns, rows, gapX, gapY, align, justify, showCellBorders, cellBorderColor, cellBorderWidth } = block.settings;
   const [isDragging, setIsDragging] = useState(false);
+  
+  const responsiveStyle = getStyleForBreakpoint(block.style, currentBreakpoint);
 
   const handleClick = (e: React.MouseEvent) => {
     if (!isPreview) {
@@ -47,16 +51,23 @@ export const GridBlock = ({ block, isSelected, isPreview }: GridBlockProps) => {
       onClick={handleClick}
       style={{
         ...block.style,
+        padding: responsiveStyle.padding || block.style.padding,
+        margin: responsiveStyle.margin || block.style.margin,
+        width: responsiveStyle.width || block.style.width,
         boxShadow: isSelected && !isPreview ? `0 0 0 2px ${project.theme.accent}` : 'none',
       }}
-      borderRadius={block.style.borderRadius}
+      borderRadius={responsiveStyle.borderRadius || block.style.borderRadius}
       _hover={{ border: !isPreview ? '1px dashed #ccc' : 'none' }}
     >
       {!isPreview && <GridDragMonitor onChange={setIsDragging} />}
       <Box
         style={{
           display: 'grid',
-          gridTemplateColumns: `repeat(${columns}, 1fr)`,
+          gridTemplateColumns: currentBreakpoint === 'mobile' 
+            ? '1fr' 
+            : currentBreakpoint === 'tablet' 
+            ? `repeat(${Math.min(columns, 2)}, 1fr)`
+            : `repeat(${columns}, 1fr)`,
           gridTemplateRows: `repeat(${rows}, auto)`,
           columnGap: `${gapX}px`,
           rowGap: `${gapY}px`,
@@ -92,7 +103,6 @@ export const GridBlock = ({ block, isSelected, isPreview }: GridBlockProps) => {
                 borderRadius: '6px',
               }}
             >
-              {/* Индикатор номера ячейки */}
               <Box
                 position="absolute"
                 top="6px"

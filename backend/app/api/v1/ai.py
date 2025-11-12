@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from app.schemas.ai import GenerateLandingRequest, GenerateLandingResponse
-from app.services.llm_generator import MockLLMGenerator
+from app.services.llm_generator import MockLLMGenerator, LLMGenerator
 from app.services.block_render import BlockRenderService
 
 router = APIRouter()
@@ -10,19 +10,10 @@ router = APIRouter()
 async def generate_landing(request: GenerateLandingRequest):
     """
     Генерирует лендинг на основе промпта
-    
-    Принимает:
-    - prompt: описание лендинга
-    - categories: список категорий блоков (опционально)
-    
-    Возвращает:
-    - blocks: список блоков лендинга
-    - palette: цветовая палитра
-    - meta: метаданные генерации
     """
     try:
-        # Генерируем лендинг через mock LLM
-        result = MockLLMGenerator.generate_landing(
+        # Генерируем лендинг через LLM (Gemini, если настроен, иначе mock)
+        result = LLMGenerator.generate_landing(
             prompt=request.prompt,
             categories=request.categories or []
         )
@@ -40,7 +31,10 @@ async def generate_landing(request: GenerateLandingRequest):
             meta=result.meta
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Ошибка генерации лендинга: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Ошибка генерации лендинга: {str(e)}"
+        )
 
 
 @router.get("/supported-blocks")

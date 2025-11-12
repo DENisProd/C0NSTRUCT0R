@@ -12,7 +12,7 @@
 cd ./  # корень этого стека
 docker compose -f docker-compose.test.yml up -d --build
 # Фронт:  http://localhost:8080
-# Бэк WS: ws://localhost:8000
+# Бэк WS: ws://localhost:8000 
 ```
 Во фронте в форме подключения укажите `ws://localhost:8000` или оставьте по умолчанию.
 

@@ -15,4 +15,4 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 
 # Собираем статику
-RUN pnpm run build
+#RUN pnpm run build

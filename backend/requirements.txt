@@ -6,6 +6,7 @@ pydantic-settings==2.5.2
 python-dotenv==1.0.1
 python-multipart==0.0.12
 alembic==1.13.2
+google-genai>=0.6.0
 # Для разработки на SQLite драйвер PostgreSQL не требуется.
 # Если используете PostgreSQL локально, установите один из вариантов вручную:
 # - psycopg[binary]==3.*  (рекомендуется для SQLAlchemy: URL вида postgresql+psycopg://)

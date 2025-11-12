@@ -1,15 +1,19 @@
 """
 Скрипт для инициализации базы данных системными блоками
 """
-from app.core.database import SessionLocal, engine, Base
+import asyncio
+
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.database import Base, async_session_maker, engine
 from app.models.block import Block
 from app.models.palette import Palette
+from app.services.palette_generator import PaletteGenerator
 
 
-def init_system_blocks():
+async def init_system_blocks(session: AsyncSession):
     """Инициализирует системные блоки в БД"""
-    db = SessionLocal()
-    
     try:
         # Проверяем, есть ли уже системные блоки (без раннего возврата)
         # Будем добавлять недостающие блоки, избегая дубликатов по имени
@@ -522,39 +526,37 @@ def init_system_blocks():
         # Добавляем системные блоки, избегая дубликатов по имени
         added_count = 0
         for block_data in system_blocks:
-            exists = db.query(Block).filter(
-                Block.is_custom == False,
-                Block.name == block_data["name"]
-            ).first()
-            if exists:
+            exists_stmt = select(Block.id).where(
+                Block.is_custom.is_(False),
+                Block.name == block_data["name"],
+            )
+            result = await session.execute(exists_stmt)
+            if result.scalar_one_or_none():
                 continue
             block = Block(**block_data)
-            db.add(block)
+            session.add(block)
             added_count += 1
         
-        db.commit()
-        print(f"Добавлено {added_count} новых системных блоков")
+        await session.commit()
+        if added_count:
+            print(f"Добавлено {added_count} новых системных блоков")
+        else:
+            print("Системные блоки уже инициализированы")
         
     except Exception as e:
-        db.rollback()
+        await session.rollback()
         print(f"Ошибка при инициализации: {e}")
         raise
-    finally:
-        db.close()
 
 
-def init_preset_palettes():
+async def init_preset_palettes(session: AsyncSession):
     """Инициализирует предустановленные палитры"""
-    db = SessionLocal()
-    
     try:
-        # Проверяем, есть ли уже палитры
-        existing_palettes = db.query(Palette).filter(Palette.is_preset == True).count()
-        if existing_palettes > 0:
+        existing_stmt = select(func.count()).select_from(Palette).where(Palette.is_preset.is_(True))
+        result = await session.execute(existing_stmt)
+        if result.scalar_one() > 0:
             print("Предустановленные палитры уже инициализированы")
             return
-        
-        from app.services.palette_generator import PaletteGenerator
         
         preset_data = PaletteGenerator.get_preset_palettes()
         
@@ -568,28 +570,26 @@ def init_preset_palettes():
                 accent=palette_data["accent"],
                 surface=palette_data.get("surface"),
                 border=palette_data.get("border"),
-                is_preset=True
+                is_preset=True,
             )
-            db.add(palette)
+            session.add(palette)
         
-        db.commit()
+        await session.commit()
         print(f"Инициализировано {len(preset_data)} предустановленных палитр")
         
     except Exception as e:
-        db.rollback()
+        await session.rollback()
         print(f"Ошибка при инициализации палитр: {e}")
         raise
-    finally:
-        db.close()
 
 
 if __name__ == "__main__":
-    # Создаем таблицы
-    Base.metadata.create_all(bind=engine)
-    
-    # Инициализируем данные
-    init_system_blocks()
-    init_preset_palettes()
-    
-    print("Инициализация базы данных завершена!")
+    async def main():
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        async with async_session_maker() as session:
+            await init_system_blocks(session)
+            await init_preset_palettes(session)
+        print("Инициализация базы данных завершена!")
 
+    asyncio.run(main())

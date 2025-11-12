@@ -1,7 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from typing import List, Dict, Any
+from typing import Any, Dict, List
+
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.database import get_db
 from app.models.palette import Palette
 from app.schemas.palette import PaletteCreate, PaletteResponse, PaletteSchema
@@ -122,7 +124,7 @@ async def generate_palette(request: GeneratePaletteRequest):
 @router.post("/", response_model=PaletteResponse)
 async def create_palette(
     palette_data: PaletteCreate,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Создает новую палитру
@@ -143,8 +145,8 @@ async def create_palette(
     )
     
     db.add(new_palette)
-    db.commit()
-    db.refresh(new_palette)
+    await db.commit()
+    await db.refresh(new_palette)
     
     return PaletteResponse(
         id=new_palette.id,
@@ -160,6 +162,5 @@ async def create_palette(
         additional_colors=new_palette.additional_colors,
         description=new_palette.description,
         is_preset=new_palette.is_preset,
-        created_at=new_palette.created_at
+        created_at=new_palette.created_at,
     )
-

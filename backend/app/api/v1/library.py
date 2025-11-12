@@ -1,134 +1,18 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
 from typing import List, Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.database import get_db
 from app.models.block import Block
-from app.schemas.block import BlockCreate, BlockUpdate, BlockResponse
+from app.schemas.block import BlockCreate, BlockResponse, BlockUpdate
 from app.services.block_render import BlockRenderService
 
 router = APIRouter()
 
 
-@router.get("/blocks", response_model=List[BlockResponse])
-async def get_blocks(
-    category: Optional[str] = Query(None, description="Фильтр по категории"),
-    tags: Optional[str] = Query(None, description="Фильтр по тегам (через запятую)"),
-    author: Optional[str] = Query(None, description="Фильтр по автору"),
-    is_custom: Optional[bool] = Query(None, description="Фильтр пользовательских блоков"),
-    db: Session = Depends(get_db)
-):
-    """
-    Возвращает список системных и пользовательских блоков
-    
-    Поддерживает фильтрацию по:
-    - category: категория блока
-    - tags: теги (через запятую)
-    - author: автор блока
-    - is_custom: пользовательские блоки (true/false)
-    """
-    query = db.query(Block)
-    
-    # Применяем фильтры
-    if category:
-        query = query.filter(Block.category == category)
-    
-    if author:
-        query = query.filter(Block.author == author)
-    
-    if is_custom is not None:
-        query = query.filter(Block.is_custom == is_custom)
-    
-    if tags:
-        tag_list = [tag.strip() for tag in tags.split(",")]
-        # Фильтрация по тегам (теги хранятся в JSON)
-        # Для SQLite используем простую проверку
-        blocks = query.all()
-        filtered_blocks = []
-        for block in blocks:
-            if block.tags:
-                block_tags = block.tags if isinstance(block.tags, list) else []
-                if any(tag in block_tags for tag in tag_list):
-                    filtered_blocks.append(block)
-        blocks = filtered_blocks
-    else:
-        blocks = query.all()
-    
-    # Преобразуем в ответ
-    result = []
-    for block in blocks:
-        result.append(BlockResponse(
-            id=block.id,
-            name=block.name,
-            description=block.description,
-            category=block.category,
-            tags=block.tags if isinstance(block.tags, list) else [],
-            author=block.author,
-            preview=block.preview,
-            blocks=block.json_config if isinstance(block.json_config, list) else [],
-            is_custom=block.is_custom,
-            created_at=block.created_at
-        ))
-    
-    return result
-
-
-@router.get("/ready", response_model=List[BlockResponse])
-async def get_ready_blocks(
-    category: Optional[str] = Query(None, description="Фильтр по категории"),
-    tags: Optional[str] = Query(None, description="Фильтр по тегам (через запятую)"),
-    author: Optional[str] = Query(None, description="Фильтр по автору"),
-    db: Session = Depends(get_db)
-):
-    """
-    Возвращает список готовых (системных) блоков из БД
-    """
-    query = db.query(Block).filter(Block.is_custom == False)
-
-    if category:
-        query = query.filter(Block.category == category)
-    if author:
-        query = query.filter(Block.author == author)
-
-    if tags:
-        tag_list = [tag.strip() for tag in tags.split(",")]
-        blocks = query.all()
-        filtered_blocks = []
-        for block in blocks:
-            if block.tags:
-                block_tags = block.tags if isinstance(block.tags, list) else []
-                if any(tag in block_tags for tag in tag_list):
-                    filtered_blocks.append(block)
-        blocks = filtered_blocks
-    else:
-        blocks = query.all()
-
-    return [
-        BlockResponse(
-            id=b.id,
-            name=b.name,
-            description=b.description,
-            category=b.category,
-            tags=b.tags if isinstance(b.tags, list) else [],
-            author=b.author,
-            preview=b.preview,
-            blocks=b.json_config if isinstance(b.json_config, list) else [],
-            is_custom=b.is_custom,
-            created_at=b.created_at,
-        )
-        for b in blocks
-    ]
-
-
-@router.get("/block/{block_id}", response_model=BlockResponse)
-async def get_block(block_id: int, db: Session = Depends(get_db)):
-    """
-    Возвращает полные данные конкретного блока по ID
-    """
-    block = db.query(Block).filter(Block.id == block_id).first()
-    
-    if not block:
-        raise HTTPException(status_code=404, detail="Блок не найден")
-    
+def _to_response(block: Block) -> BlockResponse:
     return BlockResponse(
         id=block.id,
         name=block.name,
@@ -139,12 +23,91 @@ async def get_block(block_id: int, db: Session = Depends(get_db)):
         preview=block.preview,
         blocks=block.json_config if isinstance(block.json_config, list) else [],
         is_custom=block.is_custom,
-        created_at=block.created_at
+        created_at=block.created_at,
     )
 
 
+def _filter_by_tags(blocks: List[Block], tags: Optional[str]) -> List[Block]:
+    if not tags:
+        return blocks
+    tag_list = [tag.strip() for tag in tags.split(",") if tag.strip()]
+    if not tag_list:
+        return blocks
+    filtered: List[Block] = []
+    for block in blocks:
+        block_tags = block.tags if isinstance(block.tags, list) else []
+        if any(tag in block_tags for tag in tag_list):
+            filtered.append(block)
+    return filtered
+
+
+@router.get("/blocks", response_model=List[BlockResponse])
+async def get_blocks(
+    category: Optional[str] = Query(None, description="Фильтр по категории"),
+    tags: Optional[str] = Query(None, description="Фильтр по тегам (через запятую)"),
+    author: Optional[str] = Query(None, description="Фильтр по автору"),
+    is_custom: Optional[bool] = Query(None, description="Фильтр пользовательских блоков"),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Возвращает список системных и пользовательских блоков
+    
+    Поддерживает фильтрацию по:
+    - category: категория блока
+    - tags: теги (через запятую)
+    - author: автор блока
+    - is_custom: пользовательские блоки (true/false)
+    """
+    stmt = select(Block)
+    if category:
+        stmt = stmt.where(Block.category == category)
+    if author:
+        stmt = stmt.where(Block.author == author)
+    if is_custom is not None:
+        stmt = stmt.where(Block.is_custom == is_custom)
+
+    result = await db.execute(stmt)
+    blocks = _filter_by_tags(result.scalars().all(), tags)
+    return [_to_response(block) for block in blocks]
+
+
+@router.get("/ready", response_model=List[BlockResponse])
+async def get_ready_blocks(
+    category: Optional[str] = Query(None, description="Фильтр по категории"),
+    tags: Optional[str] = Query(None, description="Фильтр по тегам (через запятую)"),
+    author: Optional[str] = Query(None, description="Фильтр по автору"),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Возвращает список готовых (системных) блоков из БД
+    """
+    stmt = select(Block).where(Block.is_custom.is_(False))
+
+    if category:
+        stmt = stmt.where(Block.category == category)
+    if author:
+        stmt = stmt.where(Block.author == author)
+
+    result = await db.execute(stmt)
+    blocks = _filter_by_tags(result.scalars().all(), tags)
+    return [_to_response(block) for block in blocks]
+
+
+@router.get("/block/{block_id}", response_model=BlockResponse)
+async def get_block(block_id: int, db: AsyncSession = Depends(get_db)):
+    """
+    Возвращает полные данные конкретного блока по ID
+    """
+    block = await db.get(Block, block_id)
+    
+    if not block:
+        raise HTTPException(status_code=404, detail="Блок не найден")
+    
+    return _to_response(block)
+
+
 @router.post("/upload", response_model=BlockResponse)
-async def upload_block(block_data: BlockCreate, db: Session = Depends(get_db)):
+async def upload_block(block_data: BlockCreate, db: AsyncSession = Depends(get_db)):
     """
     Загружает пользовательский блок
     
@@ -179,25 +142,14 @@ async def upload_block(block_data: BlockCreate, db: Session = Depends(get_db)):
     )
     
     db.add(new_block)
-    db.commit()
-    db.refresh(new_block)
+    await db.commit()
+    await db.refresh(new_block)
     
-    return BlockResponse(
-        id=new_block.id,
-        name=new_block.name,
-        description=new_block.description,
-        category=new_block.category,
-        tags=new_block.tags if isinstance(new_block.tags, list) else [],
-        author=new_block.author,
-        preview=new_block.preview,
-        blocks=new_block.json_config if isinstance(new_block.json_config, list) else [],
-        is_custom=new_block.is_custom,
-        created_at=new_block.created_at
-    )
+    return _to_response(new_block)
 
 
 @router.post("/ready", response_model=BlockResponse)
-async def create_ready_block(block_data: BlockCreate, db: Session = Depends(get_db)):
+async def create_ready_block(block_data: BlockCreate, db: AsyncSession = Depends(get_db)):
     """
     Создает готовый (системный) блок на основе JSON-конфигурации
     """
@@ -221,33 +173,22 @@ async def create_ready_block(block_data: BlockCreate, db: Session = Depends(get_
     )
 
     db.add(new_block)
-    db.commit()
-    db.refresh(new_block)
+    await db.commit()
+    await db.refresh(new_block)
 
-    return BlockResponse(
-        id=new_block.id,
-        name=new_block.name,
-        description=new_block.description,
-        category=new_block.category,
-        tags=new_block.tags if isinstance(new_block.tags, list) else [],
-        author=new_block.author,
-        preview=new_block.preview,
-        blocks=new_block.json_config if isinstance(new_block.json_config, list) else [],
-        is_custom=new_block.is_custom,
-        created_at=new_block.created_at,
-    )
+    return _to_response(new_block)
 
 
 @router.put("/block/{block_id}", response_model=BlockResponse)
 async def update_block(
     block_id: int,
     block_data: BlockUpdate,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Обновляет пользовательский блок
     """
-    block = db.query(Block).filter(Block.id == block_id).first()
+    block = await db.get(Block, block_id)
     
     if not block:
         raise HTTPException(status_code=404, detail="Блок не найден")
@@ -276,29 +217,18 @@ async def update_block(
     if block_data.preview is not None:
         block.preview = block_data.preview
     
-    db.commit()
-    db.refresh(block)
+    await db.commit()
+    await db.refresh(block)
     
-    return BlockResponse(
-        id=block.id,
-        name=block.name,
-        description=block.description,
-        category=block.category,
-        tags=block.tags if isinstance(block.tags, list) else [],
-        author=block.author,
-        preview=block.preview,
-        blocks=block.json_config if isinstance(block.json_config, list) else [],
-        is_custom=block.is_custom,
-        created_at=block.created_at
-    )
+    return _to_response(block)
 
 
 @router.delete("/block/{block_id}")
-async def delete_block(block_id: int, db: Session = Depends(get_db)):
+async def delete_block(block_id: int, db: AsyncSession = Depends(get_db)):
     """
     Удаляет пользовательский блок
     """
-    block = db.query(Block).filter(Block.id == block_id).first()
+    block = await db.get(Block, block_id)
     
     if not block:
         raise HTTPException(status_code=404, detail="Блок не найден")
@@ -306,9 +236,7 @@ async def delete_block(block_id: int, db: Session = Depends(get_db)):
     if not block.is_custom:
         raise HTTPException(status_code=403, detail="Нельзя удалять системные блоки")
     
-    db.delete(block)
-    db.commit()
+    await db.delete(block)
+    await db.commit()
     
     return {"message": "Блок успешно удален"}
-
-

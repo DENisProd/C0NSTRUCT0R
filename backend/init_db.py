@@ -3,18 +3,26 @@
 Скрипт для инициализации базы данных
 Запуск: python init_db.py
 """
-from app.core.init_db import init_system_blocks, init_preset_palettes
-from app.core.database import Base, engine
+import asyncio
 
-if __name__ == "__main__":
+from app.core.database import Base, async_session_maker, engine
+from app.core.init_db import init_preset_palettes, init_system_blocks
+
+
+async def main() -> None:
     print("Создание таблиц...")
-    Base.metadata.create_all(bind=engine)
-    
-    print("Инициализация системных блоков...")
-    init_system_blocks()
-    
-    print("Инициализация предустановленных палитр...")
-    init_preset_palettes()
-    
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+    async with async_session_maker() as session:
+        print("Инициализация системных блоков...")
+        await init_system_blocks(session)
+
+        print("Инициализация предустановленных палитр...")
+        await init_preset_palettes(session)
+
     print("✅ Инициализация базы данных завершена!")
 
+
+if __name__ == "__main__":
+    asyncio.run(main())

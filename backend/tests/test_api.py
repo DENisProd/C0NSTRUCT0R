@@ -1,8 +1,17 @@
-from fastapi.testclient import TestClient
+import os
+import sys
+
 import anyio
 import pytest
+from fastapi.testclient import TestClient
 
-from app.main import app
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
+
+from main import app
+
+pytestmark = pytest.mark.anyio("asyncio")
 
 
 def build_block_payload(name: str = "Custom Block") -> dict:
@@ -36,7 +45,6 @@ def sample_palette_payload() -> dict:
     }
 
 
-@pytest.mark.anyio
 async def test_root_and_health(client):
     resp = await client.get("/")
     assert resp.status_code == 200
@@ -47,7 +55,6 @@ async def test_root_and_health(client):
     assert health.json()["status"] == "ok"
 
 
-@pytest.mark.anyio
 async def test_auth_flow(client):
     register_payload = {
         "username": "tester",
@@ -81,7 +88,6 @@ async def test_auth_flow(client):
     assert "access_token" in new_login.json()
 
 
-@pytest.mark.anyio
 async def test_library_crud_flow(client):
     list_resp = await client.get("/api/library/blocks")
     assert list_resp.status_code == 200
@@ -117,7 +123,6 @@ async def test_library_crud_flow(client):
     assert delete_resp.json()["message"] == "Блок успешно удален"
 
 
-@pytest.mark.anyio
 async def test_palette_endpoints(client):
     apply_resp = await client.post(
         "/api/palette/apply",
@@ -149,7 +154,6 @@ async def test_palette_endpoints(client):
     assert create_resp.json()["name"] == "Custom Palette"
 
 
-@pytest.mark.anyio
 async def test_ai_endpoints(client):
     generate_resp = await client.post(
         "/api/ai/generate-landing",
@@ -164,8 +168,7 @@ async def test_ai_endpoints(client):
     assert "blocks" in supported_resp.json()
 
 
-@pytest.mark.anyio
-async def test_websocket_room(reset_db):
+async def test_websocket_room():
     def run_ws_test():
         with TestClient(app) as ws_client:
             with ws_client.websocket_connect("/ws/rooms/demo?name=Tester") as websocket:

@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
@@ -16,9 +17,10 @@ async def lifespan(app: FastAPI):
     try:
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
-        async with async_session_maker() as session:
-            await init_system_blocks(session)
-            await init_preset_palettes(session)
+        if os.environ.get("SKIP_DATA_INIT") != "1":
+            async with async_session_maker() as session:
+                await init_system_blocks(session)
+                await init_preset_palettes(session)
     except Exception as e:
         print(f"Предупреждение: не удалось инициализировать системные данные: {e}")
     

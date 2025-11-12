@@ -1,13 +1,22 @@
-import asyncio
 import os
+import sys
 
 import pytest
 from asgi_lifespan import LifespanManager
-from httpx import AsyncClient
+from httpx import AsyncClient, ASGITransport
 
-os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///./test.db")
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
 
-from app.main import app  # noqa: E402
+os.environ.setdefault("SKIP_DATA_INIT", "1")
+os.environ.setdefault("SQLALCHEMY_NULLPOOL", "1")
+os.environ.setdefault(
+    "DATABASE_URL",
+    "postgresql+asyncpg://constructor:constructor@localhost:5432/constructor",
+)
+
+from main import app  # noqa: E402
 from app.core.database import Base, engine  # noqa: E402
 
 
@@ -17,21 +26,10 @@ async def _reset_database() -> None:
         await conn.run_sync(Base.metadata.create_all)
 
 
-@pytest.fixture(scope="session")
-def event_loop():
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
-
-
-@pytest.fixture(autouse=True)
-def reset_db(event_loop):
-    event_loop.run_until_complete(_reset_database())
-    yield
-
-
 @pytest.fixture
 async def client():
+    await _reset_database()
     async with LifespanManager(app):
-        async with AsyncClient(app=app, base_url="http://testserver") as ac:
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://testserver") as ac:
             yield ac

@@ -5,7 +5,11 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 
 from app.core.config import settings
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(
+    schemes=["bcrypt_sha256"],
+    deprecated="auto",
+    bcrypt_sha256__truncate_error=False,
+)
 
 
 def _get_token_lifetime() -> timedelta:

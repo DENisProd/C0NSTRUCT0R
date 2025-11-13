@@ -59,7 +59,8 @@ export const useProjectsStore = create<ProjectsStore>((set, get) => ({
           p.id === id
             ? {
                 ...p,
-                name: request.name ?? p.name,
+                name: request.title ?? p.name,
+                projectName: request.title ?? p.projectName,
                 updatedAt: new Date().toISOString(),
               }
             : p

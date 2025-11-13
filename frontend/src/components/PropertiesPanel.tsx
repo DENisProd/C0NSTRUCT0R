@@ -34,13 +34,20 @@ const getAvailableTriggers = (blockType: string): TriggerType[] => {
 };
 
 export const PropertiesPanel = () => {
-  const { project, selectedBlockId, updateBlock, updateHeader, updateFooter } = useProjectStore();
+  const { project, selectedBlockId, updateBlock, updateHeader, updateFooter, updateGridSettings, updateGridCellAlign, saveToLocalStorage } = useProjectStore();
   const { functions, addFunction } = useFunctionsStore();
   const { propertiesPanelWidth, setPropertiesPanelWidth } = useLayoutStore();
   const { currentBreakpoint } = useResponsiveStore();
   const [isResizing, setIsResizing] = useState(false);
   const [startX, setStartX] = useState(0);
   const [startWidth, setStartWidth] = useState(0);
+  const [isResponsiveOpen, setIsResponsiveOpen] = useState(false);
+  
+  // Обертка для updateBlock с автоматическим сохранением
+  const updateBlockAndSave = (id: string, updates: Parameters<typeof updateBlock>[1]) => {
+    updateBlock(id, updates);
+    saveToLocalStorage();
+  };
   
   const updateResponsiveProperty = <K extends keyof ResponsiveStyle>(
     blockId: string,
@@ -70,7 +77,7 @@ export const PropertiesPanel = () => {
       delete newResponsive[breakpoint];
     }
     
-    updateBlock(blockId, {
+    updateBlockAndSave(blockId, {
       style: {
         ...block.style,
         responsive: Object.keys(newResponsive).length > 0 ? newResponsive : undefined,
@@ -194,7 +201,10 @@ export const PropertiesPanel = () => {
             <Text marginBottom="5px">URL логотипа</Text>
             <Input
               value={project.header.logoUrl || ''}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateHeader({ logoUrl: e.target.value })}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                updateHeader({ logoUrl: e.target.value });
+                saveToLocalStorage();
+              }}
               placeholder="https://example.com/logo.png"
             />
           </Box>
@@ -202,7 +212,10 @@ export const PropertiesPanel = () => {
             <Text marginBottom="5px">Название компании</Text>
             <Input
               value={project.header.companyName || ''}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateHeader({ companyName: e.target.value })}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                updateHeader({ companyName: e.target.value });
+                saveToLocalStorage();
+              }}
               placeholder="Моя компания"
             />
           </Box>
@@ -211,7 +224,10 @@ export const PropertiesPanel = () => {
             <Input
               type="color"
               value={project.header.backgroundColor || '#ffffff'}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateHeader({ backgroundColor: e.target.value })}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                updateHeader({ backgroundColor: e.target.value });
+                saveToLocalStorage();
+              }}
             />
           </Box>
           <Box>
@@ -219,7 +235,10 @@ export const PropertiesPanel = () => {
             <Input
               type="color"
               value={project.header.textColor || '#000000'}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateHeader({ textColor: e.target.value })}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                updateHeader({ textColor: e.target.value });
+                saveToLocalStorage();
+              }}
             />
           </Box>
         </VStack>
@@ -231,7 +250,10 @@ export const PropertiesPanel = () => {
             <Text marginBottom="5px">Текст</Text>
             <Input
               value={project.footer.text}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateFooter({ text: e.target.value })}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                updateFooter({ text: e.target.value });
+                saveToLocalStorage();
+              }}
               placeholder="© 2025 My Landing"
             />
           </Box>
@@ -240,7 +262,10 @@ export const PropertiesPanel = () => {
             <Input
               type="color"
               value={project.footer.backgroundColor || '#f5f5f5'}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateFooter({ backgroundColor: e.target.value })}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                updateFooter({ backgroundColor: e.target.value });
+                saveToLocalStorage();
+              }}
             />
           </Box>
           <Box>
@@ -248,7 +273,10 @@ export const PropertiesPanel = () => {
             <Input
               type="color"
               value={project.footer.textColor || '#000000'}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateFooter({ textColor: e.target.value })}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                updateFooter({ textColor: e.target.value });
+                saveToLocalStorage();
+              }}
             />
           </Box>
         </VStack>
@@ -263,9 +291,10 @@ export const PropertiesPanel = () => {
                 <Input
                   type="number"
                   value={(selectedBlock as GridBlock).settings.columns}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    useProjectStore.getState().updateGridSettings(selectedBlock.id, { columns: parseInt(e.target.value || '1', 10) || 1 })
-                  }
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    updateGridSettings(selectedBlock.id, { columns: parseInt(e.target.value || '1', 10) || 1 });
+                    saveToLocalStorage();
+                  }}
                   min="1"
                 />
               </Box>
@@ -274,9 +303,10 @@ export const PropertiesPanel = () => {
                 <Input
                   type="number"
                   value={(selectedBlock as GridBlock).settings.rows}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    useProjectStore.getState().updateGridSettings(selectedBlock.id, { rows: parseInt(e.target.value || '1', 10) || 1 })
-                  }
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    updateGridSettings(selectedBlock.id, { rows: parseInt(e.target.value || '1', 10) || 1 });
+                    saveToLocalStorage();
+                  }}
                   min="1"
                 />
               </Box>
@@ -285,9 +315,10 @@ export const PropertiesPanel = () => {
                 <Input
                   type="number"
                   value={(selectedBlock as GridBlock).settings.gapX}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    useProjectStore.getState().updateGridSettings(selectedBlock.id, { gapX: parseInt(e.target.value || '0', 10) || 0 })
-                  }
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    updateGridSettings(selectedBlock.id, { gapX: parseInt(e.target.value || '0', 10) || 0 });
+                    saveToLocalStorage();
+                  }}
                   min="0"
                 />
               </Box>
@@ -296,9 +327,10 @@ export const PropertiesPanel = () => {
                 <Input
                   type="number"
                   value={(selectedBlock as GridBlock).settings.gapY}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    useProjectStore.getState().updateGridSettings(selectedBlock.id, { gapY: parseInt(e.target.value || '0', 10) || 0 })
-                  }
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    updateGridSettings(selectedBlock.id, { gapY: parseInt(e.target.value || '0', 10) || 0 });
+                    saveToLocalStorage();
+                  }}
                   min="0"
                 />
               </Box>
@@ -309,25 +341,30 @@ export const PropertiesPanel = () => {
                     <input
                       type="checkbox"
                       checked={(selectedBlock as GridBlock).settings.showCellBorders ?? false}
-                      onChange={(e) => useProjectStore.getState().updateGridSettings(selectedBlock.id, { showCellBorders: e.target.checked })}
+                      onChange={(e) => {
+                        updateGridSettings(selectedBlock.id, { showCellBorders: e.target.checked });
+                        saveToLocalStorage();
+                      }}
                     />
                     <span>Показывать</span>
                   </label>
                   <Input
                     type="color"
                     value={(selectedBlock as GridBlock).settings.cellBorderColor || '#e0e0e0'}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      useProjectStore.getState().updateGridSettings(selectedBlock.id, { cellBorderColor: e.target.value })
-                    }
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                      updateGridSettings(selectedBlock.id, { cellBorderColor: e.target.value });
+                      saveToLocalStorage();
+                    }}
                   />
                   <Input
                     type="number"
                     min="0"
                     width="80px"
                     value={String((selectedBlock as GridBlock).settings.cellBorderWidth ?? 1)}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      useProjectStore.getState().updateGridSettings(selectedBlock.id, { cellBorderWidth: parseInt(e.target.value || '1', 10) || 1 })
-                    }
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                      updateGridSettings(selectedBlock.id, { cellBorderWidth: parseInt(e.target.value || '1', 10) || 1 });
+                      saveToLocalStorage();
+                    }}
                   />
                 </HStack>
               </Box>
@@ -339,7 +376,7 @@ export const PropertiesPanel = () => {
               <select
                 value={selectedBlock.style.width || 'fit-content'}
                 onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                  updateBlock(selectedBlock.id, {
+                  updateBlockAndSave(selectedBlock.id, {
                     style: { ...selectedBlock.style, width: e.target.value },
                   })
                 }
@@ -363,7 +400,7 @@ export const PropertiesPanel = () => {
             <Input
               value={selectedBlock.htmlId || ''}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                updateBlock(selectedBlock.id, { htmlId: e.currentTarget.value.trim() || undefined })
+                updateBlockAndSave(selectedBlock.id, { htmlId: e.currentTarget.value.trim() || undefined })
               }
               placeholder="Например: hero-section"
             />
@@ -376,7 +413,7 @@ export const PropertiesPanel = () => {
             <Input
               value={selectedBlock.style.margin || ''}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                updateBlock(selectedBlock.id, {
+                updateBlockAndSave(selectedBlock.id, {
                   style: { ...selectedBlock.style, margin: e.target.value },
                 })
               }
@@ -388,7 +425,7 @@ export const PropertiesPanel = () => {
             <Input
               value={selectedBlock.style.padding || ''}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                updateBlock(selectedBlock.id, {
+                updateBlockAndSave(selectedBlock.id, {
                   style: { ...selectedBlock.style, padding: e.target.value },
                 })
               }
@@ -402,7 +439,7 @@ export const PropertiesPanel = () => {
                 type="number"
                 value={parseInt(selectedBlock.style.borderRadius || '0')}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  updateBlock(selectedBlock.id, {
+                  updateBlockAndSave(selectedBlock.id, {
                     style: { ...selectedBlock.style, borderRadius: `${e.target.value || '0'}px` },
                   })
                 }
@@ -415,7 +452,7 @@ export const PropertiesPanel = () => {
                     size="xs"
                     variant="outline"
                     onClick={() =>
-                      updateBlock(selectedBlock.id, {
+                      updateBlockAndSave(selectedBlock.id, {
                         style: { ...selectedBlock.style, borderRadius: `${val}px` },
                       })
                     }
@@ -432,7 +469,7 @@ export const PropertiesPanel = () => {
               type="color"
               value={selectedBlock.style.backgroundColor || '#ffffff'}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                updateBlock(selectedBlock.id, {
+                updateBlockAndSave(selectedBlock.id, {
                   style: { ...selectedBlock.style, backgroundColor: e.target.value },
                 })
               }
@@ -443,7 +480,7 @@ export const PropertiesPanel = () => {
             <select
               value={selectedBlock.style.textAlign || 'left'}
               onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                updateBlock(selectedBlock.id, {
+                updateBlockAndSave(selectedBlock.id, {
                   style: {
                     ...selectedBlock.style,
                     textAlign: e.target.value as 'left' | 'center' | 'right',
@@ -471,7 +508,7 @@ export const PropertiesPanel = () => {
                   type="color"
                   value={selectedBlock.style.color || '#000000'}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    updateBlock(selectedBlock.id, {
+                    updateBlockAndSave(selectedBlock.id, {
                       style: { ...selectedBlock.style, color: e.target.value },
                     })
                   }
@@ -482,7 +519,7 @@ export const PropertiesPanel = () => {
                 <Input
                   value={selectedBlock.style.fontSize || '16px'}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    updateBlock(selectedBlock.id, {
+                    updateBlockAndSave(selectedBlock.id, {
                       style: { ...selectedBlock.style, fontSize: e.target.value },
                     })
                   }
@@ -494,7 +531,7 @@ export const PropertiesPanel = () => {
                 <select
                   value={selectedBlock.style.fontWeight || 'normal'}
                   onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                    updateBlock(selectedBlock.id, {
+                    updateBlockAndSave(selectedBlock.id, {
                       style: {
                         ...selectedBlock.style,
                         fontWeight: e.target.value as 'normal' | 'bold',
@@ -521,7 +558,10 @@ export const PropertiesPanel = () => {
                 <Text marginBottom="5px">URL изображения</Text>
                 <Input
                   value={selectedBlock.url}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateBlock(selectedBlock.id, { url: e.target.value })}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    updateBlock(selectedBlock.id, { url: e.target.value });
+                    saveToLocalStorage();
+                  }}
                   placeholder="https://example.com/image.jpg"
                 />
               </Box>
@@ -531,7 +571,7 @@ export const PropertiesPanel = () => {
                   type="number"
                   value={parseInt(selectedBlock.style.width || '100')}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    updateBlock(selectedBlock.id, {
+                    updateBlockAndSave(selectedBlock.id, {
                       style: {
                         ...selectedBlock.style,
                         width: `${e.target.value}%`,
@@ -547,8 +587,6 @@ export const PropertiesPanel = () => {
 
           {(() => {
             if (!selectedBlock || selectedBlock.type === 'grid') return null;
-            const state = useProjectStore.getState();
-            const { project } = state;
             for (const b of project.blocks) {
               if (b.type === 'grid') {
                 const gb = b as GridBlock;
@@ -563,9 +601,10 @@ export const PropertiesPanel = () => {
                           <Text marginBottom="5px">Горизонталь</Text>
                           <select
                             value={cell.justify ?? 'start'}
-                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                              state.updateGridCellAlign(gb.id, idx, { justify: e.target.value as any })
-                            }
+                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                              updateGridCellAlign(gb.id, idx, { justify: e.target.value as any });
+                              saveToLocalStorage();
+                            }}
                           >
                             <option value="start">Слева</option>
                             <option value="center">По центру</option>
@@ -577,9 +616,10 @@ export const PropertiesPanel = () => {
                           <Text marginBottom="5px">Вертикаль</Text>
                           <select
                             value={cell.align ?? 'stretch'}
-                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                              state.updateGridCellAlign(gb.id, idx, { align: e.target.value as any })
-                            }
+                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                              updateGridCellAlign(gb.id, idx, { align: e.target.value as any });
+                              saveToLocalStorage();
+                            }}
                           >
                             <option value="start">Сверху</option>
                             <option value="center">По центру</option>
@@ -598,235 +638,229 @@ export const PropertiesPanel = () => {
 
       <Box borderTop="1px solid #e0e0e0" marginY="15px" />
           <Box>
-            <Text fontSize="16px" fontWeight="bold" marginBottom="12px">
-              📱 Адаптивность
-            </Text>
-            <Text fontSize="12px" color="#666" marginBottom="12px">
-              Настройте параметры для разных устройств. Текущий режим: <strong>{currentBreakpoint === 'desktop' ? 'Desktop' : currentBreakpoint === 'tablet' ? 'Tablet' : 'Mobile'}</strong>
-            </Text>
-            
-            {(['tablet', 'mobile'] as Breakpoint[]).map((breakpoint) => {
-              const breakpointLabel = breakpoint === 'tablet' ? '📱 Tablet' : '📱 Mobile';
-              const responsiveStyle = selectedBlock.style.responsive?.[breakpoint] || {};
-              
-              return (
-                <Box key={breakpoint} marginBottom="20px" padding="12px" backgroundColor="#f9f9f9" borderRadius="6px">
-                  <Text fontWeight="bold" marginBottom="10px" fontSize="14px">
-                    {breakpointLabel}
-                  </Text>
-                  
-                  {selectedBlock.type === 'text' && (
-                    <Box marginBottom="10px">
-                      <HStack justify="space-between" marginBottom="5px">
-                        <Text fontSize="13px">Размер шрифта</Text>
-                        {isDifferentFromDesktop(selectedBlock.style, breakpoint, 'fontSize') && (
-                          <Badge colorScheme="blue" fontSize="10px">Отличается</Badge>
-                        )}
-                      </HStack>
-                      <Input
-                        size="sm"
-                        value={responsiveStyle.fontSize || ''}
-                        onChange={(e) =>
-                          updateResponsiveProperty(selectedBlock.id, breakpoint, 'fontSize', e.target.value || undefined)
-                        }
-                        placeholder={selectedBlock.style.fontSize || '16px'}
-                      />
+            <HStack justify="space-between" width="100%" marginBottom="12px" cursor="pointer" onClick={() => setIsResponsiveOpen((v) => !v)}>
+              <Text fontSize="16px" fontWeight="bold">📱 Адаптивность</Text>
+              <Badge colorScheme="gray">{isResponsiveOpen ? 'скрыть' : 'раскрыть'}</Badge>
+            </HStack>
+            {isResponsiveOpen && (
+              <Box>
+                <Text fontSize="12px" color="#666" marginBottom="12px">
+                  Настройте параметры для разных устройств. Текущий режим: <strong>{currentBreakpoint === 'desktop' ? 'Desktop' : currentBreakpoint === 'tablet' ? 'Tablet' : 'Mobile'}</strong>
+                </Text>
+                {(['tablet', 'mobile'] as Breakpoint[]).map((breakpoint) => {
+                  const breakpointLabel = breakpoint === 'tablet' ? '📱 Tablet' : '📱 Mobile';
+                  const responsiveStyle = selectedBlock.style.responsive?.[breakpoint] || {};
+                  return (
+                    <Box key={breakpoint} marginBottom="20px" padding="12px" backgroundColor="#f9f9f9" borderRadius="6px">
+                      <Text fontWeight="bold" marginBottom="10px" fontSize="14px">
+                        {breakpointLabel}
+                      </Text>
+                      {selectedBlock.type === 'text' && (
+                        <Box marginBottom="10px">
+                          <HStack justify="space-between" marginBottom="5px">
+                            <Text fontSize="13px">Размер шрифта</Text>
+                            {isDifferentFromDesktop(selectedBlock.style, breakpoint, 'fontSize') && (
+                              <Badge colorScheme="blue" fontSize="10px">Отличается</Badge>
+                            )}
+                          </HStack>
+                          <Input
+                            size="sm"
+                            value={responsiveStyle.fontSize || ''}
+                            onChange={(e) =>
+                              updateResponsiveProperty(selectedBlock.id, breakpoint, 'fontSize', e.target.value || undefined)
+                            }
+                            placeholder={selectedBlock.style.fontSize || '16px'}
+                          />
+                        </Box>
+                      )}
+                      <Box marginBottom="10px">
+                        <HStack justify="space-between" marginBottom="5px">
+                          <Text fontSize="13px">Внутренний отступ</Text>
+                          {isDifferentFromDesktop(selectedBlock.style, breakpoint, 'padding') && (
+                            <Badge colorScheme="blue" fontSize="10px">Отличается</Badge>
+                          )}
+                        </HStack>
+                        <Input
+                          size="sm"
+                          value={responsiveStyle.padding || ''}
+                          onChange={(e) =>
+                            updateResponsiveProperty(selectedBlock.id, breakpoint, 'padding', e.target.value || undefined)
+                          }
+                          placeholder={selectedBlock.style.padding || '10px'}
+                        />
+                      </Box>
+                      <Box marginBottom="10px">
+                        <HStack justify="space-between" marginBottom="5px">
+                          <Text fontSize="13px">Внешний отступ</Text>
+                          {isDifferentFromDesktop(selectedBlock.style, breakpoint, 'margin') && (
+                            <Badge colorScheme="blue" fontSize="10px">Отличается</Badge>
+                          )}
+                        </HStack>
+                        <Input
+                          size="sm"
+                          value={responsiveStyle.margin || ''}
+                          onChange={(e) =>
+                            updateResponsiveProperty(selectedBlock.id, breakpoint, 'margin', e.target.value || undefined)
+                          }
+                          placeholder={selectedBlock.style.margin || '10px 0'}
+                        />
+                      </Box>
+                      <Box marginBottom="10px">
+                        <HStack justify="space-between" marginBottom="5px">
+                          <Text fontSize="13px">Ширина</Text>
+                          {isDifferentFromDesktop(selectedBlock.style, breakpoint, 'width') && (
+                            <Badge colorScheme="blue" fontSize="10px">Отличается</Badge>
+                          )}
+                        </HStack>
+                        <Input
+                          size="sm"
+                          value={responsiveStyle.width || ''}
+                          onChange={(e) =>
+                            updateResponsiveProperty(selectedBlock.id, breakpoint, 'width', e.target.value || undefined)
+                          }
+                          placeholder={selectedBlock.style.width || '100%'}
+                        />
+                      </Box>
+                      <Box marginBottom="10px">
+                        <HStack justify="space-between" marginBottom="5px">
+                          <Text fontSize="13px">Выравнивание</Text>
+                          {isDifferentFromDesktop(selectedBlock.style, breakpoint, 'textAlign') && (
+                            <Badge colorScheme="blue" fontSize="10px">Отличается</Badge>
+                          )}
+                        </HStack>
+                        <NativeSelect.Root size="sm">
+                          <NativeSelect.Field
+                            value={responsiveStyle.textAlign || selectedBlock.style.textAlign || 'left'}
+                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                              updateResponsiveProperty(
+                                selectedBlock.id,
+                                breakpoint,
+                                'textAlign',
+                                e.target.value !== selectedBlock.style.textAlign
+                                  ? (e.target.value as ResponsiveStyle['textAlign'])
+                                  : undefined
+                              )
+                            }
+                          >
+                            <option value="left">Слева</option>
+                            <option value="center">По центру</option>
+                            <option value="right">Справа</option>
+                          </NativeSelect.Field>
+                          <NativeSelect.Indicator />
+                        </NativeSelect.Root>
+                      </Box>
+                      {selectedBlock.type !== 'text' && (
+                        <Box marginBottom="10px">
+                          <HStack justify="space-between" marginBottom="5px">
+                            <Text fontSize="13px">Закругление углов</Text>
+                            {isDifferentFromDesktop(selectedBlock.style, breakpoint, 'borderRadius') && (
+                              <Badge colorScheme="blue" fontSize="10px">Отличается</Badge>
+                            )}
+                          </HStack>
+                          <Input
+                            size="sm"
+                            type="number"
+                            value={parseInt(responsiveStyle.borderRadius || selectedBlock.style.borderRadius || '0')}
+                            onChange={(e) =>
+                              updateResponsiveProperty(
+                                selectedBlock.id,
+                                breakpoint,
+                                'borderRadius',
+                                e.target.value !== (selectedBlock.style.borderRadius || '0') ? `${e.target.value}px` : undefined
+                              )
+                            }
+                            placeholder={selectedBlock.style.borderRadius || '0'}
+                          />
+                        </Box>
+                      )}
+                      {selectedBlock.type === 'container' && (
+                        <>
+                          <Box marginBottom="10px">
+                            <HStack justify="space-between" marginBottom="5px">
+                              <Text fontSize="13px">Направление размещения</Text>
+                              {isDifferentFromDesktop(selectedBlock.style, breakpoint, 'flexDirection') && (
+                                <Badge colorScheme="blue" fontSize="10px">Отличается</Badge>
+                              )}
+                            </HStack>
+                            <NativeSelect.Root size="sm">
+                              <NativeSelect.Field
+                                value={responsiveStyle.flexDirection || (breakpoint === 'mobile' ? 'column' : 'row') || 'row'}
+                                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                                  updateResponsiveProperty(
+                                    selectedBlock.id,
+                                    breakpoint,
+                                    'flexDirection',
+                                    e.target.value as ResponsiveStyle['flexDirection']
+                                  )
+                                }
+                              >
+                                <option value="row">Горизонтально (row)</option>
+                                <option value="column">Вертикально (column)</option>
+                                <option value="row-reverse">Горизонтально (обратный)</option>
+                                <option value="column-reverse">Вертикально (обратный)</option>
+                              </NativeSelect.Field>
+                              <NativeSelect.Indicator />
+                            </NativeSelect.Root>
+                          </Box>
+                          <Box marginBottom="10px">
+                            <HStack justify="space-between" marginBottom="5px">
+                              <Text fontSize="13px">Перенос элементов</Text>
+                              {isDifferentFromDesktop(selectedBlock.style, breakpoint, 'flexWrap') && (
+                                <Badge colorScheme="blue" fontSize="10px">Отличается</Badge>
+                              )}
+                            </HStack>
+                            <NativeSelect.Root size="sm">
+                              <NativeSelect.Field
+                                value={responsiveStyle.flexWrap || (breakpoint === 'mobile' ? 'wrap' : 'nowrap') || 'nowrap'}
+                                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                                  updateResponsiveProperty(
+                                    selectedBlock.id,
+                                    breakpoint,
+                                    'flexWrap',
+                                    e.target.value as ResponsiveStyle['flexWrap']
+                                  )
+                                }
+                              >
+                                <option value="nowrap">Без переноса</option>
+                                <option value="wrap">С переносом</option>
+                                <option value="wrap-reverse">С переносом (обратный)</option>
+                              </NativeSelect.Field>
+                              <NativeSelect.Indicator />
+                            </NativeSelect.Root>
+                          </Box>
+                          <Box marginBottom="10px">
+                            <HStack justify="space-between" marginBottom="5px">
+                              <Text fontSize="13px">Тип отображения</Text>
+                              {isDifferentFromDesktop(selectedBlock.style, breakpoint, 'display') && (
+                                <Badge colorScheme="blue" fontSize="10px">Отличается</Badge>
+                              )}
+                            </HStack>
+                            <NativeSelect.Root size="sm">
+                              <NativeSelect.Field
+                                value={responsiveStyle.display || 'block'}
+                                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                                  updateResponsiveProperty(
+                                    selectedBlock.id,
+                                    breakpoint,
+                                    'display',
+                                    e.target.value as ResponsiveStyle['display']
+                                  )
+                                }
+                              >
+                                <option value="block">Блок</option>
+                                <option value="flex">Flex</option>
+                                <option value="grid">Grid</option>
+                              </NativeSelect.Field>
+                              <NativeSelect.Indicator />
+                            </NativeSelect.Root>
+                          </Box>
+                        </>
+                      )}
                     </Box>
-                  )}
-                  
-                  <Box marginBottom="10px">
-                    <HStack justify="space-between" marginBottom="5px">
-                      <Text fontSize="13px">Внутренний отступ</Text>
-                      {isDifferentFromDesktop(selectedBlock.style, breakpoint, 'padding') && (
-                        <Badge colorScheme="blue" fontSize="10px">Отличается</Badge>
-                      )}
-                    </HStack>
-                    <Input
-                      size="sm"
-                      value={responsiveStyle.padding || ''}
-                      onChange={(e) =>
-                        updateResponsiveProperty(selectedBlock.id, breakpoint, 'padding', e.target.value || undefined)
-                      }
-                      placeholder={selectedBlock.style.padding || '10px'}
-                    />
-                  </Box>
-                  
-                  <Box marginBottom="10px">
-                    <HStack justify="space-between" marginBottom="5px">
-                      <Text fontSize="13px">Внешний отступ</Text>
-                      {isDifferentFromDesktop(selectedBlock.style, breakpoint, 'margin') && (
-                        <Badge colorScheme="blue" fontSize="10px">Отличается</Badge>
-                      )}
-                    </HStack>
-                    <Input
-                      size="sm"
-                      value={responsiveStyle.margin || ''}
-                      onChange={(e) =>
-                        updateResponsiveProperty(selectedBlock.id, breakpoint, 'margin', e.target.value || undefined)
-                      }
-                      placeholder={selectedBlock.style.margin || '10px 0'}
-                    />
-                  </Box>
-                  
-                  <Box marginBottom="10px">
-                    <HStack justify="space-between" marginBottom="5px">
-                      <Text fontSize="13px">Ширина</Text>
-                      {isDifferentFromDesktop(selectedBlock.style, breakpoint, 'width') && (
-                        <Badge colorScheme="blue" fontSize="10px">Отличается</Badge>
-                      )}
-                    </HStack>
-                    <Input
-                      size="sm"
-                      value={responsiveStyle.width || ''}
-                      onChange={(e) =>
-                        updateResponsiveProperty(selectedBlock.id, breakpoint, 'width', e.target.value || undefined)
-                      }
-                      placeholder={selectedBlock.style.width || '100%'}
-                    />
-                  </Box>
-                  
-                  <Box marginBottom="10px">
-                    <HStack justify="space-between" marginBottom="5px">
-                      <Text fontSize="13px">Выравнивание</Text>
-                      {isDifferentFromDesktop(selectedBlock.style, breakpoint, 'textAlign') && (
-                        <Badge colorScheme="blue" fontSize="10px">Отличается</Badge>
-                      )}
-                    </HStack>
-                    <NativeSelect.Root size="sm">
-                      <NativeSelect.Field
-                        value={responsiveStyle.textAlign || selectedBlock.style.textAlign || 'left'}
-                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                          updateResponsiveProperty(
-                            selectedBlock.id,
-                            breakpoint,
-                            'textAlign',
-                            e.target.value !== selectedBlock.style.textAlign
-                              ? (e.target.value as ResponsiveStyle['textAlign'])
-                              : undefined
-                          )
-                        }
-                      >
-                        <option value="left">Слева</option>
-                        <option value="center">По центру</option>
-                        <option value="right">Справа</option>
-                      </NativeSelect.Field>
-                      <NativeSelect.Indicator />
-                    </NativeSelect.Root>
-                  </Box>
-                  
-                  {selectedBlock.type !== 'text' && (
-                    <Box marginBottom="10px">
-                      <HStack justify="space-between" marginBottom="5px">
-                        <Text fontSize="13px">Закругление углов</Text>
-                        {isDifferentFromDesktop(selectedBlock.style, breakpoint, 'borderRadius') && (
-                          <Badge colorScheme="blue" fontSize="10px">Отличается</Badge>
-                        )}
-                      </HStack>
-                      <Input
-                        size="sm"
-                        type="number"
-                        value={parseInt(responsiveStyle.borderRadius || selectedBlock.style.borderRadius || '0')}
-                        onChange={(e) =>
-                          updateResponsiveProperty(
-                            selectedBlock.id,
-                            breakpoint,
-                            'borderRadius',
-                            e.target.value !== (selectedBlock.style.borderRadius || '0') ? `${e.target.value}px` : undefined
-                          )
-                        }
-                        placeholder={selectedBlock.style.borderRadius || '0'}
-                      />
-                    </Box>
-                  )}
-                  
-                  {selectedBlock.type === 'container' && (
-                    <>
-                      <Box marginBottom="10px">
-                        <HStack justify="space-between" marginBottom="5px">
-                          <Text fontSize="13px">Направление размещения</Text>
-                          {isDifferentFromDesktop(selectedBlock.style, breakpoint, 'flexDirection') && (
-                            <Badge colorScheme="blue" fontSize="10px">Отличается</Badge>
-                          )}
-                        </HStack>
-                        <NativeSelect.Root size="sm">
-                          <NativeSelect.Field
-                            value={responsiveStyle.flexDirection || (breakpoint === 'mobile' ? 'column' : 'row') || 'row'}
-                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                              updateResponsiveProperty(
-                                selectedBlock.id,
-                                breakpoint,
-                                'flexDirection',
-                                e.target.value as ResponsiveStyle['flexDirection']
-                              )
-                            }
-                          >
-                            <option value="row">Горизонтально (row)</option>
-                            <option value="column">Вертикально (column)</option>
-                            <option value="row-reverse">Горизонтально (обратный)</option>
-                            <option value="column-reverse">Вертикально (обратный)</option>
-                          </NativeSelect.Field>
-                          <NativeSelect.Indicator />
-                        </NativeSelect.Root>
-                      </Box>
-                      
-                      <Box marginBottom="10px">
-                        <HStack justify="space-between" marginBottom="5px">
-                          <Text fontSize="13px">Перенос элементов</Text>
-                          {isDifferentFromDesktop(selectedBlock.style, breakpoint, 'flexWrap') && (
-                            <Badge colorScheme="blue" fontSize="10px">Отличается</Badge>
-                          )}
-                        </HStack>
-                        <NativeSelect.Root size="sm">
-                          <NativeSelect.Field
-                            value={responsiveStyle.flexWrap || (breakpoint === 'mobile' ? 'wrap' : 'nowrap') || 'nowrap'}
-                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                              updateResponsiveProperty(
-                                selectedBlock.id,
-                                breakpoint,
-                                'flexWrap',
-                                e.target.value as ResponsiveStyle['flexWrap']
-                              )
-                            }
-                          >
-                            <option value="nowrap">Без переноса</option>
-                            <option value="wrap">С переносом</option>
-                            <option value="wrap-reverse">С переносом (обратный)</option>
-                          </NativeSelect.Field>
-                          <NativeSelect.Indicator />
-                        </NativeSelect.Root>
-                      </Box>
-                      
-                      <Box marginBottom="10px">
-                        <HStack justify="space-between" marginBottom="5px">
-                          <Text fontSize="13px">Тип отображения</Text>
-                          {isDifferentFromDesktop(selectedBlock.style, breakpoint, 'display') && (
-                            <Badge colorScheme="blue" fontSize="10px">Отличается</Badge>
-                          )}
-                        </HStack>
-                        <NativeSelect.Root size="sm">
-                          <NativeSelect.Field
-                            value={responsiveStyle.display || 'block'}
-                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                              updateResponsiveProperty(
-                                selectedBlock.id,
-                                breakpoint,
-                                'display',
-                                e.target.value as ResponsiveStyle['display']
-                              )
-                            }
-                          >
-                            <option value="block">Блок</option>
-                            <option value="flex">Flex</option>
-                            <option value="grid">Grid</option>
-                          </NativeSelect.Field>
-                          <NativeSelect.Indicator />
-                        </NativeSelect.Root>
-                      </Box>
-                    </>
-                  )}
-                </Box>
-              );
-            })}
+                  );
+                })}
+              </Box>
+            )}
           </Box>
 
           {selectedBlock && (
@@ -864,7 +898,7 @@ export const PropertiesPanel = () => {
                           if (!newEvents[trigger] || newEvents[trigger]!.length === 0) {
                             delete newEvents[trigger];
                           }
-                          updateBlock(selectedBlock.id, { events: newEvents });
+                          updateBlockAndSave(selectedBlock.id, { events: newEvents });
                         }}
                         style={{
                           padding: '8px',
@@ -907,7 +941,7 @@ export const PropertiesPanel = () => {
                                     if (!newEvents[trigger]) {
                                       delete newEvents[trigger];
                                     }
-                                    updateBlock(selectedBlock.id, { events: newEvents });
+                                    updateBlockAndSave(selectedBlock.id, { events: newEvents });
                                   }}
                                 >
                                   ✕
@@ -940,7 +974,10 @@ export const PropertiesPanel = () => {
                 <Text marginBottom="5px">Текст кнопки</Text>
                 <Input
                   value={selectedBlock.text}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateBlock(selectedBlock.id, { text: e.target.value })}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    updateBlock(selectedBlock.id, { text: e.target.value });
+                    saveToLocalStorage();
+                  }}
                   placeholder="Кнопка"
                 />
               </Box>
@@ -948,7 +985,10 @@ export const PropertiesPanel = () => {
                 <Text marginBottom="5px">Тип кнопки</Text>
                 <select
                   value={selectedBlock.variant || 'solid'}
-                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => updateBlock(selectedBlock.id, { variant: e.target.value as any })}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                    updateBlock(selectedBlock.id, { variant: e.target.value as any });
+                    saveToLocalStorage();
+                  }}
                 >
                   <option value="solid">Обычная</option>
                   <option value="radio">Радио</option>
@@ -959,7 +999,10 @@ export const PropertiesPanel = () => {
                 <Text marginBottom="5px">Ссылка</Text>
                 <Input
                   value={selectedBlock.link}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateBlock(selectedBlock.id, { link: e.target.value })}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    updateBlock(selectedBlock.id, { link: e.target.value });
+                    saveToLocalStorage();
+                  }}
                   placeholder="#"
                 />
               </Box>
@@ -968,7 +1011,10 @@ export const PropertiesPanel = () => {
                 <Input
                   type="color"
                   value={selectedBlock.buttonColor || project.theme.accent}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateBlock(selectedBlock.id, { buttonColor: e.target.value })}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    updateBlock(selectedBlock.id, { buttonColor: e.target.value });
+                    saveToLocalStorage();
+                  }}
                 />
               </Box>
             </>
@@ -980,7 +1026,10 @@ export const PropertiesPanel = () => {
                 <Text marginBottom="5px">YouTube URL</Text>
                 <Input
                   value={selectedBlock.url}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateBlock(selectedBlock.id, { url: e.target.value })}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    updateBlock(selectedBlock.id, { url: e.target.value });
+                    saveToLocalStorage();
+                  }}
                   placeholder="https://www.youtube.com/watch?v=..."
                 />
               </Box>
@@ -990,7 +1039,7 @@ export const PropertiesPanel = () => {
                   type="number"
                   value={parseInt(selectedBlock.style.width || '100')}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    updateBlock(selectedBlock.id, {
+                    updateBlockAndSave(selectedBlock.id, {
                       style: {
                         ...selectedBlock.style,
                         width: `${e.target.value}%`,

@@ -56,7 +56,13 @@ export const UserProjectsList = ({ onCreateClick }: UserProjectsListProps) => {
         <Text fontSize="20px" fontWeight="bold">
           Мои проекты ({projects.length})
         </Text>
-        <Button colorScheme="blue" size="sm" onClick={onCreateClick}>
+        <Button
+          size="sm"
+          onClick={onCreateClick}
+          backgroundColor="var(--app-accent)"
+          color="white"
+          _hover={{ backgroundColor: 'var(--app-accent)', opacity: 0.9 }}
+        >
           <HStack gap="6px">
             <Plus size={16} />
             <Box as="span">Создать проект</Box>
@@ -76,7 +82,12 @@ export const UserProjectsList = ({ onCreateClick }: UserProjectsListProps) => {
             <Text fontSize="16px" color="gray.600">
               У вас пока нет проектов
             </Text>
-            <Button colorScheme="blue" onClick={onCreateClick}>
+            <Button
+              onClick={onCreateClick}
+              backgroundColor="var(--app-accent)"
+              color="white"
+              _hover={{ backgroundColor: 'var(--app-accent)', opacity: 0.9 }}
+            >
               <HStack gap="6px">
                 <Plus size={16} />
                 <Box as="span">Создать первый проект</Box>

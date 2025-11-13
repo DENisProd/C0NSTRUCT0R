@@ -26,8 +26,8 @@ export const CreateProjectModal = ({ isOpen, onClose }: CreateProjectModalProps)
     setIsCreating(true);
     try {
       const newProject = await createProject({
-        name: projectName.trim(),
-        project: {
+        title: projectName.trim(),
+        data: {
           ...defaultProject,
           projectName: projectName.trim(),
         },
@@ -75,7 +75,13 @@ export const CreateProjectModal = ({ isOpen, onClose }: CreateProjectModalProps)
               <Button variant="outline" onClick={onClose} disabled={isCreating}>
                 Отмена
               </Button>
-              <Button colorScheme="blue" onClick={handleCreate} loading={isCreating}>
+              <Button
+                onClick={handleCreate}
+                loading={isCreating}
+                backgroundColor="var(--app-accent)"
+                color="white"
+                _hover={{ backgroundColor: 'var(--app-accent)', opacity: 0.9 }}
+              >
                 Создать
               </Button>
             </HStack>

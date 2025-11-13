@@ -13,9 +13,9 @@ export const UserInfoCard = ({ onEditClick }: UserInfoCardProps) => {
     return (
       <Box
         padding="24px"
-        backgroundColor="#ffffff"
+        backgroundColor="var(--app-surface)"
         borderRadius="8px"
-        border="1px solid #e0e0e0"
+        border="1px solid var(--app-border)"
         display="flex"
         justifyContent="center"
         alignItems="center"
@@ -30,11 +30,11 @@ export const UserInfoCard = ({ onEditClick }: UserInfoCardProps) => {
     return (
       <Box
         padding="24px"
-        backgroundColor="#ffffff"
+        backgroundColor="var(--app-surface)"
         borderRadius="8px"
-        border="1px solid #e0e0e0"
+        border="1px solid var(--app-border)"
       >
-        <Text color="gray.500">Профиль не загружен</Text>
+        <Text color="var(--app-text-muted)">Профиль не загружен</Text>
       </Box>
     );
   }
@@ -42,9 +42,9 @@ export const UserInfoCard = ({ onEditClick }: UserInfoCardProps) => {
   return (
     <Box
       padding="24px"
-      backgroundColor="#ffffff"
+      backgroundColor="var(--app-surface)"
       borderRadius="8px"
-      border="1px solid #e0e0e0"
+      border="1px solid var(--app-border)"
     >
       <VStack gap="16px" align="stretch">
         <HStack justifyContent="space-between" align="flex-start">
@@ -59,7 +59,7 @@ export const UserInfoCard = ({ onEditClick }: UserInfoCardProps) => {
               <Text fontSize="24px" fontWeight="bold">
                 {profile.username}
               </Text>
-              <Text fontSize="14px" color="gray.600">
+              <Text fontSize="14px" color="var(--app-text-muted)">
                 {profile.email}
               </Text>
             </VStack>
@@ -74,9 +74,9 @@ export const UserInfoCard = ({ onEditClick }: UserInfoCardProps) => {
           )}
         </HStack>
 
-        <HStack gap="24px" paddingTop="16px" borderTop="1px solid #e0e0e0">
+        <HStack gap="24px" paddingTop="16px" borderTop="1px solid var(--app-border)">
           <VStack align="flex-start" gap="4px">
-            <Text fontSize="12px" color="gray.600">
+            <Text fontSize="12px" color="var(--app-text-muted)">
               Проектов
             </Text>
             <Text fontSize="20px" fontWeight="bold">
@@ -84,7 +84,7 @@ export const UserInfoCard = ({ onEditClick }: UserInfoCardProps) => {
             </Text>
           </VStack>
           <VStack align="flex-start" gap="4px">
-            <Text fontSize="12px" color="gray.600">
+            <Text fontSize="12px" color="var(--app-text-muted)">
               Блоков
             </Text>
             <Text fontSize="20px" fontWeight="bold">
@@ -92,7 +92,7 @@ export const UserInfoCard = ({ onEditClick }: UserInfoCardProps) => {
             </Text>
           </VStack>
           <VStack align="flex-start" gap="4px">
-            <Text fontSize="12px" color="gray.600">
+            <Text fontSize="12px" color="var(--app-text-muted)">
               Участник с
             </Text>
             <Text fontSize="14px" fontWeight="medium">

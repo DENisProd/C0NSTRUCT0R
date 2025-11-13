@@ -8,13 +8,15 @@ import { UserBlocksList } from '../components/UserBlocksList';
 import { CreateProjectModal } from '../components/CreateProjectModal';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 export const ProfilePage = () => {
   const { profile, fetchProfile, isLoading: userLoading } = useUserStore();
   const { fetchProjects, isLoading: projectsLoading } = useProjectsStore();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const initialTab = new URLSearchParams(location.search).get('tab') || 'projects';
 
   useEffect(() => {
     fetchProfile();
@@ -40,12 +42,12 @@ export const ProfilePage = () => {
   return (
     <Box minHeight="100vh" display="flex" flexDirection="column">
       <Header />
-      <Box flex="1" backgroundColor="#f5f5f5" padding={{ base: '16px', md: '24px' }}>
+      <Box flex="1" backgroundColor="var(--app-bg-muted)" padding={{ base: '16px', md: '24px' }}>
         <Container maxWidth="1200px" paddingX={{ base: '8px', md: '16px' }}>
           <VStack gap={{ base: '16px', md: '24px' }} align="stretch">
             <UserInfoCard />
 
-            <Tabs.Root defaultValue="projects" variant="enclosed">
+            <Tabs.Root defaultValue={initialTab} variant="enclosed">
               <Tabs.List>
                 <Tabs.Trigger value="projects">Мои проекты</Tabs.Trigger>
                 <Tabs.Trigger value="blocks">Мои блоки</Tabs.Trigger>
@@ -53,9 +55,9 @@ export const ProfilePage = () => {
 
               <Box 
                 padding={{ base: '16px', md: '24px' }} 
-                backgroundColor="#ffffff" 
+                backgroundColor="var(--app-surface)" 
                 borderRadius="8px" 
-                border="1px solid #e0e0e0" 
+                border="1px solid var(--app-border)" 
                 marginTop="16px"
               >
                 <Tabs.Content value="projects">

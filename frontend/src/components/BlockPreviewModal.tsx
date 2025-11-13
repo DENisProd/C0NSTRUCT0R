@@ -20,7 +20,7 @@ interface BlockPreviewModalProps {
 
 export const BlockPreviewModal = ({ blockId, isOpen, onClose }: BlockPreviewModalProps) => {
   const { systemBlocks, communityBlocks, userBlocks } = useLibraryStore();
-  const { addTemplateBlocks, project } = useProjectStore();
+  const { addTemplateBlocks, project, currentProjectId } = useProjectStore();
   const navigate = useNavigate();
 
   const allBlocks = [...systemBlocks, ...communityBlocks, ...userBlocks];
@@ -34,7 +34,7 @@ export const BlockPreviewModal = ({ blockId, isOpen, onClose }: BlockPreviewModa
     if (block.blocks.length > 0) {
       addTemplateBlocks(block.blocks);
       onClose();
-      navigate('/editor');
+      navigate(currentProjectId ? `/editor/${currentProjectId}` : '/editor');
     }
   };
 
@@ -124,9 +124,14 @@ export const BlockPreviewModal = ({ blockId, isOpen, onClose }: BlockPreviewModa
               <Button variant="outline" onClick={onClose}>
                 Закрыть
               </Button>
-              <Button colorScheme="blue" onClick={handleAddToProject}>
-                Добавить в проект
-              </Button>
+          <Button
+            onClick={handleAddToProject}
+            backgroundColor="var(--app-accent)"
+            color="white"
+            _hover={{ backgroundColor: 'var(--app-accent)', opacity: 0.9 }}
+          >
+            Добавить в проект
+          </Button>
             </HStack>
           </VStack>
         </VStack>

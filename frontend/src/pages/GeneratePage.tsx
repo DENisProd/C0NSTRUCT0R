@@ -1,56 +1,19 @@
-import { useState, useEffect, useRef } from "react";
-import {
-  Box,
-  VStack,
-  Textarea,
-  Button,
-  Heading,
-  Text,
-  Spinner,
-  Alert,
-  HStack,
-  Badge,
-  Skeleton,
-} from "@chakra-ui/react";
-import { keyframes } from "@emotion/react";
-import { Brain, Sparkles, Info, AlertTriangle, ArrowLeft } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { generateLanding } from "../lib/api/generateLanding";
-import { useGenerateStore } from "../store/useGenerateStore";
-import { useProjectStore } from "../store/useProjectStore";
-import { useAuthStore } from "../store/useAuthStore";
-import { applyPaletteToProject } from "../lib/applyPalette";
-import { BlockRenderer } from "../components/blocks/BlockRenderer";
-
-const RAW_CATEGORIES = (import.meta as any).env?.VITE_BLOCK_CATEGORIES as
-  | string
-  | undefined;
-const DEFAULT_LABELS: Record<string, string> = {
-  hero: "Hero секция",
-  features: "Особенности",
-  testimonials: "Отзывы",
-  pricing: "Цены",
-  cta: "Призыв к действию",
-  about: "О нас",
-  contact: "Контакты",
-};
-const BLOCK_CATEGORIES = (
-  RAW_CATEGORIES
-    ? RAW_CATEGORIES.split(",")
-        .map((s) => s.trim())
-        .filter(Boolean)
-    : ["hero", "features", "testimonials", "pricing", "cta", "about", "contact"]
-).map((value) => ({ value, label: DEFAULT_LABELS[value] ?? value }));
-
-const pulse = keyframes`
-  0% { transform: scale(1); opacity: 0.5; }
-  50% { transform: scale(1.25); opacity: 1; }
-  100% { transform: scale(1); opacity: 0.5; }
-`;
+import { useState, useEffect, useRef } from 'react';
+import { Box, VStack, Heading, Text, HStack, Button } from '@chakra-ui/react';
+import { Brain, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { generateLanding } from '../lib/api/generateLanding';
+import { useGenerateStore } from '../store/useGenerateStore';
+import { useProjectStore } from '../store/useProjectStore';
+import { useAuthStore } from '../store/useAuthStore';
+import { applyPaletteToProject } from '../lib/applyPalette';
+import { GenerateForm } from '../components/generate/GenerateForm';
+import { GenerateLoading } from '../components/generate/GenerateLoading';
+import { GeneratePreview } from '../components/generate/GeneratePreview';
 
 export const GeneratePage = () => {
   const navigate = useNavigate();
-  const [prompt, setPrompt] = useState("");
+  const [prompt, setPrompt] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const {
     isLoading,
@@ -72,8 +35,8 @@ export const GeneratePage = () => {
     if (generatedBlocks.length > 0 && previewRef.current) {
       setTimeout(() => {
         previewRef.current?.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
+          behavior: 'smooth',
+          block: 'start',
         });
       }, 100);
     }
@@ -81,7 +44,7 @@ export const GeneratePage = () => {
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
-      setError("Введите описание лендинга");
+      setError('Введите описание лендинга');
       return;
     }
 
@@ -99,7 +62,7 @@ export const GeneratePage = () => {
 
       setGenerated(response);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Ошибка генерации");
+      setError(err instanceof Error ? err.message : 'Ошибка генерации');
     }
   };
 
@@ -117,7 +80,7 @@ export const GeneratePage = () => {
       clearGenerated();
 
       // Переходим в редактор
-      navigate("/editor");
+      navigate('/editor');
     }
   };
 
@@ -145,38 +108,11 @@ export const GeneratePage = () => {
             </HStack>
           </Button>
         </HStack>
-        {isLoading && generatedBlocks.length > 0 && (
-          <Box
-            position="fixed"
-            top={0}
-            left={0}
-            right={0}
-            bottom={0}
-            backgroundColor="rgba(0,0,0,0.25)"
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-            zIndex={1000}
-          >
-            <VStack
-              gap="12px"
-              backgroundColor="#fff"
-              padding="16px 20px"
-              borderRadius="12px"
-              boxShadow="md"
-            >
-              <HStack gap="10px" align="center">
-                <Spinner size="md" />
-                <Text>Генерация...</Text>
-              </HStack>
-              <HStack gap="8px">
-                <Box width="10px" height="10px" borderRadius="full" backgroundColor="blue.500" style={{ animation: `${pulse} 0.9s infinite` }} />
-                <Box width="10px" height="10px" borderRadius="full" backgroundColor="blue.500" style={{ animation: `${pulse} 0.9s infinite`, animationDelay: "0.2s" }} />
-                <Box width="10px" height="10px" borderRadius="full" backgroundColor="blue.500" style={{ animation: `${pulse} 0.9s infinite`, animationDelay: "0.4s" }} />
-              </HStack>
-            </VStack>
-          </Box>
+
+        {isLoading && (
+          <GenerateLoading hasGeneratedBlocks={generatedBlocks.length > 0} />
         )}
+
         <VStack gap="24px" align="stretch">
           <Heading size="xl" textAlign="center">
             <HStack gap="10px" justify="center" align="center">
@@ -190,244 +126,38 @@ export const GeneratePage = () => {
             вас
           </Text>
 
-          <VStack gap="16px" align="stretch">
-            <Box>
-              <Text mb="8px" fontWeight="medium">
-                Описание лендинга
-              </Text>
-              <Textarea
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                placeholder="Например: Создай лендинг для интернет-магазина электроники с hero-секцией, каталогом товаров и формой обратной связи"
-                minHeight="120px"
-                backgroundColor="white"
+          {generatedBlocks.length === 0 && (
+            <GenerateForm
+              prompt={prompt}
+              setPrompt={setPrompt}
+              selectedCategories={selectedCategories}
+              toggleCategory={toggleCategory}
+              error={error}
+              isLoading={isLoading}
+              onGenerate={handleGenerate}
+              onBackToEditor={() => navigate('/editor')}
+            />
+          )}
+
+          {isLoading && generatedBlocks.length === 0 && (
+            <GenerateLoading hasGeneratedBlocks={false} />
+          )}
+
+          {generatedBlocks.length > 0 && (
+            <Box ref={previewRef}>
+              <GeneratePreview
+                generatedBlocks={generatedBlocks}
+                generatedPalette={generatedPalette}
+                generatedMeta={generatedMeta}
+                projectTheme={project.theme}
+                isLoading={isLoading}
+                onRegenerate={handleRegenerate}
+                onAddToProject={handleAddToProject}
               />
             </Box>
-
-            <Box>
-              <Text mb="8px" fontWeight="medium">
-                Категории блоков (опционально)
-              </Text>
-              <HStack gap="8px" flexWrap="wrap">
-                {BLOCK_CATEGORIES.map((category) => (
-                  <Badge
-                    key={category.value}
-                    as="button"
-                    onClick={() => toggleCategory(category.value)}
-                    padding="8px 16px"
-                    borderRadius="full"
-                    cursor="pointer"
-                    backgroundColor={
-                      selectedCategories.includes(category.value)
-                        ? "blue.500"
-                        : "gray.200"
-                    }
-                    color={
-                      selectedCategories.includes(category.value)
-                        ? "white"
-                        : "gray.700"
-                    }
-                    _hover={{
-                      backgroundColor: selectedCategories.includes(
-                        category.value
-                      )
-                        ? "blue.600"
-                        : "gray.300",
-                    }}
-                  >
-                    {category.label}
-                  </Badge>
-                ))}
-              </HStack>
-            </Box>
-
-            {error && (
-              <Alert.Root status="error">
-                <Box as="span" marginRight="8px">
-                  <AlertTriangle size={16} />
-                </Box>
-                <Alert.Description>{error}</Alert.Description>
-              </Alert.Root>
-            )}
-
-            {generatedBlocks.length === 0 && (
-              <Button
-                onClick={handleGenerate}
-                loading={isLoading}
-                loadingText="Генерация..."
-                colorScheme="blue"
-                size="lg"
-                width="100%"
-                disabled={!prompt.trim() || isLoading}
-              >
-                Сгенерировать лендинг
-              </Button>
-            )}
-
-            {generatedBlocks.length === 0 && (
-              <Button
-                onClick={() => navigate("/editor")}
-                variant="outline"
-                size="md"
-                width="100%"
-              >
-                Вернуться в редактор
-              </Button>
-            )}
-
-            {isLoading && generatedBlocks.length === 0 && (
-              <VStack gap="24px" align="stretch" marginTop="32px">
-                <Box>
-                  <HStack gap="12px" align="center" marginBottom="8px">
-                    <Heading size="lg">
-                      <HStack gap="8px" align="center">
-                        <Sparkles size={22} />
-                        <Text as="span">Предпросмотр генерации</Text>
-                      </HStack>
-                    </Heading>
-                    <Badge colorScheme="blue" fontSize="sm" padding="4px 12px">
-                      Идёт генерация
-                    </Badge>
-                  </HStack>
-                  <Text color="gray.600">Строим блоки и палитру…</Text>
-                </Box>
-
-                <Box
-                  padding="24px"
-                  backgroundColor="white"
-                  borderRadius="12px"
-                  border="1px solid"
-                  borderColor="gray.200"
-                  boxShadow="sm"
-                >
-                  <Text mb="16px" fontWeight="medium" fontSize="14px" color="gray.700">
-                    Предпросмотр блоков
-                  </Text>
-                  <VStack gap="12px" align="stretch">
-                    <Skeleton height="24px" />
-                    <Skeleton height="180px" />
-                    <Skeleton height="48px" />
-                    <Skeleton height="160px" />
-                  </VStack>
-                </Box>
-              </VStack>
-            )}
-          </VStack>
-
-          {/* Превью сгенерированных блоков */}
-          {generatedBlocks.length > 0 && (
-            <VStack
-              gap="24px"
-              align="stretch"
-              marginTop="32px"
-              ref={previewRef}
-            >
-              <HStack gap="12px" justify="flex-end">
-                <Button
-                  variant="outline"
-                  onClick={handleRegenerate}
-                  disabled={isLoading}
-                >
-                  Сгенерировать заново
-                </Button>
-                <Button
-                  colorScheme="blue"
-                  onClick={handleAddToProject}
-                  disabled={isLoading}
-                >
-                  Добавить в проект
-                </Button>
-              </HStack>
-              <Box>
-                <HStack gap="12px" align="center" marginBottom="8px">
-                  <Heading size="lg">
-                    <HStack gap="8px" align="center">
-                      <Sparkles size={22} />
-                      <Text as="span">Результат генерации</Text>
-                    </HStack>
-                  </Heading>
-                  <Badge colorScheme="green" fontSize="sm" padding="4px 12px">
-                    {generatedBlocks.length}{" "}
-                    {generatedBlocks.length === 1 ? "блок" : "блоков"}
-                  </Badge>
-                </HStack>
-                <Text color="gray.600">
-                  Просмотрите сгенерированные блоки и добавьте их в проект
-                </Text>
-                {generatedMeta && (
-                  <Alert.Root
-                    status={
-                      generatedMeta.provider === "gemini" ? "info" : "warning"
-                    }
-                  >
-                    <Box as="span" marginRight="8px">
-                      <Info size={16} />
-                    </Box>
-                    <Alert.Description>
-                      {generatedMeta.provider === "gemini"
-                        ? `Источник: Gemini (${
-                            generatedMeta.model || "модель неизвестна"
-                          })`
-                        : "Фолбек: используется моковый генератор"}
-                      {generatedMeta.gemini_last_error
-                        ? ` — Ошибка Gemini: ${String(
-                            generatedMeta.gemini_last_error
-                          )}`
-                        : ""}
-                    </Alert.Description>
-                  </Alert.Root>
-                )}
-              </Box>
-
-              <Box
-                padding="24px"
-                backgroundColor="white"
-                borderRadius="12px"
-                border="1px solid"
-                borderColor="gray.200"
-                boxShadow="sm"
-              >
-                <Text
-                  mb="16px"
-                  fontWeight="medium"
-                  fontSize="14px"
-                  color="gray.700"
-                >
-                  Предпросмотр блоков
-                </Text>
-                <Box
-                  width="100%"
-                  padding="16px"
-                  backgroundColor={
-                    generatedPalette?.background || project.theme.background
-                  }
-                  borderRadius="10px"
-                  border="1px solid"
-                  borderColor="gray.300"
-                  boxShadow="sm"
-                >
-                  <VStack gap="16px" align="stretch">
-                    {generatedBlocks.map((block, idx) => (
-                      <Box key={block.id}>
-                        <BlockRenderer block={block} isPreview={true} />
-                        {idx !== generatedBlocks.length - 1 && (
-                          <Box
-                            height="1px"
-                            backgroundColor="gray.200"
-                            marginTop="16px"
-                          />
-                        )}
-                      </Box>
-                    ))}
-                  </VStack>
-                </Box>
-              </Box>
-            </VStack>
           )}
         </VStack>
       </Box>
     </Box>
   );
 };
-
-

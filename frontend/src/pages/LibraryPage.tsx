@@ -17,6 +17,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLibraryStore } from '../store/useLibraryStore';
 import { getUserBlocks, getCommunityBlocks, type LibraryBlock } from '../lib/api/library';
 import { useTemplatesStore } from '../store/useTemplatesStore';
+import { useProjectStore } from '../store/useProjectStore';
 import { BlockCard } from '../components/BlockCard';
 import { BlockPreviewModal } from '../components/BlockPreviewModal';
 
@@ -24,6 +25,7 @@ export const LibraryPage = () => {
   const navigate = useNavigate();
   const { systemBlocks, communityBlocks, userBlocks, isLoading, error, setSystemBlocks, setCommunityBlocks, setUserBlocks, setLoading, setError } = useLibraryStore();
   const { getTemplatesByCategory } = useTemplatesStore();
+  const { currentProjectId } = useProjectStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedBlock, setSelectedBlock] = useState<string | null>(null);
 
@@ -82,7 +84,7 @@ export const LibraryPage = () => {
   );
 
   return (
-    <Box minHeight="100vh" backgroundColor="#f5f5f5" padding="40px 20px">
+    <Box minHeight="100vh" backgroundColor="var(--app-bg-muted)" padding="40px 20px">
       <Box maxWidth="1400px" margin="0 auto">
         <VStack gap="24px" align="stretch">
           <HStack justify="space-between" align="center">
@@ -92,7 +94,12 @@ export const LibraryPage = () => {
                 <Text as="span">Библиотека блоков</Text>
               </HStack>
             </Heading>
-            <Button colorScheme="blue" onClick={() => navigate('/library/add')}>
+            <Button
+              onClick={() => navigate('/library/add')}
+              backgroundColor="var(--app-accent)"
+              color="white"
+              _hover={{ backgroundColor: 'var(--app-accent)', opacity: 0.9 }}
+            >
               <HStack gap="8px" align="center">
                 <Plus size={16} />
                 <Text as="span">Добавить блок</Text>
@@ -104,7 +111,7 @@ export const LibraryPage = () => {
             placeholder="Поиск по названию, описанию или категории..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            backgroundColor="white"
+            backgroundColor="var(--app-surface)"
             size="lg"
           />
 
@@ -169,9 +176,14 @@ export const LibraryPage = () => {
                     <Text textAlign="center" color="gray.500">
                       У вас пока нет пользовательских блоков
                     </Text>
-                    <Button colorScheme="blue" onClick={() => navigate('/library/add')}>
-                      Создать первый блок
-                    </Button>
+                <Button
+                  onClick={() => navigate('/library/add')}
+                  backgroundColor="var(--app-accent)"
+                  color="white"
+                  _hover={{ backgroundColor: 'var(--app-accent)', opacity: 0.9 }}
+                >
+                  Создать первый блок
+                </Button>
                   </VStack>
                 ) : (
                   <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} gap="16px">
@@ -188,7 +200,7 @@ export const LibraryPage = () => {
             </Tabs.Root>
           )}
 
-          <Button variant="outline" onClick={() => navigate('/editor')}>
+          <Button variant="outline" onClick={() => navigate(currentProjectId ? `/editor/${currentProjectId}` : '/editor')}>
             Вернуться в редактор
           </Button>
         </VStack>

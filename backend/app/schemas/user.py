@@ -40,3 +40,18 @@ class TokenResponse(BaseModel):
 
 class MessageResponse(BaseModel):
     detail: str
+
+
+class UserProfileUpdate(BaseModel):
+    nickname: Optional[str] = None
+    avatar_url: Optional[str] = None
+
+
+class UserProfileResponse(BaseModel):
+    id: int
+    username: str
+    email: EmailStr
+    nickname: Optional[str] = None
+    avatar_url: Optional[str] = None
+    projects_count: int
+    blocks_count: int

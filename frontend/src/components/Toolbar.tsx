@@ -1,30 +1,27 @@
-import { Box, HStack, Button, Input, NativeSelect, Menu } from '@chakra-ui/react';
-import { Brain, Monitor, Tablet, Smartphone, Save, Eye, Download, Upload, User } from 'lucide-react';
+import { Box, HStack, Button, Input, Popover, Text, VStack } from '@chakra-ui/react';
 import { useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useProjectStore } from '../store/useProjectStore';
 import { useFunctionsStore } from '../store/useFunctionsStore';
 import { useTemplatesStore } from '../store/useTemplatesStore';
-import { useResponsiveStore, type Breakpoint } from '../store/useResponsiveStore';
+import { useResponsiveStore } from '../store/useResponsiveStore';
+import { BreakpointSelector } from './toolbar/BreakpointSelector';
+import { ToolbarActions } from './toolbar/ToolbarActions';
+import { AIGenerateButton } from './toolbar/AIGenerateButton';
+import { exportProjectToJSON, importProjectFromJSON } from '../lib/projectImportExport';
+import { useWebSocketStore } from '../store/useWebSocketStore';
+import { Play } from 'lucide-react';
 
 export const Toolbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { project, saveToLocalStorage, setPreviewMode, isPreviewMode, setProject } =
+  const { project, setPreviewMode, isPreviewMode, setProject, saveToApi } =
     useProjectStore();
   const { functions, setFunctions } = useFunctionsStore();
   const { templates, importCustomTemplates } = useTemplatesStore();
   const { currentBreakpoint, setBreakpoint } = useResponsiveStore();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-
-  const breakpointIcon =
-    currentBreakpoint === 'desktop'
-      ? <Monitor size={16} />
-      : currentBreakpoint === 'tablet'
-        ? <Tablet size={16} />
-        : <Smartphone size={16} />;
-
-  const { saveToApi } = useProjectStore();
+  const { users, roomId, isConnected, disconnect } = useWebSocketStore();
 
   const handleSave = async () => {
     try {
@@ -32,11 +29,11 @@ export const Toolbar = () => {
       window.alert('Изменения сохранены');
     } catch (error) {
       console.error('Ошибка сохранения:', error);
-      window.alert('Не удалось сохранить изменения на сервер. Изменения сохранены локально.');
+      window.alert(
+        'Не удалось сохранить изменения на сервер. Изменения сохранены локально.'
+      );
     }
   };
-
-
 
   const handlePreview = () => {
     setPreviewMode(!isPreviewMode);
@@ -48,27 +45,9 @@ export const Toolbar = () => {
 
   const handleExportJSON = () => {
     try {
-      const customTemplates = (templates || []).filter((t) => t.isCustom);
-      const bundle = {
-        version: 1,
-        exportedAt: Date.now(),
-        project,
-        functions,
-        templates: customTemplates,
-      };
-      const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      const name = (project?.projectName || 'landing-project').replace(/\s+/g, '-').toLowerCase();
-      a.href = url;
-      a.download = `${name}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      exportProjectToJSON(project, functions, templates);
     } catch (error) {
-      console.error('Ошибка экспорта JSON:', error);
-      window.alert('Не удалось экспортировать проект в JSON');
+      window.alert(error instanceof Error ? error.message : 'Не удалось экспортировать проект в JSON');
     }
   };
 
@@ -76,15 +55,14 @@ export const Toolbar = () => {
     fileInputRef.current?.click();
   };
 
-  const handleImportJSON: React.ChangeEventHandler<HTMLInputElement> = async (e) => {
+  const handleImportJSON: React.ChangeEventHandler<HTMLInputElement> = async (
+    e
+  ) => {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      const text = await file.text();
-      const data = JSON.parse(text);
-      const importedProject = data?.project;
-      const importedFunctions = data?.functions || [];
-      const importedTemplates = data?.templates || [];
+      const { project: importedProject, functions: importedFunctions, templates: importedTemplates } =
+        await importProjectFromJSON(file);
 
       if (importedProject) {
         setProject(importedProject);
@@ -98,16 +76,17 @@ export const Toolbar = () => {
       window.alert('Проект успешно импортирован из JSON');
       e.target.value = '';
     } catch (error) {
-      console.error('Ошибка импорта JSON:', error);
-      window.alert('Не удалось импортировать проект из JSON');
+      window.alert(
+        error instanceof Error ? error.message : 'Не удалось импортировать проект из JSON'
+      );
     }
   };
 
   return (
     <Box
       height="60px"
-      backgroundColor="#ffffff"
-      borderBottom="1px solid #e0e0e0"
+      backgroundColor="var(--app-surface)"
+      borderBottom="1px solid var(--app-border)"
       padding="0 20px"
       display="flex"
       alignItems="center"
@@ -121,79 +100,79 @@ export const Toolbar = () => {
         border="none"
         width="auto"
         minWidth="200px"
-        _focus={{ border: '1px solid #007bff' }}
+        _focus={{ border: '1px solid var(--app-accent)' }}
       />
       <HStack gap="10px">
-        {location.pathname === '/editor' && (
+        {location.pathname.startsWith('/editor') && (
           <>
-            <Box>
-              <HStack gap="8px" align="center">
-                {breakpointIcon}
-                <NativeSelect.Root size="sm" width="140px" backgroundColor="#fff">
-                  <NativeSelect.Field
-                    value={currentBreakpoint}
-                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                      setBreakpoint(e.target.value as Breakpoint)
-                    }
-                  >
-                    <option value="desktop">Desktop</option>
-                    <option value="tablet">Tablet</option>
-                    <option value="mobile">Mobile</option>
-                  </NativeSelect.Field>
-                  <NativeSelect.Indicator />
-                </NativeSelect.Root>
-              </HStack>
-            </Box>
-            <Button onClick={() => navigate('/generate')} colorScheme="purple" size="sm">
+            <BreakpointSelector
+              currentBreakpoint={currentBreakpoint}
+              setBreakpoint={setBreakpoint}
+            />
+            <AIGenerateButton onClick={() => navigate('/generate')} />
+            <Button
+              onClick={handlePreview}
+              size="sm"
+              backgroundColor="var(--app-accent)"
+              color="white"
+              _hover={{ backgroundColor: 'var(--app-accent)', opacity: 0.9 }}
+            >
               <HStack gap="6px">
-                <Brain size={16} />
-                <Box as="span">Генерация AI</Box>
+                <Play size={16} />
               </HStack>
             </Button>
+            <Popover.Root>
+              <Popover.Trigger asChild>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  borderColor="var(--app-accent)"
+                  color="var(--app-accent)"
+                  _hover={{ borderColor: 'var(--app-accent)', backgroundColor: 'var(--app-hover)' }}
+                >
+                  <HStack gap="6px">
+                    <Box as="span">Участники ({users.length})</Box>
+                  </HStack>
+                </Button>
+              </Popover.Trigger>
+              <Popover.Positioner>
+                <Popover.Content padding="12px">
+                  <VStack gap="8px" align="stretch">
+                    <Text fontSize="12px" fontWeight="bold">Участники ({users.length}):</Text>
+                    <VStack gap="4px" align="stretch" maxHeight="200px" overflowY="auto">
+                      {users.map((user) => (
+                        <HStack key={user.id} gap="8px">
+                          <Box
+                            width="8px"
+                            height="8px"
+                            borderRadius="50%"
+                            backgroundColor="var(--app-accent)"
+                          />
+                          <Text fontSize="12px">{user.name}</Text>
+                        </HStack>
+                      ))}
+                    </VStack>
+                    <HStack gap="8px" justifyContent="flex-end">
+                      <Button size="sm" variant="outline">Закрыть</Button>
+                      <Button size="sm" colorScheme="red" onClick={() => { disconnect(); }}>Отключиться</Button>
+                    </HStack>
+                  </VStack>
+                </Popover.Content>
+              </Popover.Positioner>
+            </Popover.Root>
           </>
         )}
-        <Button onClick={handlePreview} colorScheme={isPreviewMode ? 'gray' : 'green'} size="sm">
-          <HStack gap="6px">
-            <Eye size={16} />
-            <Box as="span">{isPreviewMode ? 'Редактор' : 'Предпросмотр'}</Box>
-          </HStack>
-        </Button>
-        <Button onClick={() => navigate('/profile')} variant="outline" size="sm">
-          <HStack gap="6px">
-            <User size={16} />
-            <Box as="span">Профиль</Box>
-          </HStack>
-        </Button>
-        <Menu.Root>
-          <Menu.Trigger asChild>
-            <Button variant="outline" size="sm">Ещё</Button>
-          </Menu.Trigger>
-          <Menu.Positioner>
-            <Menu.Content>
-              <Menu.Item value="export_json" onClick={handleExportJSON}>
-                <HStack gap="6px">
-                  <Download size={16} />
-                  <Box as="span">Экспорт JSON</Box>
-                </HStack>
-              </Menu.Item>
-              <Menu.Item value="import_json" onClick={triggerImport}>
-                <HStack gap="6px">
-                  <Upload size={16} />
-                  <Box as="span">Импорт JSON</Box>
-                </HStack>
-              </Menu.Item>
-            </Menu.Content>
-          </Menu.Positioner>
-        </Menu.Root>
-        <Input
-          ref={fileInputRef}
-          type="file"
-          accept="application/json,.json"
-          display="none"
-          onChange={handleImportJSON}
+        <ToolbarActions
+          isPreviewMode={isPreviewMode}
+          onPreview={handlePreview}
+          onNavigateToProfile={() => navigate('/profile')}
+          onExportJSON={handleExportJSON}
+          onImportJSON={handleImportJSON}
+          fileInputRef={fileInputRef}
+          onTriggerImport={triggerImport}
         />
       </HStack>
+
     </Box>
   );
 };
-

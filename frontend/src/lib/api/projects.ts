@@ -1,4 +1,5 @@
 import type { Project } from '../../types';
+import { getUserProfile } from './user';
 
 const RAW_BASE = (import.meta as any).env?.VITE_API_BASE_URL || '';
 
@@ -27,17 +28,19 @@ export interface ProjectListItem {
   projectName: string;
   createdAt: string;
   updatedAt: string;
-  preview?: string;
+  preview?: string | null;
 }
 
 export interface CreateProjectRequest {
-  name: string;
-  project: Project;
+  title: string;
+  data: Project;
+  previewUrl?: string | null;
 }
 
 export interface UpdateProjectRequest {
-  name?: string;
-  project?: Project;
+  title?: string;
+  data?: Project;
+  previewUrl?: string | null;
 }
 
 function getAuthToken(): string | null {
@@ -56,7 +59,11 @@ function getAuthHeaders(): HeadersInit {
 }
 
 export async function getProjects(): Promise<ProjectListItem[]> {
-  const response = await fetch(`${API_BASE_URL}/api/projects`, {
+  const profile = await getUserProfile();
+  const url = new URL(`${API_BASE_URL}/api/projects`);
+  url.searchParams.set('userId', String(profile.id));
+
+  const response = await fetch(url.toString(), {
     method: 'GET',
     headers: getAuthHeaders(),
   });
@@ -73,11 +80,11 @@ export async function getProjects(): Promise<ProjectListItem[]> {
   const data = await response.json();
   return Array.isArray(data) ? data.map((item: any) => ({
     id: item.id,
-    name: item.name ?? item.project_name ?? item.projectName,
-    projectName: item.project_name ?? item.projectName ?? item.name,
-    createdAt: item.created_at ?? item.createdAt,
-    updatedAt: item.updated_at ?? item.updatedAt,
-    preview: item.preview,
+    name: item.title ?? item.name ?? item.projectName,
+    projectName: item.title ?? item.projectName ?? item.name,
+    createdAt: (item.created_at ?? item.createdAt ?? new Date().toISOString()),
+    updatedAt: (item.updated_at ?? item.updatedAt ?? new Date().toISOString()),
+    preview: item.preview_url ?? item.preview ?? null,
   })) : [];
 }
 
@@ -101,8 +108,9 @@ export async function createProject(request: CreateProjectRequest): Promise<Proj
     method: 'POST',
     headers: getAuthHeaders(),
     body: JSON.stringify({
-      name: request.name,
-      project: request.project,
+      title: request.title,
+      data: request.data,
+      preview_url: request.previewUrl ?? null,
     }),
   });
 
@@ -114,11 +122,11 @@ export async function createProject(request: CreateProjectRequest): Promise<Proj
   const data = await response.json();
   return {
     id: data.id,
-    name: data.name ?? data.project_name ?? data.projectName,
-    projectName: data.project_name ?? data.projectName ?? data.name,
-    createdAt: data.created_at ?? data.createdAt,
-    updatedAt: data.updated_at ?? data.updatedAt,
-    preview: data.preview,
+    name: data.title ?? data.projectName ?? data.name,
+    projectName: data.title ?? data.projectName ?? data.name,
+    createdAt: (data.created_at ?? data.createdAt ?? new Date().toISOString()),
+    updatedAt: (data.updated_at ?? data.updatedAt ?? new Date().toISOString()),
+    preview: data.preview_url ?? data.preview ?? null,
   };
 }
 
@@ -126,7 +134,11 @@ export async function updateProject(id: number, request: UpdateProjectRequest): 
   const response = await fetch(`${API_BASE_URL}/api/projects/${id}`, {
     method: 'PATCH',
     headers: getAuthHeaders(),
-    body: JSON.stringify(request),
+    body: JSON.stringify({
+      title: request.title,
+      data: request.data,
+      preview_url: request.previewUrl,
+    }),
   });
 
   if (!response.ok) {

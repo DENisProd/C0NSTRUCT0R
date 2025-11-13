@@ -63,11 +63,12 @@ export const GridBlock = ({ block, isSelected, isPreview }: GridBlockProps) => {
       <Box
         style={{
           display: 'grid',
-          gridTemplateColumns: currentBreakpoint === 'mobile' 
-            ? '1fr' 
-            : currentBreakpoint === 'tablet' 
-            ? `repeat(${Math.min(columns, 2)}, 1fr)`
-            : `repeat(${columns}, 1fr)`,
+          gridTemplateColumns:
+            currentBreakpoint === 'mobile'
+              ? '1fr'
+              : currentBreakpoint === 'tablet'
+              ? `repeat(${Math.min(columns, 2)}, 1fr)`
+              : `repeat(${columns}, 1fr)`,
           gridTemplateRows: `repeat(${rows}, auto)`,
           columnGap: `${gapX}px`,
           rowGap: `${gapY}px`,
@@ -75,60 +76,19 @@ export const GridBlock = ({ block, isSelected, isPreview }: GridBlockProps) => {
           justifyItems: justify ?? 'start',
         }}
       >
-        {block.cells.map((cell: GridCell, idx) => {
-          const cellId = `grid-cell-${block.id}-${idx}`;
-          const innerIsContainer = !!cell.block && (cell.block as Block).type === 'container';
-          const { setNodeRef, isOver } = useDroppable({ id: cellId, disabled: innerIsContainer });
-          return (
-            <Box
-              key={cellId}
-              ref={setNodeRef}
-              position="relative"
-              minHeight={!cell.block ? '56px' : undefined}
-              style={{
-                display: 'grid',
-                alignItems: cell.align ?? 'stretch',
-                justifyItems: cell.justify ?? 'start',
-                border: isOver
-                  ? `2px solid ${project.theme.accent}`
-                  : showCellBorders
-                  ? `${cellBorderWidth ?? 1}px solid ${cellBorderColor ?? '#e0e0e0'}`
-                  : 'none',
-                backgroundColor: isOver
-                  ? `${project.theme.accent}22`
-                  : isDragging && !innerIsContainer
-                  ? `${project.theme.accent}11`
-                  : 'transparent',
-                transition: 'all 0.15s ease',
-                borderRadius: '6px',
-              }}
-            >
-              <Box
-                position="absolute"
-                top="6px"
-                left="6px"
-                fontSize="11px"
-                color="#444"
-                backgroundColor="rgba(255,255,255,0.9)"
-                border="1px solid #ddd"
-                borderRadius="6px"
-                padding="2px 6px"
-                pointerEvents="none"
-                display={isDragging || isOver ? 'block' : 'none'}
-              >
-                #{idx + 1}
-              </Box>
-              {cell.block && (
-                <DraggableCellContent
-                  block={cell.block}
-                  gridId={block.id}
-                  cellIndex={idx}
-                  isPreview={isPreview}
-                />
-              )}
-            </Box>
-          );
-        })}
+        {block.cells.map((cell: GridCell, idx) => (
+          <GridCellView
+            key={`grid-cell-${block.id}-${idx}`}
+            parentId={block.id}
+            cell={cell}
+            idx={idx}
+            isPreview={isPreview}
+            isParentDragging={isDragging}
+            showCellBorders={showCellBorders}
+            cellBorderColor={cellBorderColor}
+            cellBorderWidth={cellBorderWidth}
+          />
+        ))}
       </Box>
     </Box>
   );
@@ -151,6 +111,79 @@ const DraggableCellContent = ({ block, gridId, cellIndex, isPreview }: { block: 
   return (
     <Box ref={setNodeRef} style={style} {...listeners} {...attributes} cursor={isPreview ? 'default' : 'grab'}>
       <BlockRenderer block={block} isPreview={isPreview} />
+    </Box>
+  );
+};
+const GridCellView = ({
+  parentId,
+  cell,
+  idx,
+  isPreview,
+  isParentDragging,
+  showCellBorders,
+  cellBorderColor,
+  cellBorderWidth,
+}: {
+  parentId: string;
+  cell: GridCell;
+  idx: number;
+  isPreview: boolean;
+  isParentDragging: boolean;
+  showCellBorders?: boolean;
+  cellBorderColor?: string;
+  cellBorderWidth?: number;
+}) => {
+  const { project } = useProjectStore();
+  const innerIsContainer = !!cell.block && (cell.block as Block).type === 'container';
+  const cellId = `grid-cell-${parentId}-${idx}`;
+  const { setNodeRef, isOver } = useDroppable({ id: cellId, disabled: innerIsContainer });
+
+  return (
+    <Box
+      ref={setNodeRef}
+      position="relative"
+      minHeight={!cell.block ? '56px' : undefined}
+      style={{
+        display: 'grid',
+        alignItems: cell.align ?? 'stretch',
+        justifyItems: cell.justify ?? 'start',
+        border: isOver
+          ? `2px solid ${project.theme.accent}`
+          : showCellBorders
+          ? `${cellBorderWidth ?? 1}px solid ${cellBorderColor ?? '#e0e0e0'}`
+          : 'none',
+        backgroundColor: isOver
+          ? `${project.theme.accent}22`
+          : isParentDragging && !innerIsContainer
+          ? `${project.theme.accent}11`
+          : 'transparent',
+        transition: 'all 0.15s ease',
+        borderRadius: '6px',
+      }}
+    >
+      <Box
+        position="absolute"
+        top="6px"
+        left="6px"
+        fontSize="11px"
+        color="#444"
+        backgroundColor="rgba(255,255,255,0.9)"
+        border="1px solid #ddd"
+        borderRadius="6px"
+        padding="2px 6px"
+        pointerEvents="none"
+        display={isParentDragging || isOver ? 'block' : 'none'}
+      >
+        #{idx + 1}
+      </Box>
+      {cell.block && (
+        <DraggableCellContent
+          block={cell.block}
+          gridId={parentId}
+          cellIndex={idx}
+          isPreview={isPreview}
+        />
+      )}
     </Box>
   );
 };

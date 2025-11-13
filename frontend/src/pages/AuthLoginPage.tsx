@@ -26,8 +26,13 @@ export const AuthLoginPage = () => {
     }
   };
 
+  const handleSubmit = (e: React.FormEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    if (!loading) submit();
+  };
+
   return (
-    <Box padding="20px">
+    <Box as="form" onSubmit={handleSubmit} padding="20px">
       <VStack gap="15px" align="stretch" maxWidth="420px" margin="0 auto">
         <Heading size="lg">Вход</Heading>
         {error && (
@@ -37,7 +42,7 @@ export const AuthLoginPage = () => {
         )}
         <Input placeholder="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
         <Input placeholder="Пароль" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-        <Button onClick={submit} disabled={loading}>
+        <Button type="submit" disabled={loading}>
           {loading ? 'Вход...' : 'Войти'}
         </Button>
         <Text>

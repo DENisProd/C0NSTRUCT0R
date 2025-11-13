@@ -13,6 +13,15 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  --app-bg-muted: #F4F6FA;
+  --app-surface: #ffffff;
+  --app-border: #DCDEE1;
+  --app-text-muted: #666666;
+  --app-accent: #4200FF;
+  --app-success: #00CE5F;
+  --app-hover: #eaf3ff;
+  --app-selected: #e3f2fd;
+  --app-resize: #cde4ff;
 }
 
 body {

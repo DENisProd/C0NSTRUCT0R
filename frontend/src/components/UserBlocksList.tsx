@@ -73,7 +73,13 @@ export const UserBlocksList = ({ onAddClick }: UserBlocksListProps) => {
           Мои блоки ({blocks.length})
         </Text>
         {onAddClick && (
-          <Button colorScheme="blue" size="sm" onClick={onAddClick}>
+          <Button
+            size="sm"
+            onClick={onAddClick}
+            backgroundColor="var(--app-accent)"
+            color="white"
+            _hover={{ backgroundColor: 'var(--app-accent)', opacity: 0.9 }}
+          >
             <HStack gap="6px">
               <Plus size={16} />
               <Box as="span">Добавить блок</Box>
@@ -95,7 +101,12 @@ export const UserBlocksList = ({ onAddClick }: UserBlocksListProps) => {
               У вас пока нет пользовательских блоков
             </Text>
             {onAddClick && (
-              <Button colorScheme="blue" onClick={onAddClick}>
+              <Button
+                onClick={onAddClick}
+                backgroundColor="var(--app-accent)"
+                color="white"
+                _hover={{ backgroundColor: 'var(--app-accent)', opacity: 0.9 }}
+              >
                 <HStack gap="6px">
                   <Plus size={16} />
                   <Box as="span">Создать первый блок</Box>

@@ -46,14 +46,14 @@ const DraggableBlockButton = ({ type, label, icon }: DraggableBlockButtonProps) 
       style={style}
       {...listeners}
       {...attributes}
-      backgroundColor="white"
+      backgroundColor="var(--app-surface)"
       color="black"
-      border="1px solid #e0e0e0"
+      border="1px solid var(--app-border)"
       justifyContent="flex-start"
       cursor="grab"
       _hover={{
-        backgroundColor: '#f0f0f0',
-        borderColor: '#007bff',
+        backgroundColor: 'var(--app-hover)',
+        borderColor: 'var(--app-accent)',
       }}
       _active={{
         cursor: 'grabbing',
@@ -168,8 +168,8 @@ export const BlocksPanel = () => {
     <Box
       width={`${blocksPanelWidth}px`}
       height="100vh"
-      backgroundColor="#f5f5f5"
-      borderRight="1px solid #e0e0e0"
+      backgroundColor="var(--app-bg-muted)"
+      borderRight="1px solid var(--app-border)"
       display="flex"
       flexDirection="column"
       position="relative"
@@ -181,8 +181,8 @@ export const BlocksPanel = () => {
         height="100%"
         width="6px"
         cursor="col-resize"
-        backgroundColor={isResizing ? '#cde4ff' : 'transparent'}
-        _hover={{ backgroundColor: '#eaf3ff' }}
+        backgroundColor={isResizing ? 'var(--app-resize)' : 'transparent'}
+        _hover={{ backgroundColor: 'var(--app-hover)' }}
         onMouseDown={(e) => {
           setIsResizing(true);
           setStartX(e.clientX);
@@ -200,13 +200,15 @@ export const BlocksPanel = () => {
           window.addEventListener('mouseup', onMouseUp);
         }}
       />
-      <HStack gap={0} borderBottom="1px solid #e0e0e0">
+      <HStack gap={0} borderBottom="1px solid var(--app-border)">
         <Button
           variant={activeTab === 'blocks' ? 'solid' : 'ghost'}
           borderRadius="0"
           onClick={() => setActiveTab('blocks')}
           flex="1"
           fontSize="12px"
+          backgroundColor={activeTab === 'blocks' ? 'var(--app-accent)' : 'transparent'}
+          color={activeTab === 'blocks' ? 'white' : 'inherit'}
         >
           <Layers size={16} />
         </Button>
@@ -216,6 +218,8 @@ export const BlocksPanel = () => {
           onClick={() => setActiveTab('library')}
           flex="1"
           fontSize="12px"
+          backgroundColor={activeTab === 'library' ? 'var(--app-accent)' : 'transparent'}
+          color={activeTab === 'library' ? 'white' : 'inherit'}
         >
           <LibraryIcon size={16} />
         </Button>
@@ -225,6 +229,8 @@ export const BlocksPanel = () => {
           onClick={() => setActiveTab('theme')}
           flex="1"
           fontSize="12px"
+          backgroundColor={activeTab === 'theme' ? 'var(--app-accent)' : 'transparent'}
+          color={activeTab === 'theme' ? 'white' : 'inherit'}
         >
           <Palette size={16} />
         </Button>
@@ -234,6 +240,8 @@ export const BlocksPanel = () => {
           onClick={() => setActiveTab('logic')}
           flex="1"
           fontSize="12px"
+          backgroundColor={activeTab === 'logic' ? 'var(--app-accent)' : 'transparent'}
+          color={activeTab === 'logic' ? 'white' : 'inherit'}
         >
           <Cpu size={16} />
         </Button>
@@ -284,7 +292,7 @@ export const BlocksPanel = () => {
               );
               const source = activeLibraryTab === 'system' ? filter(systemBlocks) : activeLibraryTab === 'community' ? filter(communityBlocks) : filter(userBlocks);
               if (source.length === 0) {
-                return <Text fontSize="14px" color="#666" textAlign="center" padding="12px">Блоки не найдены</Text>;
+                return <Text fontSize="14px" color="var(--app-text-muted)" textAlign="center" padding="12px">Блоки не найдены</Text>;
               }
               return (
                 <SimpleGrid columns={1} gap="12px">
@@ -372,7 +380,13 @@ export const BlocksPanel = () => {
               <Text fontSize="18px" fontWeight="bold">
                 Функции
               </Text>
-              <Button size="sm" colorScheme="blue" onClick={addFunction}>
+              <Button
+                size="sm"
+                onClick={addFunction}
+                backgroundColor="var(--app-accent)"
+                color="white"
+                _hover={{ backgroundColor: 'var(--app-accent)', opacity: 0.9 }}
+              >
                 + Создать
               </Button>
             </HStack>
@@ -386,13 +400,13 @@ export const BlocksPanel = () => {
                 {functions.map((fn) => (
                   <Box
                     key={fn.id}
-                    backgroundColor={selectedFunctionId === fn.id ? '#e3f2fd' : 'white'}
-                    border="1px solid #e0e0e0"
+                    backgroundColor={selectedFunctionId === fn.id ? 'var(--app-selected)' : 'var(--app-surface)'}
+                    border="1px solid var(--app-border)"
                     borderRadius="4px"
                     padding="12px"
                     cursor="pointer"
                     onClick={() => selectFunction(fn.id)}
-                    _hover={{ borderColor: '#007bff' }}
+                    _hover={{ borderColor: 'var(--app-accent)' }}
                   >
                     <VStack gap="8px" align="stretch">
                       {editingName === fn.id ? (

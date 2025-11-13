@@ -1,29 +1,29 @@
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+import os
+from collections.abc import AsyncGenerator
+
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
+from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.pool import NullPool
 
 from app.core.config import settings
 
-# Создаем движок БД
-engine = create_engine(
-    settings.DATABASE_URL,
-    connect_args={"check_same_thread": False} if "sqlite" in settings.DATABASE_URL else {},
-    echo=True,  # Логирование SQL запросов (для разработки)
-)
 
-# Сессия БД
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# Базовый класс для моделей
-Base = declarative_base()
+class Base(DeclarativeBase):
+    pass
 
 
-# Dependency для получения сессии БД
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+engine_options = {"echo": True, "future": True}
+if os.environ.get("SQLALCHEMY_NULLPOOL") == "1":
+    engine_options["poolclass"] = NullPool
+
+engine = create_async_engine(settings.DATABASE_URL, **engine_options)
+async_session_maker = async_sessionmaker(engine, expire_on_commit=False)
 
 
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
+    async with async_session_maker() as session:
+        yield session

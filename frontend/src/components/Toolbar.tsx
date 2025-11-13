@@ -1,5 +1,5 @@
 import { Box, HStack, Button, Input, NativeSelect, Menu } from '@chakra-ui/react';
-import { Brain, Monitor, Tablet, Smartphone, Save, Eye, Download, Upload } from 'lucide-react';
+import { Brain, Monitor, Tablet, Smartphone, Save, Eye, Download, Upload, User } from 'lucide-react';
 import { useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useProjectStore } from '../store/useProjectStore';
@@ -24,9 +24,16 @@ export const Toolbar = () => {
         ? <Tablet size={16} />
         : <Smartphone size={16} />;
 
-  const handleSave = () => {
-    saveToLocalStorage();
-    window.alert('Изменения сохранены');
+  const { saveToApi } = useProjectStore();
+
+  const handleSave = async () => {
+    try {
+      await saveToApi();
+      window.alert('Изменения сохранены');
+    } catch (error) {
+      console.error('Ошибка сохранения:', error);
+      window.alert('Не удалось сохранить изменения на сервер. Изменения сохранены локально.');
+    }
   };
 
 
@@ -151,8 +158,14 @@ export const Toolbar = () => {
             <Box as="span">{isPreviewMode ? 'Редактор' : 'Предпросмотр'}</Box>
           </HStack>
         </Button>
+        <Button onClick={() => navigate('/profile')} variant="outline" size="sm">
+          <HStack gap="6px">
+            <User size={16} />
+            <Box as="span">Профиль</Box>
+          </HStack>
+        </Button>
         <Menu.Root>
-          <Menu.Trigger>
+          <Menu.Trigger asChild>
             <Button variant="outline" size="sm">Ещё</Button>
           </Menu.Trigger>
           <Menu.Positioner>

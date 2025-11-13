@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { Box, Flex, ChakraProvider, defaultSystem } from '@chakra-ui/react';
 import { useProjectStore } from './store/useProjectStore';
 import { useTemplatesStore } from './store/useTemplatesStore';
@@ -19,10 +19,12 @@ import { AddBlockPage } from './pages/AddBlockPage';
 import { AuthLoginPage } from './pages/AuthLoginPage';
 import { AuthRegisterPage } from './pages/AuthRegisterPage';
 import { AuthChangePasswordPage } from './pages/AuthChangePasswordPage';
+import { ProfilePage } from './pages/ProfilePage';
 import { useAuthStore } from './store/useAuthStore';
 
 function EditorLayout() {
-  const { loadFromLocalStorage, isPreviewMode } = useProjectStore();
+  const { id } = useParams<{ id?: string }>();
+  const { loadFromLocalStorage, isPreviewMode, loadProjectFromApi, currentProjectId } = useProjectStore();
   const { loadFromLocalStorage: loadTemplates } = useTemplatesStore();
   const { loadFromLocalStorage: loadFunctions } = useFunctionsStore();
   
@@ -30,13 +32,21 @@ function EditorLayout() {
   useWebSocketSync();
 
   useEffect(() => {
-    // Загружаем проект из LocalStorage при старте
-    loadFromLocalStorage();
+    // Если есть ID в URL, загружаем проект с сервера
+    if (id) {
+      const projectId = parseInt(id, 10);
+      if (!isNaN(projectId)) {
+        loadProjectFromApi(projectId);
+      }
+    } else {
+      // Иначе загружаем из LocalStorage
+      loadFromLocalStorage();
+    }
     // Загружаем шаблоны из LocalStorage при старте
     loadTemplates();
     // Загружаем функции из LocalStorage при старте
     loadFunctions();
-  }, [loadFromLocalStorage, loadTemplates, loadFunctions]);
+  }, [id, loadFromLocalStorage, loadTemplates, loadFunctions, loadProjectFromApi]);
 
   if (isPreviewMode) {
     // Режим предпросмотра - только контент без панелей
@@ -83,6 +93,8 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/editor" element={<PrivateRoute><EditorLayout /></PrivateRoute>} />
+          <Route path="/editor/:id" element={<PrivateRoute><EditorLayout /></PrivateRoute>} />
+          <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
           <Route path="/generate" element={<GeneratePage />} />
           <Route path="/library" element={<LibraryPage />} />
           <Route path="/library/add" element={<AddBlockPage />} />

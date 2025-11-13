@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { Project, Block, BlockType, TextBlock, ImageBlock, ButtonBlock, VideoBlock, GridBlock, GridCell, Theme } from '../types';
 import { theme } from '../styles/theme';
+import { updateProject, getProject } from '../lib/api/projects';
 
 const STORAGE_KEY = 'landing-constructor-project';
 
@@ -40,9 +41,11 @@ type UpdatePayload =
     project: Project;
     selectedBlockId: string | null;
     isPreviewMode: boolean;
+    currentProjectId: number | null;
   
     // Actions
     setProject: (project: Project) => void;
+    setCurrentProjectId: (id: number | null) => void;
     addBlock: (type: BlockType) => void;
     addGrid: (columns: number, rows: number) => void;
     addBlockToContainer: (containerId: string, index: number, type: BlockType) => void;
@@ -67,14 +70,18 @@ type UpdatePayload =
   // Persistence
   saveToLocalStorage: () => void;
   loadFromLocalStorage: () => void;
+  saveToApi: () => Promise<void>;
+  loadProjectFromApi: (id: number) => Promise<void>;
 }
 
 export const useProjectStore = create<ProjectStore>((set, get) => ({
   project: defaultProject,
   selectedBlockId: null,
   isPreviewMode: false,
+  currentProjectId: null,
 
   setProject: (project) => set({ project }),
+  setCurrentProjectId: (id) => set({ currentProjectId: id }),
 
   addBlock: (type) => {
     const createNewBlock = (t: BlockType): Block => {
@@ -927,6 +934,53 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       console.error('Ошибка загрузки из LocalStorage:', error);
       // При ошибке создаём новый проект
       set({ project: defaultProject });
+    }
+  },
+
+  saveToApi: async () => {
+    const { project, currentProjectId } = get();
+    if (!currentProjectId) {
+      // Если нет ID проекта, сохраняем только в localStorage
+      get().saveToLocalStorage();
+      return;
+    }
+
+    try {
+      await updateProject(currentProjectId, {
+        name: project.projectName,
+        project,
+      });
+      // Также сохраняем в localStorage для офлайн-доступа
+      get().saveToLocalStorage();
+    } catch (error) {
+      console.error('Ошибка сохранения на сервер:', error);
+      // В случае ошибки сохраняем в localStorage
+      get().saveToLocalStorage();
+      throw error;
+    }
+  },
+
+  loadProjectFromApi: async (id: number) => {
+    try {
+      const project = await getProject(id);
+      set({
+        project: {
+          ...defaultProject,
+          ...project,
+          theme: {
+            ...defaultProject.theme,
+            ...(project as any).theme || {},
+          },
+        },
+        currentProjectId: id,
+      });
+      // Также сохраняем в localStorage для офлайн-доступа
+      get().saveToLocalStorage();
+    } catch (error) {
+      console.error('Ошибка загрузки проекта с сервера:', error);
+      // В случае ошибки загружаем из localStorage
+      get().loadFromLocalStorage();
+      throw error;
     }
   },
 }));

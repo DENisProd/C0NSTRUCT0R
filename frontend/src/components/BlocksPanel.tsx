@@ -5,25 +5,26 @@ import { useProjectStore } from '../store/useProjectStore';
 import { useTemplatesStore } from '../store/useTemplatesStore';
 import { useLayoutStore } from '../store/useLayoutStore';
 import { useFunctionsStore } from '../store/useFunctionsStore';
-import { TemplateCard } from './TemplateCard';
 import { useLibraryStore } from '../store/useLibraryStore';
 import { getCommunityBlocks, getUserBlocks, type LibraryBlock } from '../lib/api/library';
 import { BlockCard } from './BlockCard';
 import type { BlockType, TriggerType } from '../types';
+import { Text as TextIcon, Image as ImageIcon, MousePointerClick, Video as VideoIcon, Package, Grid3x3, Layers, Library as LibraryIcon, Palette, Cpu } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
-const blockTypes: { type: BlockType; label: string; icon: string }[] = [
-  { type: 'text', label: 'Текст', icon: '📝' },
-  { type: 'image', label: 'Изображение', icon: '🖼️' },
-  { type: 'button', label: 'Кнопка', icon: '🔘' },
-  { type: 'video', label: 'Видео', icon: '🎥' },
-  { type: 'container', label: 'Контейнер', icon: '📦' },
-  { type: 'grid', label: 'Сетка', icon: '🔳' },
+const blockTypes: { type: BlockType; label: string; icon: JSX.Element }[] = [
+  { type: 'text', label: 'Текст', icon: <TextIcon size={16} /> },
+  { type: 'image', label: 'Изображение', icon: <ImageIcon size={16} /> },
+  { type: 'button', label: 'Кнопка', icon: <MousePointerClick size={16} /> },
+  { type: 'video', label: 'Видео', icon: <VideoIcon size={16} /> },
+  { type: 'container', label: 'Контейнер', icon: <Package size={16} /> },
+  { type: 'grid', label: 'Сетка', icon: <Grid3x3 size={16} /> },
 ];
 
 interface DraggableBlockButtonProps {
   type: BlockType;
   label: string;
-  icon: string;
+  icon: JSX.Element;
 }
 
 const DraggableBlockButton = ({ type, label, icon }: DraggableBlockButtonProps) => {
@@ -79,7 +80,8 @@ const triggerLabels: Record<TriggerType, string> = {
 
 export const BlocksPanel = () => {
   const { project, updateTheme, addTemplateBlocks } = useProjectStore();
-  const { templates, loadFromLocalStorage, addTemplate, getTemplatesByCategory } = useTemplatesStore();
+  const { loadFromLocalStorage, addTemplate, getTemplatesByCategory } = useTemplatesStore();
+  const navigate = useNavigate();
   const {
     functions,
     selectedFunctionId,
@@ -91,7 +93,6 @@ export const BlocksPanel = () => {
     loadFromLocalStorage: loadFunctions,
   } = useFunctionsStore();
   const [isOpen, setIsOpen] = useState(false);
-  const onOpen = () => setIsOpen(true);
   const onClose = () => setIsOpen(false);
   const [templateName, setTemplateName] = useState('');
   const [templateDescription, setTemplateDescription] = useState('');
@@ -173,7 +174,6 @@ export const BlocksPanel = () => {
       flexDirection="column"
       position="relative"
     >
-      {/* Ресайзер справа */}
       <Box
         position="absolute"
         right="-3px"
@@ -200,7 +200,6 @@ export const BlocksPanel = () => {
           window.addEventListener('mouseup', onMouseUp);
         }}
       />
-      {/* Вкладки */}
       <HStack gap={0} borderBottom="1px solid #e0e0e0">
         <Button
           variant={activeTab === 'blocks' ? 'solid' : 'ghost'}
@@ -209,7 +208,7 @@ export const BlocksPanel = () => {
           flex="1"
           fontSize="12px"
         >
-          Блоки
+          <Layers size={16} />
         </Button>
         <Button
           variant={activeTab === 'library' ? 'solid' : 'ghost'}
@@ -218,7 +217,7 @@ export const BlocksPanel = () => {
           flex="1"
           fontSize="12px"
         >
-          Библиотека
+          <LibraryIcon size={16} />
         </Button>
         <Button
           variant={activeTab === 'theme' ? 'solid' : 'ghost'}
@@ -227,7 +226,7 @@ export const BlocksPanel = () => {
           flex="1"
           fontSize="12px"
         >
-          Тема
+          <Palette size={16} />
         </Button>
         <Button
           variant={activeTab === 'logic' ? 'solid' : 'ghost'}
@@ -236,7 +235,7 @@ export const BlocksPanel = () => {
           flex="1"
           fontSize="12px"
         >
-          Логика
+          <Cpu size={16} />
         </Button>
       </HStack>
 
@@ -257,6 +256,12 @@ export const BlocksPanel = () => {
         {activeTab === 'library' && (
           <VStack gap="12px" align="stretch">
             <Text fontSize="18px" fontWeight="bold">Библиотека блоков</Text>
+            <Button onClick={() => navigate('/library')} colorScheme="orange" size="sm">
+                          <HStack gap="6px">
+                            <span>📚</span>
+                            <Box as="span">Все</Box>
+                          </HStack>
+                        </Button>
             <Input
               placeholder="Поиск по названию, описанию или категории..."
               value={searchQuery}
@@ -390,7 +395,6 @@ export const BlocksPanel = () => {
                     _hover={{ borderColor: '#007bff' }}
                   >
                     <VStack gap="8px" align="stretch">
-                      {/* Название функции */}
                       {editingName === fn.id ? (
                         <HStack gap="4px">
                           <Input
@@ -462,7 +466,6 @@ export const BlocksPanel = () => {
                         </HStack>
                       )}
 
-                      {/* Триггер */}
                       <select
                         style={{
                           padding: '6px',
@@ -485,7 +488,6 @@ export const BlocksPanel = () => {
                         ))}
                       </select>
 
-                      {/* Привязка к блоку */}
                       <select
                         style={{
                           padding: '6px',
@@ -541,12 +543,10 @@ export const BlocksPanel = () => {
                         ))}
                       </select>
 
-                      {/* Информация */}
                       <Text fontSize="12px" color="#666">
                         Действий: {fn.actions.length} | Условий: {fn.conditions.length}
                       </Text>
 
-                      {/* Кнопки управления */}
                       <HStack gap="4px" justify="flex-end">
                         <Button
                           size="xs"

@@ -1,4 +1,5 @@
-import { Box, HStack, Button, Input, NativeSelect } from '@chakra-ui/react';
+import { Box, HStack, Button, Input, NativeSelect, Menu } from '@chakra-ui/react';
+import { Brain, Monitor, Tablet, Smartphone, Save, Eye, Download, Upload } from 'lucide-react';
 import { useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useProjectStore } from '../store/useProjectStore';
@@ -9,24 +10,26 @@ import { useResponsiveStore, type Breakpoint } from '../store/useResponsiveStore
 export const Toolbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { project, saveToLocalStorage, clearProject, setPreviewMode, isPreviewMode, setProject } =
+  const { project, saveToLocalStorage, setPreviewMode, isPreviewMode, setProject } =
     useProjectStore();
   const { functions, setFunctions } = useFunctionsStore();
   const { templates, importCustomTemplates } = useTemplatesStore();
   const { currentBreakpoint, setBreakpoint } = useResponsiveStore();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  const breakpointIcon =
+    currentBreakpoint === 'desktop'
+      ? <Monitor size={16} />
+      : currentBreakpoint === 'tablet'
+        ? <Tablet size={16} />
+        : <Smartphone size={16} />;
+
   const handleSave = () => {
     saveToLocalStorage();
     window.alert('Изменения сохранены');
   };
 
-  const handleClear = () => {
-    if (window.confirm('Вы уверены, что хотите очистить проект?')) {
-      clearProject();
-      window.alert('Проект очищен');
-    }
-  };
+
 
   const handlePreview = () => {
     setPreviewMode(!isPreviewMode);
@@ -116,59 +119,59 @@ export const Toolbar = () => {
       <HStack gap="10px">
         {location.pathname === '/editor' && (
           <>
+            <Box>
+              <HStack gap="8px" align="center">
+                {breakpointIcon}
+                <NativeSelect.Root size="sm" width="140px" backgroundColor="#fff">
+                  <NativeSelect.Field
+                    value={currentBreakpoint}
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                      setBreakpoint(e.target.value as Breakpoint)
+                    }
+                  >
+                    <option value="desktop">Desktop</option>
+                    <option value="tablet">Tablet</option>
+                    <option value="mobile">Mobile</option>
+                  </NativeSelect.Field>
+                  <NativeSelect.Indicator />
+                </NativeSelect.Root>
+              </HStack>
+            </Box>
             <Button onClick={() => navigate('/generate')} colorScheme="purple" size="sm">
               <HStack gap="6px">
-                <span>🧠</span>
+                <Brain size={16} />
                 <Box as="span">Генерация AI</Box>
               </HStack>
             </Button>
-            <Button onClick={() => navigate('/library')} colorScheme="orange" size="sm">
-              <HStack gap="6px">
-                <span>📚</span>
-                <Box as="span">Библиотека</Box>
-              </HStack>
-            </Button>
-            <Box>
-              <NativeSelect.Root size="sm" width="140px" backgroundColor="#fff">
-                <NativeSelect.Field
-                  value={currentBreakpoint}
-                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                    setBreakpoint(e.target.value as Breakpoint)
-                  }
-                >
-                  <option value="desktop">🖥 Desktop</option>
-                  <option value="tablet">📱 Tablet</option>
-                  <option value="mobile">📱 Mobile</option>
-                </NativeSelect.Field>
-                <NativeSelect.Indicator />
-              </NativeSelect.Root>
-            </Box>
           </>
         )}
-        <Button onClick={handleSave} colorScheme="blue" size="sm">
-          <HStack gap="6px">
-            <span>💾</span>
-            <Box as="span">Сохранить</Box>
-          </HStack>
-        </Button>
         <Button onClick={handlePreview} colorScheme={isPreviewMode ? 'gray' : 'green'} size="sm">
           <HStack gap="6px">
-            <span>👁</span>
+            <Eye size={16} />
             <Box as="span">{isPreviewMode ? 'Редактор' : 'Предпросмотр'}</Box>
           </HStack>
         </Button>
-        <Button onClick={handleExportJSON} colorScheme="blue" size="sm">
-          <HStack gap="6px">
-            <span>⬇️</span>
-            <Box as="span">Экспорт JSON</Box>
-          </HStack>
-        </Button>
-        <Button onClick={triggerImport} colorScheme="teal" size="sm">
-          <HStack gap="6px">
-            <span>⬆️</span>
-            <Box as="span">Импорт JSON</Box>
-          </HStack>
-        </Button>
+        <Menu.Root>
+          <Menu.Trigger>
+            <Button variant="outline" size="sm">Ещё</Button>
+          </Menu.Trigger>
+          <Menu.Positioner>
+            <Menu.Content>
+              <Menu.Item value="export_json" onClick={handleExportJSON}>
+                <HStack gap="6px">
+                  <Download size={16} />
+                  <Box as="span">Экспорт JSON</Box>
+                </HStack>
+              </Menu.Item>
+              <Menu.Item value="import_json" onClick={triggerImport}>
+                <HStack gap="6px">
+                  <Upload size={16} />
+                  <Box as="span">Импорт JSON</Box>
+                </HStack>
+              </Menu.Item>
+            </Menu.Content>
+          </Menu.Positioner>
+        </Menu.Root>
         <Input
           ref={fileInputRef}
           type="file"
@@ -176,12 +179,6 @@ export const Toolbar = () => {
           display="none"
           onChange={handleImportJSON}
         />
-        <Button onClick={handleClear} colorScheme="red" size="sm">
-          <HStack gap="6px">
-            <span>🧹</span>
-            <Box as="span">Очистить</Box>
-          </HStack>
-        </Button>
       </HStack>
     </Box>
   );

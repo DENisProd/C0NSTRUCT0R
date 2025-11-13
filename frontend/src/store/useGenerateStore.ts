@@ -7,6 +7,7 @@ interface GenerateStore {
   error: string | null;
   generatedBlocks: Block[];
   generatedPalette: ColorPalette | null;
+  generatedMeta?: Record<string, unknown> | null;
   
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
@@ -19,18 +20,21 @@ export const useGenerateStore = create<GenerateStore>((set) => ({
   error: null,
   generatedBlocks: [],
   generatedPalette: null,
+  generatedMeta: null,
 
   setLoading: (loading) => set({ isLoading: loading, error: null }),
   setError: (error) => set({ error, isLoading: false }),
   setGenerated: (data) => set({
     generatedBlocks: data.blocks,
     generatedPalette: data.palette,
+    generatedMeta: (data.meta as Record<string, unknown> | undefined) ?? null,
     isLoading: false,
     error: null,
   }),
   clearGenerated: () => set({
     generatedBlocks: [],
     generatedPalette: null,
+    generatedMeta: null,
     error: null,
   }),
 }));

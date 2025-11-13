@@ -1,4 +1,19 @@
 services:
+  db:
+    image: postgres:16-alpine
+    container_name: constructor-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U constructor -d constructor"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
   nginx:
     image: nginx:alpine
     container_name: constructor-nginx
@@ -9,7 +24,7 @@ services:
       - frontend_dist:/usr/share/nginx/html:ro
     depends_on:
       - backend
-      - ml-service
+      # - ml-service
 
   frontend-build:
     build:
@@ -22,37 +37,41 @@ services:
   backend:
     build: ./backend
     container_name: constructor-backend
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      SQLALCHEMY_NULLPOOL: "1"
+    depends_on:
+      db:
+        condition: service_healthy
     ports:
       - "8000:8000"
     restart: unless-stopped
+    command: sh -c "python -m alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000"
 
-  ml-service:
-    build: ./ml-service
-    container_name: ml-service
-    env_file:
-      - ./ml-service/.env
+  minio-service:
+    image: 'minio/minio:RELEASE.2025-04-22T22-12-26Z'
+    container_name: minio-service
+    ports:
+      - '${FORWARD_MINIO_PORT:-9000}:9000'
+      - '${FORWARD_MINIO_CONSOLE_PORT:-9090}:9090'
     environment:
-      - OLLAMA_MOCK=0
-    ports:
-      - "8088:8088"
-    restart: unless-stopped
-    depends_on:
-      ollama:
-        condition: service_healthy
-
-  ollama:
-    image: ollama/ollama:latest
-    container_name: ollama
-    restart: unless-stopped
-    ports:
-      - "11434:11434"
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     volumes:
-      - ollama:/root/.ollama
-    healthcheck:
-      test: ["CMD", "ollama", "list"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
+      - 'minio:/data/minio'
+    command: minio server /data/minio --console-address ":9090"
+    
+  # ml-service:
+  #   build: ./ml-service
+  #   container_name: ml-service
+  #   env_file:
+  #     - ./ml-service/.env
+  #   ports:
+  #     - "8088:8088"
+  #   restart: unless-stopped
+
 
   prometheus:
     image: prom/prometheus:latest
@@ -62,8 +81,8 @@ services:
     ports:
       - "9090:9090"
     restart: unless-stopped
-    depends_on:
-      - ml-service
+    # depends_on:
+    #   - ml-service
 
   grafana:
     image: grafana/grafana:latest
@@ -71,8 +90,8 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_USER=${GF_SECURITY_ADMIN_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD}
     volumes:
       - ./ml-service/grafana/provisioning:/etc/grafana/provisioning:ro
       - ./ml-service/grafana/dashboards:/var/lib/grafana/dashboards:ro
@@ -81,5 +100,6 @@ services:
       - prometheus
 
 volumes:
-  ollama: {}
   frontend_dist: {}
+  minio:
+    driver: local

@@ -44,8 +44,6 @@ export const ContainerBlock = ({ block, isSelected, isPreview }: ContainerBlockP
 
   const handleClick = (e: React.MouseEvent) => {
     if (!isPreview) {
-      // Выделяем контейнер только при прямом клике по его фону,
-      // а не при клике по вложенному контенту
       if (e.currentTarget === e.target) {
         selectBlock(block.id);
       }

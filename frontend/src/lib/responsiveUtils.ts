@@ -48,7 +48,6 @@ export function generateResponsiveStyles(
   const responsive: ResponsiveConfig = {};
   
   const scalableProps = ['fontSize', 'padding', 'margin', 'borderRadius'] as const;
-  type ScalableProp = typeof scalableProps[number];
   
   const tabletStyle: ResponsiveStyle = {};
   scalableProps.forEach((prop) => {

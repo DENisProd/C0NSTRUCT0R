@@ -50,6 +50,7 @@ interface WebSocketStore {
   roomId: string | null;
   userName: string | null;
   userId: string | null;
+  token: string | null;
   users: RoomUser[];
   cursors: Map<string, CursorPosition>;
   userColors: Map<string, string>;
@@ -58,7 +59,7 @@ interface WebSocketStore {
   getColorForUser: (userId: string) => string;
 
   // Actions
-  connect: (roomId: string, userName: string, serverUrl?: string) => void;
+  connect: (roomId: string, userName: string, serverUrl?: string, token?: string | null) => void;
   disconnect: () => void;
   sendMessage: (message: Omit<WebSocketMessage, 'userId' | 'userName' | 'timestamp'>) => void;
   
@@ -71,11 +72,7 @@ interface WebSocketStore {
 
 const generateUserId = () => `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-const DEFAULT_WS_BASE_URL =
-  (import.meta as any).env?.VITE_WS_BASE_URL ||
-  ((import.meta as any).env?.VITE_API_BASE_URL
-    ? String((import.meta as any).env.VITE_API_BASE_URL).replace(/^http/i, 'ws')
-    : 'ws://localhost:8001');
+const WS_BASE_URL = (import.meta.env.VITE_WS_BASE_URL || import.meta.env.VITE_API_BASE_URL || 'ws://localhost:8000').replace(/^https?:/, 'ws:').replace(/^http:/, 'ws:');
 
 export const useWebSocketStore = create<WebSocketStore>((set, get) => ({
   ws: null,
@@ -89,6 +86,7 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => ({
   roomId: null,
   userName: null,
   userId: null,
+  token: null,
   users: [],
   cursors: new Map(),
   userColors: new Map(),
@@ -114,7 +112,7 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => ({
     return color;
   },
 
-  connect: (roomId: string, userName: string, serverUrl = DEFAULT_WS_BASE_URL) => {
+  connect: (roomId: string, userName: string, serverUrl = WS_BASE_URL, token?: string | null) => {
     const state = get();
     if (state.isConnecting || state.isConnected) {
       console.warn('WebSocket уже подключен или подключается');
@@ -122,9 +120,13 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => ({
     }
 
     const userId = generateUserId();
-    const wsUrl = `${serverUrl}/ws/rooms/${roomId}?name=${encodeURIComponent(userName)}`;
+    // Строим URL с токеном, если он есть
+    let wsUrl = `${serverUrl}/ws/rooms/${roomId}?name=${encodeURIComponent(userName)}`;
+    if (token) {
+      wsUrl += `&token=${encodeURIComponent(token)}`;
+    }
 
-    set({ isConnecting: true, connectionError: null, roomId, userName, userId });
+    set({ isConnecting: true, connectionError: null, roomId, userName, userId, token: token || null });
 
     try {
       const ws = new WebSocket(wsUrl);
@@ -164,7 +166,7 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => ({
           const delay = state.reconnectDelay * Math.pow(2, state.reconnectAttempts);
           setTimeout(() => {
             set({ reconnectAttempts: state.reconnectAttempts + 1 });
-            get().connect(state.roomId!, state.userName!, serverUrl);
+            get().connect(state.roomId!, state.userName!, serverUrl, state.token);
           }, delay);
         } else if (state.reconnectAttempts >= state.maxReconnectAttempts) {
           set({ connectionError: 'Не удалось переподключиться. Пожалуйста, попробуйте подключиться вручную.' });
@@ -191,6 +193,7 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => ({
       roomId: null,
       userName: null,
       userId: null,
+      token: null,
       users: [],
       cursors: new Map(),
       userColors: new Map(),

@@ -1,5 +1,6 @@
 import random
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
+from app.core.config import settings
 from app.schemas.ai import GenerateLandingResponse
 from app.schemas.palette import PaletteSchema
 
@@ -167,4 +168,19 @@ class MockLLMGenerator:
             meta=meta
         )
 
+class LLMGenerator:
+    """Обёртка над генераторами лендингов: Gemini (если настроен) или моковый генератор."""
+    
+    @staticmethod
+    def generate_landing(
+        prompt: str,
+        categories: Optional[List[str]] = None,
+    ) -> GenerateLandingResponse:
+        # Если ключ Gemini не настроен — сразу используем моковый генератор
+        if not settings.GEMINI_API_KEY:
+            return MockLLMGenerator.generate_landing(prompt, categories or [])
+        
+        # Пробуем использовать реальный Gemini-генератор
+        from app.services.gemini_landing_generator import GeminiLLMGenerator  # локальный импорт, чтобы избежать циклов
+        return GeminiLLMGenerator.generate_landing(prompt, categories or [])
 

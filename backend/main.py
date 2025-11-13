@@ -1,4 +1,5 @@
 import os
+import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
@@ -33,6 +34,11 @@ app = FastAPI(
     description="API для конструктора лендингов с LLM интеграцией",
     version="1.0.0",
     lifespan=lifespan,
+)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
 )
 
 # CORS middleware

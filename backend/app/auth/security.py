@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta, timezone
-from typing import Optional
+from typing import Optional, Union
 
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -16,7 +16,7 @@ def _get_token_lifetime() -> timedelta:
     return timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
 
 
-def create_access_token(subject: str | int, expires_delta: Optional[timedelta] = None) -> str:
+def create_access_token(subject: Union[str, int], expires_delta: Optional[timedelta] = None) -> str:
     expire = datetime.now(timezone.utc) + (expires_delta or _get_token_lifetime())
     to_encode = {"sub": str(subject), "exp": expire}
     return jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)

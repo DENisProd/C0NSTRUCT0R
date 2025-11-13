@@ -78,8 +78,10 @@ async def websocket_endpoint(
     websocket: WebSocket,
     room_id: str,
     name: str = Query(..., description="Имя пользователя"),
+    token: str = Query(None, description="JWT токен для аутентификации"),
 ):
     """WebSocket endpoint для подключения к комнате"""
+    # Токен опционален, но если передан, можно использовать для идентификации пользователя
     await websocket.accept()
 
     # Генерируем ID пользователя

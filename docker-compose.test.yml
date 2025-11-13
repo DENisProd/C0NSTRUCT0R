@@ -1,6 +1,35 @@
 version: "3.9"
 
 services:
+  db:
+    image: postgres:16-alpine
+    container_name: constructor-db
+    environment:
+      POSTGRES_DB: constructor
+      POSTGRES_USER: constructor
+      POSTGRES_PASSWORD: constructor
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U constructor -d constructor"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  backend:
+    build: ./backend
+    container_name: constructor-backend
+    environment:
+      DATABASE_URL: postgresql+asyncpg://constructor:constructor@db:5432/constructor
+      SQLALCHEMY_NULLPOOL: "1"
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    command: sh -c "python -m alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000"
+
   frontend:
     build: ./frontend
     container_name: constructor-frontend
@@ -8,10 +37,3 @@ services:
       - "8080:80"
     depends_on:
       - backend
-
-  backend:
-    build: ./backend
-    container_name: constructor-backend
-    ports:
-      - "8000:8000"
-    restart: unless-stopped

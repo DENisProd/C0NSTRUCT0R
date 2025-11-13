@@ -10,6 +10,7 @@ import {
   Text,
   HStack,
 } from '@chakra-ui/react';
+import { Plus, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { uploadBlock } from '../lib/api/library';
 import { useLibraryStore } from '../store/useLibraryStore';
@@ -17,16 +18,19 @@ import { useProjectStore } from '../store/useProjectStore';
 import { BlockRenderer } from '../components/blocks/BlockRenderer';
 import type { Block } from '../types';
 
-const CATEGORIES = [
-  'hero',
-  'features',
-  'testimonials',
-  'pricing',
-  'cta',
-  'about',
-  'contact',
-  'other',
-];
+const RAW_CATEGORIES = (import.meta as any).env?.VITE_BLOCK_CATEGORIES as string | undefined;
+const CATEGORIES = RAW_CATEGORIES
+  ? RAW_CATEGORIES.split(',').map((s) => s.trim()).filter(Boolean)
+  : [
+      'hero',
+      'features',
+      'testimonials',
+      'pricing',
+      'cta',
+      'about',
+      'contact',
+      'other',
+    ];
 
 export const AddBlockPage = () => {
   const navigate = useNavigate();
@@ -99,7 +103,12 @@ export const AddBlockPage = () => {
     <Box minHeight="100vh" backgroundColor="#f5f5f5" padding="40px 20px">
       <Box maxWidth="1000px" margin="0 auto">
         <VStack gap="24px" align="stretch">
-          <Heading size="xl">➕ Добавить пользовательский блок</Heading>
+          <Heading size="xl">
+            <HStack gap="10px" align="center">
+              <Plus size={22} />
+              <Text as="span">Добавить пользовательский блок</Text>
+            </HStack>
+          </Heading>
 
           <VStack gap="16px" align="stretch">
             <Box>
@@ -188,7 +197,7 @@ export const AddBlockPage = () => {
 
             {validationError && (
               <Alert.Root status="error">
-                <Box as="span" marginRight="8px">⚠️</Box>
+                <Box as="span" marginRight="8px"><AlertTriangle size={16} /></Box>
                 <Alert.Description>{validationError}</Alert.Description>
               </Alert.Root>
             )}

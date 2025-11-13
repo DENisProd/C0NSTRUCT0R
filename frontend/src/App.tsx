@@ -16,6 +16,10 @@ import { useWebSocketSync } from './lib/useWebSocketSync';
 import { GeneratePage } from './pages/GeneratePage';
 import { LibraryPage } from './pages/LibraryPage';
 import { AddBlockPage } from './pages/AddBlockPage';
+import { AuthLoginPage } from './pages/AuthLoginPage';
+import { AuthRegisterPage } from './pages/AuthRegisterPage';
+import { AuthChangePasswordPage } from './pages/AuthChangePasswordPage';
+import { useAuthStore } from './store/useAuthStore';
 
 function EditorLayout() {
   const { loadFromLocalStorage, isPreviewMode } = useProjectStore();
@@ -65,15 +69,26 @@ function EditorLayout() {
   );
 }
 
+function PrivateRoute({ children }: { children: JSX.Element }) {
+  const { token } = useAuthStore();
+  if (!token) {
+    return <Navigate to="/auth/login" replace />;
+  }
+  return children;
+}
+
 function App() {
   return (
     <ChakraProvider value={defaultSystem}>
       <BrowserRouter>
         <Routes>
-          <Route path="/editor" element={<EditorLayout />} />
+          <Route path="/editor" element={<PrivateRoute><EditorLayout /></PrivateRoute>} />
           <Route path="/generate" element={<GeneratePage />} />
           <Route path="/library" element={<LibraryPage />} />
           <Route path="/library/add" element={<AddBlockPage />} />
+          <Route path="/auth/login" element={<AuthLoginPage />} />
+          <Route path="/auth/register" element={<AuthRegisterPage />} />
+          <Route path="/auth/change-password" element={<AuthChangePasswordPage />} />
           <Route path="/" element={<Navigate to="/editor" replace />} />
         </Routes>
       </BrowserRouter>

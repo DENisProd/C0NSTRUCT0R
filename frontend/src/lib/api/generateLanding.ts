@@ -16,21 +16,28 @@ export interface ColorPalette {
 export interface GenerateLandingResponse {
   blocks: Block[];
   palette: ColorPalette;
+  meta?: Record<string, any>;
 }
 
-const API_BASE_URL =
-  import.meta.env.VITE_ML_API_BASE_URL ||
-  import.meta.env.VITE_API_BASE_URL ||
-  'http://localhost:3000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 export async function generateLanding(
-  request: GenerateLandingRequest
+  request: GenerateLandingRequest,
+  token?: string | null
 ): Promise<GenerateLandingResponse> {
-  const response = await fetch(`${API_BASE_URL}/api/ai/generate-landing`, {
+  const url = `${API_BASE_URL}/api/ai/generate-landing`;
+  
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+  };
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  const response = await fetch(url, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify(request),
   });
 

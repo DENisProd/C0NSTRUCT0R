@@ -40,7 +40,6 @@ const DropZone = ({ id, isEmpty = false }: { id: string; isEmpty?: boolean }) =>
 export const Workspace = () => {
   const { project, isPreviewMode, setPreviewMode } = useProjectStore();
   const { blocks } = project;
-  // Отправляем presence только в режиме редактора
   usePresence(!isPreviewMode);
 
   return (

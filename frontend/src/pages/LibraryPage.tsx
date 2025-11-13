@@ -12,6 +12,7 @@ import {
   Text,
   HStack,
 } from '@chakra-ui/react';
+import { Book, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLibraryStore } from '../store/useLibraryStore';
 import { getUserBlocks, getCommunityBlocks, type LibraryBlock } from '../lib/api/library';
@@ -85,9 +86,17 @@ export const LibraryPage = () => {
       <Box maxWidth="1400px" margin="0 auto">
         <VStack gap="24px" align="stretch">
           <HStack justify="space-between" align="center">
-            <Heading size="xl">📚 Библиотека блоков</Heading>
+            <Heading size="xl">
+              <HStack gap="10px" align="center">
+                <Book size={24} />
+                <Text as="span">Библиотека блоков</Text>
+              </HStack>
+            </Heading>
             <Button colorScheme="blue" onClick={() => navigate('/library/add')}>
-              ➕ Добавить блок
+              <HStack gap="8px" align="center">
+                <Plus size={16} />
+                <Text as="span">Добавить блок</Text>
+              </HStack>
             </Button>
           </HStack>
 

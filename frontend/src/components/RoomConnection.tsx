@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Box, Button, Input, VStack, HStack, Text, Alert, Badge } from '@chakra-ui/react';
 import { useWebSocketStore } from '../store/useWebSocketStore';
+import { useAuthStore } from '../store/useAuthStore';
 
 export const RoomConnection = () => {
   const {
@@ -13,14 +14,10 @@ export const RoomConnection = () => {
     connect,
     disconnect,
   } = useWebSocketStore();
+  const { token } = useAuthStore();
 
   const [localRoomId, setLocalRoomId] = useState('');
   const [localUserName, setLocalUserName] = useState('');
-  const defaultWsUrl =
-    (import.meta as any).env?.VITE_WS_BASE_URL ||
-    ((import.meta as any).env?.VITE_API_BASE_URL
-      ? String((import.meta as any).env.VITE_API_BASE_URL).replace(/^http/i, 'ws')
-      : 'ws://localhost:8001');
   const [showConnectionForm, setShowConnectionForm] = useState(!isConnected);
 
   useEffect(() => {
@@ -34,7 +31,7 @@ export const RoomConnection = () => {
       alert('Пожалуйста, введите ID комнаты и имя');
       return;
     }
-    connect(localRoomId.trim(), localUserName.trim());
+    connect(localRoomId.trim(), localUserName.trim(), undefined, token);
   };
 
   const handleDisconnect = () => {

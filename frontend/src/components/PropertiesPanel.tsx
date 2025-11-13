@@ -333,7 +333,6 @@ export const PropertiesPanel = () => {
               </Box>
             </>
           )}
-          {/* Специфичные свойства для ContainerBlock */}
           {selectedBlock.type === 'container' && (
             <Box>
               <Text marginBottom="5px">Ширина контейнера</Text>
@@ -359,7 +358,6 @@ export const PropertiesPanel = () => {
               </Text>
             </Box>
           )}
-          {/* Общие свойства */}
           <Box>
             <Text marginBottom="5px">HTML id</Text>
             <Input
@@ -465,7 +463,6 @@ export const PropertiesPanel = () => {
             </select>
           </Box>
 
-          {/* Специфичные свойства для TextBlock */}
           {selectedBlock.type === 'text' && (
             <>
               <Box>
@@ -518,7 +515,6 @@ export const PropertiesPanel = () => {
             </>
           )}
 
-          {/* Специфичные свойства для ImageBlock */}
           {selectedBlock.type === 'image' && (
             <>
               <Box>
@@ -600,7 +596,6 @@ export const PropertiesPanel = () => {
             return null;
           })()}
 
-          {/* Раздел адаптивности */}
       <Box borderTop="1px solid #e0e0e0" marginY="15px" />
           <Box>
             <Text fontSize="16px" fontWeight="bold" marginBottom="12px">
@@ -620,7 +615,6 @@ export const PropertiesPanel = () => {
                     {breakpointLabel}
                   </Text>
                   
-                  {/* Размер шрифта (только для текстовых блоков) */}
                   {selectedBlock.type === 'text' && (
                     <Box marginBottom="10px">
                       <HStack justify="space-between" marginBottom="5px">
@@ -640,7 +634,6 @@ export const PropertiesPanel = () => {
                     </Box>
                   )}
                   
-                  {/* Отступы */}
                   <Box marginBottom="10px">
                     <HStack justify="space-between" marginBottom="5px">
                       <Text fontSize="13px">Внутренний отступ</Text>
@@ -658,7 +651,6 @@ export const PropertiesPanel = () => {
                     />
                   </Box>
                   
-                  {/* Внешние отступы */}
                   <Box marginBottom="10px">
                     <HStack justify="space-between" marginBottom="5px">
                       <Text fontSize="13px">Внешний отступ</Text>
@@ -676,7 +668,6 @@ export const PropertiesPanel = () => {
                     />
                   </Box>
                   
-                  {/* Ширина */}
                   <Box marginBottom="10px">
                     <HStack justify="space-between" marginBottom="5px">
                       <Text fontSize="13px">Ширина</Text>
@@ -694,7 +685,6 @@ export const PropertiesPanel = () => {
                     />
                   </Box>
                   
-                  {/* Выравнивание */}
                   <Box marginBottom="10px">
                     <HStack justify="space-between" marginBottom="5px">
                       <Text fontSize="13px">Выравнивание</Text>
@@ -724,7 +714,6 @@ export const PropertiesPanel = () => {
                     </NativeSelect.Root>
                   </Box>
                   
-                  {/* Закругление углов */}
                   {selectedBlock.type !== 'text' && (
                     <Box marginBottom="10px">
                       <HStack justify="space-between" marginBottom="5px">
@@ -750,7 +739,6 @@ export const PropertiesPanel = () => {
                     </Box>
                   )}
                   
-                  {/* Настройки flex для контейнеров */}
                   {selectedBlock.type === 'container' && (
                     <>
                       <Box marginBottom="10px">
@@ -841,7 +829,6 @@ export const PropertiesPanel = () => {
             })}
           </Box>
 
-          {/* Раздел "Поведение" / "Логика" для всех интерактивных блоков */}
           {selectedBlock && (
             <Box
               borderTop="1px solid #e0e0e0"
@@ -947,7 +934,6 @@ export const PropertiesPanel = () => {
             </Box>
           )}
 
-          {/* Специфичные свойства для ButtonBlock */}
           {selectedBlock.type === 'button' && (
             <>
               <Box>
@@ -988,7 +974,6 @@ export const PropertiesPanel = () => {
             </>
           )}
 
-          {/* Специфичные свойства для VideoBlock */}
           {selectedBlock.type === 'video' && (
             <>
               <Box>

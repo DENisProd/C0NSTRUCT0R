@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { UserProfile } from '../lib/api/user';
-import { getUserProfile, updateUserProfile, uploadAvatar as uploadAvatarApi, deleteAvatar as deleteAvatarApi, type UpdateUserProfileRequest } from '../lib/api/user';
+import { getUserProfile, updateUserProfile, type UpdateUserProfileRequest } from '../lib/api/user';
 
 interface UserStore {
   profile: UserProfile | null;
@@ -8,8 +8,6 @@ interface UserStore {
   error: string | null;
   fetchProfile: () => Promise<void>;
   updateProfile: (request: UpdateUserProfileRequest) => Promise<void>;
-  uploadAvatar: (file: File) => Promise<void>;
-  deleteAvatar: () => Promise<void>;
   clearProfile: () => void;
 }
 
@@ -41,32 +39,6 @@ export const useUserStore = create<UserStore>((set, get) => ({
       const errorMessage = error instanceof Error ? error.message : 'Ошибка обновления профиля';
       set({ error: errorMessage, isLoading: false });
       console.error('Ошибка обновления профиля:', error);
-      throw error;
-    }
-  },
-
-  uploadAvatar: async (file) => {
-    set({ isLoading: true, error: null });
-    try {
-      const updatedProfile = await uploadAvatarApi(file);
-      set({ profile: updatedProfile, isLoading: false });
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Ошибка загрузки аватара';
-      set({ error: errorMessage, isLoading: false });
-      console.error('Ошибка загрузки аватара:', error);
-      throw error;
-    }
-  },
-
-  deleteAvatar: async () => {
-    set({ isLoading: true, error: null });
-    try {
-      const updatedProfile = await deleteAvatarApi();
-      set({ profile: updatedProfile, isLoading: false });
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Ошибка удаления аватара';
-      set({ error: errorMessage, isLoading: false });
-      console.error('Ошибка удаления аватара:', error);
       throw error;
     }
   },

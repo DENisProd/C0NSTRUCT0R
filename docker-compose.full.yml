@@ -37,8 +37,36 @@ services:
       - "8088:8088"
     restart: unless-stopped
     depends_on:
+<<<<<<< Updated upstream
       ollama:
         condition: service_healthy
+=======
+      - minio-service
+    restart: on-failure:5
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_MAIN_BUCKET: ${MINIO_MAIN_BUCKET}
+      MINIO_SA_ACCESS_KEY: ${MINIO_SA_ACCESS_KEY}
+      MINIO_SA_SECRET_KEY: ${MINIO_SA_SECRET_KEY}
+      MINIO_INIT_SLEEP: ${MINIO_INIT_SLEEP}
+    entrypoint: >
+      sh -c "
+      sleep ${MINIO_INIT_SLEEP:-10} &&
+      mc alias set myminio http://minio-service:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD} &&
+      mc mb myminio/${MINIO_MAIN_BUCKET} --ignore-existing &&
+      mc mb myminio/${MINIO_BACKUP_BUCKET:-${MINIO_MAIN_BUCKET}-backup} --ignore-existing &&
+      mc admin user svcacct add myminio ${MINIO_ROOT_USER} --access-key ${MINIO_SA_ACCESS_KEY} --secret-key ${MINIO_SA_SECRET_KEY} || true &&
+      echo 'Initialization complete'"
+  # ml-service:
+  #   build: ./ml-service
+  #   container_name: ml-service
+  #   env_file:
+  #     - ./ml-service/.env
+  #   ports:
+  #     - "8088:8088"
+  #   restart: unless-stopped
+>>>>>>> Stashed changes
 
   ollama:
     image: ollama/ollama:latest

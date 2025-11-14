@@ -109,6 +109,31 @@ backend/
 - `POST /api/auth/login` — получение JWT (живет 30 дней)
 - `POST /api/auth/change-password` — смена пароля (требует Bearer токен)
 
+### User Profile
+
+- `GET /api/user/me` — профиль текущего пользователя + статистика по проектам/блокам
+- `PUT /api/user/me` — обновление `nickname` и `avatar_url`
+- `POST /api/user/change-password` — заглушка смены пароля (payload валидируется, но не применяется)
+
+### Projects
+
+- `GET /api/projects?userId=1` — список проектов пользователя (без удалённых)
+- `POST /api/projects` — создание проекта (`title`, `data`, `preview_url?`)
+- `GET /api/projects/{id}` — получение проекта по ID
+- `PATCH /api/projects/{id}` — обновление `title/data/preview_url`
+- `DELETE /api/projects/{id}` — soft-delete (ставит `deleted_at`)
+- `POST /api/projects/{id}/media` — загрузка превью/изображения проекта (multipart `file`), файл кладётся в MinIO и возвращается метадата
+
+### User Blocks
+
+- `GET /api/user-blocks?userId=1` — список пользовательских блоков
+- `POST /api/user-blocks` — создание нового блока (`title`, `data`, `preview_url?`)
+- `DELETE /api/user-blocks/{id}` — удаление блока
+
+### Project Media
+
+- `POST /api/projects/{project_id}/media` — принимает `multipart/form-data` (`file`) и связывает загруженное изображение с проектом; ответ содержит bucket, object_name и ссылку, сформированную из настроек MinIO
+
 ### AI (Генерация лендингов)
 
 - `POST /api/ai/generate-landing` - Генерация лендинга по промпту

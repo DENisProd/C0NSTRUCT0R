@@ -15,9 +15,15 @@ httpx==0.27.0
 pytest==8.2.1
 pytest-asyncio==0.23.7
 asgi-lifespan==2.1.0
+<<<<<<< Updated upstream
 # Для разработки на SQLite драйвер PostgreSQL не требуется.
 # Если используете PostgreSQL локально, установите один из вариантов вручную:
 # - psycopg[binary]==3.*  (рекомендуется для SQLAlchemy: URL вида postgresql+psycopg://)
 # - psycopg2-binary==2.*  (потребуется системный pg_config)
 # Для SQLite (для разработки)
 # sqlite3 встроен в Python
+=======
+google-genai>=0.6.0
+minio==7.2.7
+Pillow==10.4.0
+>>>>>>> Stashed changes

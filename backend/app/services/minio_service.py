@@ -54,6 +54,7 @@ class MinioService:
             file.content_type,
             target_width=self.PROJECT_WIDTH,
             target_height=self.PROJECT_HEIGHT,
+            crop_to_aspect=False,
         )
 
         object_name = f"projects/{project_id}/{uuid.uuid4()}-{file.filename}"
@@ -153,14 +154,27 @@ class MinioService:
         target_width: int,
         target_height: int,
         force_format: Optional[str] = None,
+        crop_to_aspect: bool = True,
     ) -> Tuple[bytes, str]:
         try:
             image = Image.open(io.BytesIO(data))
         except UnidentifiedImageError as exc:  # pragma: no cover - depends on Pillow internals
             raise ValueError("Uploaded file is not a valid image") from exc
 
-        image = self._crop_to_aspect(image, target_width / target_height)
-        image = image.resize((target_width, target_height), RESAMPLE)
+        if crop_to_aspect:
+            image = self._crop_to_aspect(image, target_width / target_height)
+            image = image.resize((target_width, target_height), RESAMPLE)
+        else:
+            w, h = image.size
+            ratio = w / h
+            target_ratio = target_width / target_height
+            if ratio > target_ratio:
+                new_w = target_width
+                new_h = int(target_width / ratio)
+            else:
+                new_h = target_height
+                new_w = int(target_height * ratio)
+            image = image.resize((new_w, new_h), RESAMPLE)
 
         save_format = force_format or self._determine_format(image, filename, content_type)
         if save_format.upper() in {"JPEG", "JPG"} and image.mode not in ("RGB", "L"):

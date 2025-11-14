@@ -23,8 +23,10 @@ export const useUserStore = create<UserStore>((set, get) => ({
       set({ profile, isLoading: false });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Ошибка загрузки профиля';
-      set({ error: errorMessage, isLoading: false });
-      console.error('Ошибка загрузки профиля:', error);
+      set({ isLoading: false, error: errorMessage === 'Unauthorized' ? null : errorMessage });
+      if (errorMessage !== 'Unauthorized') {
+        console.error('Ошибка загрузки профиля:', error);
+      }
     }
   },
 

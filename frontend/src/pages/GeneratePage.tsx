@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Box, VStack, Heading, Text, HStack, Button } from '@chakra-ui/react';
-import { Brain, ArrowLeft } from 'lucide-react';
+import { Brain, ArrowLeft, WandSparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { generateLanding } from '../lib/api/generateLanding';
 import { useGenerateStore } from '../store/useGenerateStore';
@@ -48,8 +48,12 @@ export const GeneratePage = () => {
       return;
     }
 
-    setLoading(true);
     setError(null);
+    setLoading(true);
+    
+    // Даем React время на перерисовку перед началом запроса
+    await new Promise(resolve => setTimeout(resolve, 50));
+    
     try {
       const response = await generateLanding(
         {
@@ -98,52 +102,53 @@ export const GeneratePage = () => {
   };
 
   return (
-    <Box minHeight="100vh" backgroundColor="#f5f5f5" padding="40px 20px">
+    <Box minHeight="100vh" backgroundColor="var(--app-bg-muted)" padding="40px 20px">
       <Box maxWidth="800px" margin="0 auto">
         <HStack justify="flex-start" align="center" marginBottom="12px">
-          <Button variant="ghost" onClick={() => navigate(-1)}>
+          <Button
+            variant="ghost"
+            onClick={() => navigate(-1)}
+            color="var(--app-accent)"
+            _hover={{ backgroundColor: 'var(--app-hover)' }}
+          >
             <HStack gap="8px" align="center">
-              <ArrowLeft size={18} />
+              <ArrowLeft size={18} color="var(--app-accent)" />
               <Text as="span">Назад</Text>
             </HStack>
           </Button>
         </HStack>
 
-        {isLoading && (
-          <GenerateLoading hasGeneratedBlocks={generatedBlocks.length > 0} />
-        )}
-
         <VStack gap="24px" align="stretch">
           <Heading size="xl" textAlign="center">
             <HStack gap="10px" justify="center" align="center">
-              <Brain size={24} />
+              <WandSparkles size={24} color="var(--app-accent)" />
               <Text as="span">Генерация лендинга с помощью AI</Text>
             </HStack>
           </Heading>
 
-          <Text color="gray.600" textAlign="center">
+          <Text color="var(--app-text-muted)" textAlign="center">
             Опишите, какой лендинг вы хотите создать, и AI сгенерирует его для
             вас
           </Text>
 
-          {generatedBlocks.length === 0 && (
-            <GenerateForm
-              prompt={prompt}
-              setPrompt={setPrompt}
-              selectedCategories={selectedCategories}
-              toggleCategory={toggleCategory}
-              error={error}
-              isLoading={isLoading}
-              onGenerate={handleGenerate}
-              onBackToEditor={() => navigate('/editor')}
-            />
+          {isLoading ? (
+            <GenerateLoading hasGeneratedBlocks={true} />
+          ) : (
+            !generatedBlocks.length && (
+              <GenerateForm
+                prompt={prompt}
+                setPrompt={setPrompt}
+                selectedCategories={selectedCategories}
+                toggleCategory={toggleCategory}
+                error={error}
+                isLoading={isLoading}
+                onGenerate={handleGenerate}
+                onBackToEditor={() => navigate('/editor')}
+              />
+            )
           )}
 
-          {isLoading && generatedBlocks.length === 0 && (
-            <GenerateLoading hasGeneratedBlocks={false} />
-          )}
-
-          {generatedBlocks.length > 0 && (
+          {!isLoading && generatedBlocks.length > 0 && (
             <Box ref={previewRef}>
               <GeneratePreview
                 generatedBlocks={generatedBlocks}

@@ -11,12 +11,18 @@ import { BlockCard } from './BlockCard';
 import type { BlockType, TriggerType } from '../types';
 import { Text as TextIcon, Image as ImageIcon, MousePointerClick, Video as VideoIcon, Package, Grid3x3, Layers, Library as LibraryIcon, Palette, Cpu } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { TabsHeader } from './blocksPanel/TabsHeader';
+import { BlocksTab } from './blocksPanel/BlocksTab';
+import { LibraryTab } from './blocksPanel/LibraryTab';
+import { ThemeTab } from './blocksPanel/ThemeTab';
+import { LogicTab } from './blocksPanel/LogicTab';
 
 const blockTypes: { type: BlockType; label: string; icon: JSX.Element }[] = [
   { type: 'text', label: 'Текст', icon: <TextIcon size={16} /> },
   { type: 'image', label: 'Изображение', icon: <ImageIcon size={16} /> },
   { type: 'button', label: 'Кнопка', icon: <MousePointerClick size={16} /> },
   { type: 'video', label: 'Видео', icon: <VideoIcon size={16} /> },
+  { type: 'input', label: 'Текстовое поле', icon: <TextIcon size={16} /> },
   { type: 'container', label: 'Контейнер', icon: <Package size={16} /> },
   { type: 'grid', label: 'Сетка', icon: <Grid3x3 size={16} /> },
 ];
@@ -143,6 +149,12 @@ export const BlocksPanel = () => {
     loadLibrary();
   }, [loadFromLocalStorage, loadFunctions]);
 
+  const handleSelectLibraryBlock = (block: LibraryBlock) => {
+    if (block.blocks && block.blocks.length > 0) {
+      addTemplateBlocks(block.blocks);
+    }
+  };
+
   const handleSaveAsTemplate = () => {
     if (!templateName.trim() || selectedBlocks.length === 0) {
       alert('Введите название и выберите блоки');
@@ -200,396 +212,39 @@ export const BlocksPanel = () => {
           window.addEventListener('mouseup', onMouseUp);
         }}
       />
-      <HStack gap={0} borderBottom="1px solid var(--app-border)">
-        <Button
-          variant={activeTab === 'blocks' ? 'solid' : 'ghost'}
-          borderRadius="0"
-          onClick={() => setActiveTab('blocks')}
-          flex="1"
-          fontSize="12px"
-          backgroundColor={activeTab === 'blocks' ? 'var(--app-accent)' : 'transparent'}
-          color={activeTab === 'blocks' ? 'white' : 'inherit'}
-        >
-          <Layers size={16} />
-        </Button>
-        <Button
-          variant={activeTab === 'library' ? 'solid' : 'ghost'}
-          borderRadius="0"
-          onClick={() => setActiveTab('library')}
-          flex="1"
-          fontSize="12px"
-          backgroundColor={activeTab === 'library' ? 'var(--app-accent)' : 'transparent'}
-          color={activeTab === 'library' ? 'white' : 'inherit'}
-        >
-          <LibraryIcon size={16} />
-        </Button>
-        <Button
-          variant={activeTab === 'theme' ? 'solid' : 'ghost'}
-          borderRadius="0"
-          onClick={() => setActiveTab('theme')}
-          flex="1"
-          fontSize="12px"
-          backgroundColor={activeTab === 'theme' ? 'var(--app-accent)' : 'transparent'}
-          color={activeTab === 'theme' ? 'white' : 'inherit'}
-        >
-          <Palette size={16} />
-        </Button>
-        <Button
-          variant={activeTab === 'logic' ? 'solid' : 'ghost'}
-          borderRadius="0"
-          onClick={() => setActiveTab('logic')}
-          flex="1"
-          fontSize="12px"
-          backgroundColor={activeTab === 'logic' ? 'var(--app-accent)' : 'transparent'}
-          color={activeTab === 'logic' ? 'white' : 'inherit'}
-        >
-          <Cpu size={16} />
-        </Button>
-      </HStack>
+      <TabsHeader activeTab={activeTab} onChange={setActiveTab} />
 
       <Box flex="1" overflowY="auto" padding="20px">
-        {activeTab === 'blocks' && (
-          <>
-            <Text fontSize="18px" fontWeight="bold" marginBottom="20px">
-              Базовые блоки
-            </Text>
-              <VStack gap="10px" align="stretch">
-                {blockTypes.map(({ type, label, icon }) => (
-                  <DraggableBlockButton key={type} type={type} label={label} icon={icon} />
-                ))}
-              </VStack>
-          </>
-        )}
+        {activeTab === 'blocks' && <BlocksTab />}
 
         {activeTab === 'library' && (
-          <VStack gap="12px" align="stretch">
-            <Text fontSize="18px" fontWeight="bold">Библиотека блоков</Text>
-            <Button onClick={() => navigate('/library')} colorScheme="orange" size="sm">
-                          <HStack gap="6px">
-                            <span>📚</span>
-                            <Box as="span">Все</Box>
-                          </HStack>
-                        </Button>
-            <Input
-              placeholder="Поиск по названию, описанию или категории..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              size="sm"
-              backgroundColor="white"
-            />
-
-            <HStack gap="4px">
-              <Button size="xs" variant={activeLibraryTab === 'system' ? 'solid' : 'ghost'} onClick={() => setActiveLibraryTab('system')}>Системные ({systemBlocks.length})</Button>
-              <Button size="xs" variant={activeLibraryTab === 'community' ? 'solid' : 'ghost'} onClick={() => setActiveLibraryTab('community')}>Сообщество ({communityBlocks.length})</Button>
-              <Button size="xs" variant={activeLibraryTab === 'user' ? 'solid' : 'ghost'} onClick={() => setActiveLibraryTab('user')}>Мои ({userBlocks.length})</Button>
-            </HStack>
-
-            {(() => {
-              const filter = (list: LibraryBlock[]) => list.filter((block) =>
-                block.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                block.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                block.category.toLowerCase().includes(searchQuery.toLowerCase())
-              );
-              const source = activeLibraryTab === 'system' ? filter(systemBlocks) : activeLibraryTab === 'community' ? filter(communityBlocks) : filter(userBlocks);
-              if (source.length === 0) {
-                return <Text fontSize="14px" color="var(--app-text-muted)" textAlign="center" padding="12px">Блоки не найдены</Text>;
-              }
-              return (
-                <SimpleGrid columns={1} gap="12px">
-                  {source.map((block) => (
-                    <BlockCard
-                      key={block.id}
-                      block={block}
-                      draggable
-                      onSelect={() => {
-                        if (block.blocks && block.blocks.length > 0) {
-                          addTemplateBlocks(block.blocks);
-                        }
-                      }}
-                    />
-                  ))}
-                </SimpleGrid>
-              );
-            })()}
-          </VStack>
+          <LibraryTab
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            activeLibraryTab={activeLibraryTab}
+            setActiveLibraryTab={setActiveLibraryTab}
+            systemBlocks={systemBlocks}
+            communityBlocks={communityBlocks}
+            userBlocks={userBlocks}
+            onSelectBlock={handleSelectLibraryBlock}
+            onNavigateAll={() => navigate('/library')}
+          />
         )}
 
         {activeTab === 'theme' && (
-          <VStack gap="16px" align="stretch">
-            <Text fontSize="18px" fontWeight="bold">Тема проекта</Text>
-            <HStack gap="12px">
-              <label>
-                <input
-                  type="radio"
-                  name="theme-mode"
-                  checked={project.theme.mode === 'light'}
-                  onChange={() => updateTheme({ mode: 'light' })}
-                />{' '}
-                Светлая
-              </label>
-              <label>
-                <input
-                  type="radio"
-                  name="theme-mode"
-                  checked={project.theme.mode === 'dark'}
-                  onChange={() => updateTheme({ mode: 'dark' })}
-                />{' '}
-                Тёмная
-              </label>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={project.theme.mode === 'dark'}
-                  onChange={(e) => updateTheme({ mode: e.target.checked ? 'dark' : 'light' })}
-                />{' '}
-                Темный режим
-              </label>
-            </HStack>
-            <VStack gap="10px" align="stretch">
-              <HStack justify="space-between">
-                <Text>Акцент</Text>
-                <Input type="color" value={project.theme.accent} onChange={(e) => updateTheme({ accent: e.target.value })} width="60px" padding={0} />
-              </HStack>
-              <HStack justify="space-between">
-                <Text>Текст</Text>
-                <Input type="color" value={project.theme.text} onChange={(e) => updateTheme({ text: e.target.value })} width="60px" padding={0} />
-              </HStack>
-              <HStack justify="space-between">
-                <Text>Заголовки</Text>
-                <Input type="color" value={project.theme.heading} onChange={(e) => updateTheme({ heading: e.target.value })} width="60px" padding={0} />
-              </HStack>
-              <HStack justify="space-between">
-                <Text>Фон страницы</Text>
-                <Input type="color" value={project.theme.background} onChange={(e) => updateTheme({ background: e.target.value })} width="60px" padding={0} />
-              </HStack>
-              <HStack justify="space-between">
-                <Text>Поверхность панелей</Text>
-                <Input type="color" value={project.theme.surface} onChange={(e) => updateTheme({ surface: e.target.value })} width="60px" padding={0} />
-              </HStack>
-              <HStack justify="space-between">
-                <Text>Цвет границ</Text>
-                <Input type="color" value={project.theme.border} onChange={(e) => updateTheme({ border: e.target.value })} width="60px" padding={0} />
-              </HStack>
-            </VStack>
-          </VStack>
+          <ThemeTab projectTheme={project.theme} updateTheme={updateTheme} />
         )}
 
         {activeTab === 'logic' && (
-          <VStack gap="12px" align="stretch">
-            <HStack justify="space-between" marginBottom="8px">
-              <Text fontSize="18px" fontWeight="bold">
-                Функции
-              </Text>
-              <Button
-                size="sm"
-                onClick={addFunction}
-                backgroundColor="var(--app-accent)"
-                color="white"
-                _hover={{ backgroundColor: 'var(--app-accent)', opacity: 0.9 }}
-              >
-                + Создать
-              </Button>
-            </HStack>
-
-            {functions.length === 0 ? (
-              <Text fontSize="14px" color="#666" textAlign="center" padding="20px">
-                Нет функций. Создайте первую функцию.
-              </Text>
-            ) : (
-              <VStack gap="8px" align="stretch">
-                {functions.map((fn) => (
-                  <Box
-                    key={fn.id}
-                    backgroundColor={selectedFunctionId === fn.id ? 'var(--app-selected)' : 'var(--app-surface)'}
-                    border="1px solid var(--app-border)"
-                    borderRadius="4px"
-                    padding="12px"
-                    cursor="pointer"
-                    onClick={() => selectFunction(fn.id)}
-                    _hover={{ borderColor: 'var(--app-accent)' }}
-                  >
-                    <VStack gap="8px" align="stretch">
-                      {editingName === fn.id ? (
-                        <HStack gap="4px">
-                          <Input
-                            value={tempName}
-                            onChange={(e) => setTempName(e.target.value)}
-                            size="sm"
-                            autoFocus
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                if (tempName.trim()) {
-                                  updateFunction(fn.id, { name: tempName.trim() });
-                                }
-                                setEditingName(null);
-                                setTempName('');
-                              }
-                              if (e.key === 'Escape') {
-                                setEditingName(null);
-                                setTempName('');
-                              }
-                            }}
-                          />
-                          <Button
-                            size="xs"
-                            onClick={() => {
-                              if (tempName.trim()) {
-                                updateFunction(fn.id, { name: tempName.trim() });
-                              }
-                              setEditingName(null);
-                              setTempName('');
-                            }}
-                          >
-                            ✓
-                          </Button>
-                          <Button
-                            size="xs"
-                            onClick={() => {
-                              setEditingName(null);
-                              setTempName('');
-                            }}
-                          >
-                            ✕
-                          </Button>
-                        </HStack>
-                      ) : (
-                        <HStack justify="space-between">
-                          <Text
-                            fontSize="14px"
-                            fontWeight="bold"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setEditingName(fn.id);
-                              setTempName(fn.name);
-                            }}
-                            flex="1"
-                            _hover={{ color: '#007bff' }}
-                          >
-                            {fn.name}
-                          </Text>
-                          <HStack gap="4px">
-                            <input
-                              type="checkbox"
-                              checked={fn.enabled}
-                              onChange={(e) => {
-                                e.stopPropagation();
-                                updateFunction(fn.id, { enabled: e.target.checked });
-                              }}
-                            />
-                          </HStack>
-                        </HStack>
-                      )}
-
-                      <select
-                        style={{
-                          padding: '6px',
-                          border: '1px solid #e0e0e0',
-                          borderRadius: '4px',
-                          fontSize: '12px',
-                          backgroundColor: 'white',
-                          width: '100%',
-                        }}
-                        value={fn.trigger}
-                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-                          updateFunction(fn.id, { trigger: e.target.value as TriggerType });
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {Object.entries(triggerLabels).map(([value, label]) => (
-                          <option key={value} value={value}>
-                            {label}
-                          </option>
-                        ))}
-                      </select>
-
-                      <select
-                        style={{
-                          padding: '6px',
-                          border: '1px solid #e0e0e0',
-                          borderRadius: '4px',
-                          fontSize: '12px',
-                          backgroundColor: 'white',
-                          width: '100%',
-                        }}
-                        value={fn.blockId || ''}
-                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-                          updateFunction(fn.id, { blockId: e.target.value || null });
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <option value="">Глобальная функция</option>
-                        {(() => {
-                          const blocks: Array<{ id: string; label: string }> = [];
-                          const traverse = (block: any, prefix = '') => {
-                            const label =
-                              prefix +
-                              (block.type === 'text'
-                                ? '📝 Текст'
-                                : block.type === 'image'
-                                  ? '🖼️ Изображение'
-                                  : block.type === 'button'
-                                    ? '🔘 Кнопка'
-                                    : block.type === 'video'
-                                      ? '🎥 Видео'
-                                      : block.type === 'container'
-                                        ? '📦 Контейнер'
-                                        : block.type === 'grid'
-                                          ? '🔳 Сетка'
-                                          : 'Блок');
-                            blocks.push({ id: block.id, label });
-                            if (block.type === 'container' && block.children) {
-                              block.children.forEach((child: any) => traverse(child, prefix + '  '));
-                            }
-                            if (block.type === 'grid' && block.cells) {
-                              block.cells.forEach((cell: any, index: number) => {
-                                if (cell.block) {
-                                  traverse(cell.block, prefix + `  [${index + 1}] `);
-                                }
-                              });
-                            }
-                          };
-                          project.blocks.forEach((block) => traverse(block));
-                          return blocks;
-                        })().map((block) => (
-                          <option key={block.id} value={block.id}>
-                            {block.label}
-                          </option>
-                        ))}
-                      </select>
-
-                      <Text fontSize="12px" color="#666">
-                        Действий: {fn.actions.length} | Условий: {fn.conditions.length}
-                      </Text>
-
-                      <HStack gap="4px" justify="flex-end">
-                        <Button
-                          size="xs"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            duplicateFunction(fn.id);
-                          }}
-                        >
-                          📋
-                        </Button>
-                        <Button
-                          size="xs"
-                          colorScheme="red"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (window.confirm('Вы уверены, что хотите удалить эту функцию?')) {
-                              deleteFunction(fn.id);
-                            }
-                          }}
-                        >
-                          🗑️
-                        </Button>
-                      </HStack>
-                    </VStack>
-                  </Box>
-                ))}
-              </VStack>
-            )}
-          </VStack>
+          <LogicTab
+            functions={functions}
+            selectedFunctionId={selectedFunctionId}
+            addFunction={addFunction}
+            updateFunction={updateFunction}
+            deleteFunction={deleteFunction}
+            duplicateFunction={duplicateFunction}
+            selectFunction={(id) => selectFunction(id)}
+          />
         )}
       </Box>
 

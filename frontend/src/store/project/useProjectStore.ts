@@ -10,6 +10,7 @@ import type {
   GridBlock,
   GridCell,
   Theme,
+  InputBlock,
 } from '../../types';
 import { createNewBlock, createGrid } from './blockCreators';
 import {
@@ -30,6 +31,7 @@ type UpdatePayload =
   | Partial<ImageBlock>
   | Partial<ButtonBlock>
   | Partial<VideoBlock>
+  | Partial<InputBlock>
   | Partial<Block>;
 
 interface ProjectStore {
@@ -252,7 +254,7 @@ const removeBlockDeep = (blocks: Block[], id: string): Block[] => {
         const orig = (block as any).children as Block[];
         const children: Block[] = [];
         for (const child of orig) {
-          const res = removeBlockDeep([child], child.id);
+          const res = removeBlockDeep([child], id);
           if (res.length > 0) children.push(res[0]);
         }
         return { ...(block as any), children } as Block;
@@ -689,7 +691,37 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   updateTheme: (updates) => {
     const prevAccent = get().project.theme.accent;
     set((state) => {
-      const newTheme = { ...state.project.theme, ...updates };
+      const prevTheme = state.project.theme;
+      let newTheme = { ...prevTheme, ...updates } as Theme;
+
+      if (updates.mode && updates.mode !== prevTheme.mode) {
+        if (updates.mode === 'dark') {
+          newTheme = {
+            ...prevTheme,
+            mode: 'dark',
+            accent: '#ffc107',
+            text: '#ffffff',
+            heading: '#ffffff',
+            background: '#212529',
+            surface: '#343a40',
+            border: '#495057',
+            ...updates,
+          } as Theme;
+        } else {
+          newTheme = {
+            ...prevTheme,
+            mode: 'light',
+            accent: '#007bff',
+            text: '#000000',
+            heading: '#000000',
+            background: '#ffffff',
+            surface: '#f5f5f5',
+            border: '#e0e0e0',
+            ...updates,
+          } as Theme;
+        }
+      }
+
       const newAccent = newTheme.accent;
 
       const blocks =

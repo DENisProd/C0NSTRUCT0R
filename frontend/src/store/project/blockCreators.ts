@@ -55,6 +55,18 @@ export const createNewBlock = (type: BlockType, themeAccent?: string): Block => 
           width: '100%',
         },
       } as Block;
+    case 'input':
+      return {
+        ...baseBlock,
+        type: 'input',
+        value: '',
+        placeholder: 'Введите текст',
+        name: 'input',
+        style: {
+          ...baseBlock.style,
+          width: '100%',
+        },
+      } as Block;
     case 'container':
       return {
         ...baseBlock,
@@ -119,4 +131,6 @@ export const createGrid = (columns: number, rows: number): GridBlock => {
     cells: Array.from({ length: columns * rows }, () => ({ block: null })),
   };
 };
+
+
 

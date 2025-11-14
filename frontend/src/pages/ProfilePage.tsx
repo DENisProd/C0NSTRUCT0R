@@ -6,7 +6,7 @@ import { UserInfoCard } from '../components/UserInfoCard';
 import { UserProjectsList } from '../components/UserProjectsList';
 import { UserBlocksList } from '../components/UserBlocksList';
 import { CreateProjectModal } from '../components/CreateProjectModal';
-import { Header } from '../components/Header';
+import { HeaderService } from '../components/Header';
 import { Footer } from '../components/Footer';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -30,7 +30,7 @@ export const ProfilePage = () => {
   if (userLoading && !profile) {
     return (
       <Box minHeight="100vh" display="flex" flexDirection="column">
-        <Header />
+        <HeaderService />
         <Box flex="1" display="flex" justifyContent="center" alignItems="center">
           <Spinner size="lg" />
         </Box>
@@ -41,7 +41,7 @@ export const ProfilePage = () => {
 
   return (
     <Box minHeight="100vh" display="flex" flexDirection="column">
-      <Header />
+      <HeaderService />
       <Box flex="1" backgroundColor="var(--app-bg-muted)" padding={{ base: '16px', md: '24px' }}>
         <Container maxWidth="1200px" paddingX={{ base: '8px', md: '16px' }}>
           <VStack gap={{ base: '16px', md: '24px' }} align="stretch">

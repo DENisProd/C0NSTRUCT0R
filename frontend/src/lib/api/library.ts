@@ -39,6 +39,21 @@ function getApiBaseUrl(): string {
 
 const API_BASE_URL = getApiBaseUrl();
 
+function getAuthToken(): string | null {
+  return typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+}
+
+function getAuthHeaders(): HeadersInit {
+  const token = getAuthToken();
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+  };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  return headers;
+}
+
 function mapLibraryBlock(item: any): LibraryBlock {
   return {
     id: String(item.id),
@@ -92,15 +107,81 @@ export interface UploadBlockRequest {
 export async function uploadBlock(request: UploadBlockRequest): Promise<LibraryBlock> {
   const response = await fetch(`${API_BASE_URL}/library/upload`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(),
     body: JSON.stringify(request),
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: 'Ошибка загрузки блока' }));
-    throw new Error(error.message || 'Ошибка загрузки блока');
+    const error = await response.json().catch(() => ({ detail: 'Ошибка загрузки блока' }));
+    throw new Error(error.detail || error.message || 'Ошибка загрузки блока');
+  }
+
+  const data = await response.json();
+  return mapLibraryBlock(data);
+}
+
+export async function getBlock(blockId: number): Promise<LibraryBlock> {
+  const response = await fetch(`${API_BASE_URL}/library/block/${blockId}`, {
+    method: 'GET',
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'Ошибка получения блока' }));
+    throw new Error(error.detail || 'Ошибка получения блока');
+  }
+
+  const data = await response.json();
+  return mapLibraryBlock(data);
+}
+
+export interface UpdateBlockRequest {
+  name?: string;
+  description?: string;
+  category?: string;
+  tags?: string[];
+  blocks?: Block[];
+  preview?: string;
+}
+
+export async function updateBlock(blockId: number, request: UpdateBlockRequest): Promise<LibraryBlock> {
+  const response = await fetch(`${API_BASE_URL}/library/block/${blockId}`, {
+    method: 'PUT',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(request),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'Ошибка обновления блока' }));
+    throw new Error(error.detail || 'Ошибка обновления блока');
+  }
+
+  const data = await response.json();
+  return mapLibraryBlock(data);
+}
+
+export async function deleteBlock(blockId: number): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/library/block/${blockId}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'Ошибка удаления блока' }));
+    throw new Error(error.detail || 'Ошибка удаления блока');
+  }
+}
+
+export async function createReadyBlock(request: UploadBlockRequest): Promise<LibraryBlock> {
+  const response = await fetch(`${API_BASE_URL}/library/ready`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(request),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'Ошибка создания готового блока' }));
+    throw new Error(error.detail || 'Ошибка создания готового блока');
   }
 
   const data = await response.json();

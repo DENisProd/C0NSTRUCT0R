@@ -1,10 +1,12 @@
 import { Box, Image, Text } from '@chakra-ui/react';
 import { useEffect, useRef } from 'react';
+import { Trash2 } from 'lucide-react';
 import type { ImageBlock as ImageBlockType } from '../../types';
 import { useProjectStore } from '../../store/useProjectStore';
 import { executeBlockEventFunctions } from '../../lib/functionExecutor';
 import { useResponsiveStore } from '../../store/useResponsiveStore';
 import { getStyleForBreakpoint } from '../../lib/responsiveUtils';
+import { getMediaUrlByEtag } from '../../lib/api/media';
 
 interface ImageBlockProps {
   block: ImageBlockType;
@@ -58,6 +60,11 @@ export const ImageBlock = ({ block, isSelected, isPreview }: ImageBlockProps) =>
     }
   };
 
+  // Определяем URL изображения: приоритет у mediaEtag, затем url
+  const imageUrl = block.mediaEtag
+    ? getMediaUrlByEtag(block.mediaEtag)
+    : block.url;
+
   return (
     <Box
       id={block.htmlId || undefined}
@@ -66,6 +73,7 @@ export const ImageBlock = ({ block, isSelected, isPreview }: ImageBlockProps) =>
       onClick={handleClick}
       onMouseEnter={handleMouseEnter}
       data-block-id={block.id}
+      border="1px dashed transparent"
       style={{
         ...block.style,
         padding: responsiveStyle.padding || block.style.padding,
@@ -83,10 +91,10 @@ export const ImageBlock = ({ block, isSelected, isPreview }: ImageBlockProps) =>
         },
       }}
     >
-      {block.url ? (
+      {imageUrl ? (
         <Image
           ref={imageRef}
-          src={block.url}
+          src={imageUrl}
           alt="Block image"
           width="100%"
           maxHeight="400px"
@@ -101,7 +109,7 @@ export const ImageBlock = ({ block, isSelected, isPreview }: ImageBlockProps) =>
           backgroundColor="#f9f9f9"
           borderRadius="inherit"
         >
-          <Text color="#999">Введите URL изображения в панели свойств</Text>
+          <Text color="#999">Загрузите изображение в панели свойств</Text>
         </Box>
       )}
       {!isPreview && (
@@ -110,18 +118,20 @@ export const ImageBlock = ({ block, isSelected, isPreview }: ImageBlockProps) =>
           position="absolute"
           top="5px"
           right="5px"
-          backgroundColor="red"
-          color="white"
-          padding="5px 10px"
-          borderRadius="4px"
+          backgroundColor="var(--app-surface)"
+          color="var(--app-text-muted)"
+          padding="6px"
+          borderRadius="6px"
+          border="1px solid var(--app-border)"
           cursor="pointer"
           display="none"
+          _hover={{ backgroundColor: 'var(--app-hover)', color: 'var(--app-accent)' }}
           onClick={(e) => {
             e.stopPropagation();
             deleteBlock(block.id);
           }}
         >
-          🗑 Удалить
+          <Trash2 size={14} />
         </Box>
       )}
     </Box>

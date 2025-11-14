@@ -16,6 +16,7 @@ async def generate_landing(request: GenerateLandingRequest):
     """
     try:
         logger.info("AI generate_landing request: prompt=%r categories=%s", request.prompt, request.categories)
+        error_meta = None
         if settings.GEMINI_API_KEY:
             from app.services.gemini_landing_generator import GeminiLLMGenerator
             try:
@@ -24,7 +25,21 @@ async def generate_landing(request: GenerateLandingRequest):
                     categories=request.categories or []
                 )
             except Exception as ge:
-                logger.warning("Gemini failed, fallback to mock: %s", ge)
+                try:
+                    from google.genai.errors import ClientError
+                except Exception:
+                    ClientError = None
+                if ClientError and isinstance(ge, ClientError):
+                    logger.error("Gemini client error: %s", ge)
+                    error_meta = {
+                        "gemini_error": {
+                            "message": str(ge),
+                            "code": getattr(ge, "status_code", None),
+                        }
+                    }
+                else:
+                    logger.warning("Gemini failed, fallback to mock: %s", ge)
+                    error_meta = {"gemini_error": {"message": str(ge)}}
                 result = MockLLMGenerator.generate_landing(
                     prompt=request.prompt,
                     categories=request.categories or []
@@ -42,10 +57,13 @@ async def generate_landing(request: GenerateLandingRequest):
         )
         
         # Возвращаем результат
+        merged_meta = result.meta or {}
+        if error_meta:
+            merged_meta = {**merged_meta, **error_meta}
         return GenerateLandingResponse(
             blocks=final_json["blocks"],
             palette=result.palette,
-            meta=result.meta
+            meta=merged_meta
         )
     except Exception as e:
         logger.exception("AI generate_landing failed: %s", e)

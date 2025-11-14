@@ -88,7 +88,6 @@ async def list_project_media(
 @router.get("/media/by-etag/{etag}")
 async def stream_project_media_by_etag(
     etag: str,
-    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> StreamingResponse:
     result = await db.execute(
@@ -96,7 +95,6 @@ async def stream_project_media_by_etag(
         .join(Project, ProjectMedia.project_id == Project.id)
         .where(
             ProjectMedia.etag == etag,
-            Project.user_id == current_user.id,
             Project.deleted_at.is_(None),
         )
     )

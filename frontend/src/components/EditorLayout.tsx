@@ -8,7 +8,7 @@ import { Toolbar } from './Toolbar';
 import { BlocksPanel } from './BlocksPanel';
 import { Workspace } from './Workspace';
 import { PropertiesPanel } from './PropertiesPanel';
-import { Header } from './Header';
+import { HeaderEditor } from './Header';
 import { Footer } from './Footer';
 import { DndProvider } from './DndProvider';
 import { RoomConnection } from './RoomConnection';
@@ -16,7 +16,7 @@ import { useWebSocketSync } from '../lib/useWebSocketSync';
 
 export function EditorLayout() {
   const { id } = useParams<{ id?: string }>();
-  const { loadFromLocalStorage, isPreviewMode, loadProjectFromApi, currentProjectId } = useProjectStore();
+  const { loadFromLocalStorage, isPreviewMode, loadProjectFromApi, currentProjectId, project } = useProjectStore();
   const { loadFromLocalStorage: loadTemplates } = useTemplatesStore();
   const { loadFromLocalStorage: loadFunctions } = useFunctionsStore();
   
@@ -40,13 +40,23 @@ export function EditorLayout() {
     loadFunctions();
   }, [id, loadFromLocalStorage, loadTemplates, loadFunctions, loadProjectFromApi]);
 
+  const themeVars = {
+    '--app-accent': project.theme.accent,
+    '--app-surface': project.theme.surface,
+    '--app-border': project.theme.border,
+    '--app-bg-muted': project.theme.background,
+    colorScheme: project.theme.mode === 'dark' ? 'dark' : 'light',
+  } as React.CSSProperties;
+
   if (isPreviewMode) {
     // Режим предпросмотра - только контент без панелей
     return (
       <Box minHeight="100vh" display="flex" flexDirection="column">
-        <Header />
-        <Workspace />
-        <Footer />
+        <Box style={themeVars}>
+        <HeaderEditor />
+          <Workspace />
+          <Footer />
+        </Box>
       </Box>
     );
   }
@@ -59,8 +69,8 @@ export function EditorLayout() {
         <Toolbar />
         <Flex flex="1" overflow="hidden">
           <BlocksPanel />
-          <Box flex="1" display="flex" flexDirection="column" overflow="hidden">
-            <Header />
+          <Box flex="1" display="flex" flexDirection="column" overflow="hidden" style={themeVars}>
+            <HeaderEditor />
             <Workspace />
             <Footer />
           </Box>
@@ -70,4 +80,6 @@ export function EditorLayout() {
     </DndProvider>
   );
 }
+
+
 

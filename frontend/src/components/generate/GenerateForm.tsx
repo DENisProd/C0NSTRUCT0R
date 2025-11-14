@@ -107,10 +107,12 @@ export const GenerateForm = ({
           onClick={onGenerate}
           loading={isLoading}
           loadingText="Генерация..."
-          colorScheme="blue"
           size="lg"
           width="100%"
           disabled={!prompt.trim() || isLoading}
+          backgroundColor="var(--app-accent)"
+          color="white"
+          _hover={{ backgroundColor: 'var(--app-accent)', opacity: 0.9 }}
         >
           Сгенерировать лендинг
         </Button>
@@ -122,6 +124,9 @@ export const GenerateForm = ({
           variant="outline"
           size="md"
           width="100%"
+          borderColor="var(--app-accent)"
+          color="var(--app-accent)"
+          _hover={{ backgroundColor: 'var(--app-hover)' }}
         >
           Вернуться в редактор
         </Button>

@@ -51,6 +51,7 @@ export const VideoBlock = ({ block, isSelected, isPreview }: VideoBlockProps) =>
       data-block-id={block.id}
       position="relative"
       onClick={handleClick}
+      border="1px dashed transparent"
       style={{
         ...block.style,
         padding: responsiveStyle.padding || block.style.padding,

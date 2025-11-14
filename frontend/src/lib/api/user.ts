@@ -58,6 +58,15 @@ export async function getUserProfile(): Promise<UserProfile> {
   });
 
   if (!response.ok) {
+    if (response.status === 401) {
+      try {
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('auth_token');
+          window.location.assign('/auth/login');
+        }
+      } catch {}
+      throw new Error('Unauthorized');
+    }
     if (response.status === 404) {
       // Mock данные для разработки, если endpoint не реализован
       const token = getAuthToken();
@@ -116,6 +125,15 @@ export async function updateUserProfile(request: UpdateUserProfileRequest): Prom
   });
 
   if (!response.ok) {
+    if (response.status === 401) {
+      try {
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('auth_token');
+          window.location.assign('/auth/login');
+        }
+      } catch {}
+      throw new Error('Unauthorized');
+    }
     const error = await response.json().catch(() => ({ detail: 'Ошибка обновления профиля' }));
     throw new Error(error.detail || 'Ошибка обновления профиля');
   }

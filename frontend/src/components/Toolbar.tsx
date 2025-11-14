@@ -1,5 +1,5 @@
 import { Box, HStack, Button, Input, Popover, Text, VStack } from '@chakra-ui/react';
-import { useRef } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useProjectStore } from '../store/useProjectStore';
 import { useFunctionsStore } from '../store/useFunctionsStore';
@@ -22,6 +22,56 @@ export const Toolbar = () => {
   const { currentBreakpoint, setBreakpoint } = useResponsiveStore();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const { users, roomId, isConnected, disconnect } = useWebSocketStore();
+
+  const [globalMode, setGlobalMode] = useState<'light' | 'dark'>('light');
+
+  const applyGlobalTheme = (mode: 'light' | 'dark') => {
+    const root = document.documentElement;
+    const isDark = mode === 'dark';
+    const vars = isDark
+      ? {
+          '--app-bg-muted': '#0f1216',
+          '--app-surface': '#343a40',
+          '--app-border': '#495057',
+          '--app-text-muted': '#9aa1a9',
+          '--app-accent': '#ffc107',
+          '--app-success': '#00CE5F',
+          '--app-hover': '#2b2f36',
+          '--app-selected': '#233043',
+          '--app-resize': '#274060',
+          bodyBg: '#212529',
+          bodyColor: '#ededed',
+        }
+      : {
+          '--app-bg-muted': '#F4F6FA',
+          '--app-surface': '#ffffff',
+          '--app-border': '#DCDEE1',
+          '--app-text-muted': '#666666',
+          '--app-accent': '#4200FF',
+          '--app-success': '#00CE5F',
+          '--app-hover': '#eaf3ff',
+          '--app-selected': '#e3f2fd',
+          '--app-resize': '#cde4ff',
+          bodyBg: '#ffffff',
+          bodyColor: '#213547',
+        };
+
+    Object.entries(vars).forEach(([key, value]) => {
+      if (key.startsWith('--')) {
+        root.style.setProperty(key, value);
+      }
+    });
+    root.style.colorScheme = isDark ? 'dark' : 'light';
+    document.body.style.backgroundColor = vars.bodyBg;
+    document.body.style.color = vars.bodyColor;
+    localStorage.setItem('global-theme-mode', mode);
+    setGlobalMode(mode);
+  };
+
+  useEffect(() => {
+    const saved = (localStorage.getItem('global-theme-mode') as 'light' | 'dark') || 'light';
+    applyGlobalTheme(saved);
+  }, []);
 
   const handleSave = async () => {
     try {
@@ -103,6 +153,14 @@ export const Toolbar = () => {
         _focus={{ border: '1px solid var(--app-accent)' }}
       />
       <HStack gap="10px">
+        <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <input
+            type="checkbox"
+            checked={globalMode === 'dark'}
+            onChange={(e) => applyGlobalTheme(e.target.checked ? 'dark' : 'light')}
+          />
+          <Box as="span" fontSize="12px">Тёмная тема сервиса</Box>
+        </label>
         {location.pathname.startsWith('/editor') && (
           <>
             <BreakpointSelector

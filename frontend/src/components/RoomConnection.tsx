@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Box, Button, Input, VStack, HStack, Text, Alert, Badge } from '@chakra-ui/react';
+import { useEffect } from 'react';
+import { Box, Spinner, Text } from '@chakra-ui/react';
 import { useWebSocketStore } from '../store/useWebSocketStore';
 import { useAuthStore } from '../store/useAuthStore';
 import { useUserStore } from '../store/useUserStore';
@@ -10,11 +10,9 @@ export const RoomConnection = () => {
     isConnected,
     isConnecting,
     connectionError,
-    roomId,
-    userName,
-    users,
     connect,
     disconnect,
+    roomId,
   } = useWebSocketStore();
   const { token, email, username: authUsername } = useAuthStore();
   const { profile, fetchProfile } = useUserStore();
@@ -23,27 +21,19 @@ export const RoomConnection = () => {
   const params = useParams<{ id?: string }>();
   const initialRoomId = (location.pathname.startsWith('/editor') && params.id) ? String(params.id) : '';
   const derivedName = (profile?.username || authUsername || (email ? email.split('@')[0] : '') || '').trim();
-  const [localRoomId, setLocalRoomId] = useState(initialRoomId);
-  const [localUserName, setLocalUserName] = useState(derivedName);
-  const [showConnectionForm, setShowConnectionForm] = useState(!(initialRoomId && derivedName));
 
   useEffect(() => {
+    const targetRoom = initialRoomId.trim();
+    if (!targetRoom || !derivedName) return;
     if (isConnected) {
-      setShowConnectionForm(false);
+      if (roomId !== targetRoom) {
+        disconnect();
+        connect(targetRoom, derivedName.trim(), undefined, token);
+      }
+    } else if (!isConnecting) {
+      connect(targetRoom, derivedName.trim(), undefined, token);
     }
-  }, [isConnected]);
-
-  useEffect(() => {
-    if (!isConnected && !isConnecting && initialRoomId && derivedName) {
-      connect(initialRoomId.trim(), derivedName.trim(), undefined, token);
-    }
-  }, [isConnected, isConnecting, initialRoomId, derivedName, token]);
-
-  useEffect(() => {
-    if (connectionError) {
-      setShowConnectionForm(true);
-    }
-  }, [connectionError]);
+  }, [isConnected, isConnecting, roomId, initialRoomId, derivedName, token, connect, disconnect]);
 
   useEffect(() => {
     if (token && !profile) {
@@ -51,29 +41,7 @@ export const RoomConnection = () => {
     }
   }, [token]);
 
-  useEffect(() => {
-    const name = (profile?.username || authUsername || (email ? email.split('@')[0] : '') || '').trim();
-    if (name && name !== localUserName) {
-      setLocalUserName(name);
-    }
-  }, [profile?.username, authUsername, email]);
-
-  const handleConnect = () => {
-    if (!localRoomId.trim() || !localUserName.trim()) {
-      alert('Пожалуйста, введите ID комнаты и имя');
-      return;
-    }
-    connect(localRoomId.trim(), localUserName.trim(), undefined, token);
-  };
-
-  const handleDisconnect = () => {
-    disconnect();
-    setShowConnectionForm(true);
-    setLocalRoomId('');
-    setLocalUserName('');
-  };
-
-  if (showConnectionForm) {
+  if (isConnecting) {
     return (
       <Box
         position="fixed"
@@ -89,70 +57,15 @@ export const RoomConnection = () => {
       >
         <Box
           backgroundColor="var(--app-surface)"
-          width="90%"
-          maxWidth="500px"
+          padding="24px"
           borderRadius="8px"
           boxShadow="lg"
-          padding="24px"
+          display="flex"
+          alignItems="center"
+          gap="12px"
         >
-          <VStack gap="16px" align="stretch">
-            <Text fontSize="20px" fontWeight="bold">
-              Подключение к комнате редактирования
-            </Text>
-
-            {connectionError && (
-              <Alert.Root status="error">
-                <Box as="span" marginRight="8px">⚠️</Box>
-                <Alert.Description>{connectionError}</Alert.Description>
-              </Alert.Root>
-            )}
-
-            <VStack gap="12px" align="stretch">
-              <Box>
-              </Box>
-
-              <Box>
-                <Text fontSize="14px" marginBottom="4px">
-                  ID комнаты *
-                </Text>
-                <Input
-                  value={localRoomId}
-                  onChange={(e) => setLocalRoomId(e.target.value)}
-                  placeholder="room-123"
-                  disabled={isConnecting}
-                />
-              </Box>
-
-              <Box>
-                <Text fontSize="14px" marginBottom="4px">
-                  Ваше имя *
-                </Text>
-                <Input
-                  value={localUserName}
-                  onChange={(e) => setLocalUserName(e.target.value)}
-                  placeholder="Иван"
-                  disabled={isConnecting}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      handleConnect();
-                    }
-                  }}
-                />
-              </Box>
-            </VStack>
-
-            <HStack justify="flex-end" gap="8px">
-              <Button
-                onClick={handleConnect}
-                loading={isConnecting}
-                backgroundColor="var(--app-accent)"
-                color="white"
-                _hover={{ backgroundColor: 'var(--app-accent)', opacity: 0.9 }}
-              >
-                {isConnecting ? 'Подключение...' : 'Подключиться'}
-              </Button>
-            </HStack>
-          </VStack>
+          <Spinner size="lg" />
+          <Text>Подключение к комнате...</Text>
         </Box>
       </Box>
     );

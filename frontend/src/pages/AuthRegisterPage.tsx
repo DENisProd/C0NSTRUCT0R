@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Box, VStack, Heading, Input, Button, Alert, Text } from '@chakra-ui/react';
+import { Box, VStack, Heading, Input, Button, Alert, Text, HStack } from '@chakra-ui/react';
 import { useNavigate, Link } from 'react-router-dom';
 import { registerUser } from '../lib/api/auth';
+import { UserPlus, User, Mail, Lock } from 'lucide-react';
 
 export const AuthRegisterPage = () => {
   const navigate = useNavigate();
@@ -30,24 +31,38 @@ export const AuthRegisterPage = () => {
   };
 
   return (
-    <Box as="form" onSubmit={handleSubmit} padding="20px">
-      <VStack gap="15px" align="stretch" maxWidth="420px" margin="0 auto">
-        <Heading size="lg">Регистрация</Heading>
-        {error && (
-          <Alert.Root status="error">
-            <Alert.Description>{error}</Alert.Description>
-          </Alert.Root>
-        )}
-        <Input placeholder="Имя пользователя" value={username} onChange={(e) => setUsername(e.target.value)} />
-        <Input placeholder="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-        <Input placeholder="Пароль" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-        <Button type="submit" disabled={loading}>
-          {loading ? 'Регистрация...' : 'Зарегистрироваться'}
-        </Button>
-        <Text>
-          Уже есть аккаунт? <Link to="/auth/login">Войти</Link>
-        </Text>
-      </VStack>
+    <Box minHeight="100vh" display="flex" alignItems="center" justifyContent="center" backgroundColor="var(--app-bg-muted)">
+      <Box as="form" onSubmit={handleSubmit} padding="24px" width="100%" maxWidth="420px" backgroundColor="var(--app-surface)" border="1px solid var(--app-border)" borderRadius="12px">
+        <VStack gap="16px" align="stretch">
+          <HStack gap="8px" align="center">
+            <UserPlus size={24} color="var(--app-accent)" />
+            <Heading size="lg" color="var(--app-accent)">Регистрация</Heading>
+          </HStack>
+          {error && (
+            <Alert.Root status="error">
+              <Alert.Description>{error}</Alert.Description>
+            </Alert.Root>
+          )}
+          <HStack gap="8px" align="center">
+            <User size={18} color="var(--app-text-muted)" />
+            <Input placeholder="Имя пользователя" value={username} onChange={(e) => setUsername(e.target.value)} backgroundColor="white" border="1px solid var(--app-border)" />
+          </HStack>
+          <HStack gap="8px" align="center">
+            <Mail size={18} color="var(--app-text-muted)" />
+            <Input placeholder="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} backgroundColor="white" border="1px solid var(--app-border)" />
+          </HStack>
+          <HStack gap="8px" align="center">
+            <Lock size={18} color="var(--app-text-muted)" />
+            <Input placeholder="Пароль" type="password" value={password} onChange={(e) => setPassword(e.target.value)} backgroundColor="white" border="1px solid var(--app-border)" />
+          </HStack>
+          <Button type="submit" disabled={loading} backgroundColor="var(--app-accent)" color="white" _hover={{ opacity: 0.9 }}>
+            {loading ? 'Регистрация...' : 'Зарегистрироваться'}
+          </Button>
+          <Text color="var(--app-text-muted)">
+            Уже есть аккаунт? <Link to="/auth/login">Войти</Link>
+          </Text>
+        </VStack>
+      </Box>
     </Box>
   );
 };

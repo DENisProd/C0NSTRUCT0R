@@ -49,6 +49,7 @@ export const GridBlock = ({ block, isSelected, isPreview }: GridBlockProps) => {
       id={block.htmlId || undefined}
       data-block-id={block.id}
       onClick={handleClick}
+      border="1px dashed transparent"
       style={{
         ...block.style,
         padding: responsiveStyle.padding || block.style.padding,

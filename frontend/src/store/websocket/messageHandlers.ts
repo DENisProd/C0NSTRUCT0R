@@ -19,9 +19,9 @@ export function handleIncomingMessage(
     case 'join': {
       const user = message.payload as RoomUser;
       if (user.id !== state.userId) {
-        // Добавляем пользователя в список
+        // Добавляем пользователя, сохраняя уникальность по имени
         useWebSocketStore.setState((s) => ({
-          users: [...s.users.filter((u) => u.id !== user.id), user],
+          users: [...s.users.filter((u) => u.name !== user.name), user],
         }));
         if (state.onUserJoin) {
           state.onUserJoin(user);
@@ -58,7 +58,12 @@ export function handleIncomingMessage(
     case 'users_list': {
       const users = message.payload as RoomUser[];
       if (Array.isArray(users)) {
-        useWebSocketStore.setState({ users });
+        // Дедупликация списка по имени, сохраняем последнюю запись
+        const byName = new Map<string, RoomUser>();
+        for (const u of users) {
+          byName.set(u.name, u);
+        }
+        useWebSocketStore.setState({ users: Array.from(byName.values()) });
       }
       break;
     }

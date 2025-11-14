@@ -1,5 +1,6 @@
 import { Box } from '@chakra-ui/react';
 import { useEffect, useRef, useState } from 'react';
+import { Trash2 } from 'lucide-react';
 import type { TextBlock as TextBlockType } from '../../types';
 import { useProjectStore } from '../../store/useProjectStore';
 import { executeBlockEventFunctions } from '../../lib/functionExecutor';
@@ -65,6 +66,7 @@ export const TextBlock = ({ block, isSelected, isPreview }: TextBlockProps) => {
       onClick={handleClick}
       onMouseEnter={handleMouseEnter}
       data-block-id={block.id}
+      border="1px dashed transparent"
       _hover={{
         '& > .delete-btn': {
           display: !isPreview ? 'block' : 'none',
@@ -111,19 +113,21 @@ export const TextBlock = ({ block, isSelected, isPreview }: TextBlockProps) => {
           position="absolute"
           top="5px"
           right="5px"
-          backgroundColor="red"
-          color="white"
-          padding="5px 10px"
-          borderRadius="4px"
+          backgroundColor="var(--app-surface)"
+          color="var(--app-text-muted)"
+          padding="6px"
+          borderRadius="6px"
+          border="1px solid var(--app-border)"
           cursor="pointer"
           display="none"
           zIndex={10}
+          _hover={{ backgroundColor: 'var(--app-hover)', color: 'var(--app-accent)' }}
           onClick={(e) => {
             e.stopPropagation();
             deleteBlock(block.id);
           }}
         >
-          🗑 Удалить
+          <Trash2 size={14} />
         </Box>
       )}
     </Box>

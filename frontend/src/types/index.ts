@@ -1,4 +1,4 @@
-export type BlockType = 'text' | 'image' | 'button' | 'video' | 'container' | 'grid';
+export type BlockType = 'text' | 'image' | 'button' | 'video' | 'container' | 'grid' | 'input';
 
 export interface ResponsiveStyle {
   fontSize?: string;
@@ -10,6 +10,8 @@ export interface ResponsiveStyle {
   flexDirection?: 'row' | 'column' | 'row-reverse' | 'column-reverse';
   flexWrap?: 'nowrap' | 'wrap' | 'wrap-reverse';
   display?: 'flex' | 'grid' | 'block';
+  alignItems?: 'stretch' | 'flex-start' | 'center' | 'flex-end' | 'baseline';
+  justifyContent?: 'flex-start' | 'center' | 'flex-end' | 'space-between' | 'space-around' | 'space-evenly';
 }
 
 export interface ResponsiveConfig {
@@ -31,6 +33,8 @@ export interface BlockStyle {
   flexDirection?: 'row' | 'column' | 'row-reverse' | 'column-reverse';
   flexWrap?: 'nowrap' | 'wrap' | 'wrap-reverse';
   display?: 'flex' | 'grid' | 'block';
+  alignItems?: 'stretch' | 'flex-start' | 'center' | 'flex-end' | 'baseline';
+  justifyContent?: 'flex-start' | 'center' | 'flex-end' | 'space-between' | 'space-around' | 'space-evenly';
   // Адаптивные параметры для разных брейкпоинтов
   responsive?: ResponsiveConfig;
 }
@@ -54,7 +58,8 @@ export interface TextBlock extends BaseBlock {
 
 export interface ImageBlock extends BaseBlock {
   type: 'image';
-  url: string;
+  url?: string; // URL изображения (для обратной совместимости)
+  mediaEtag?: string; // ETag загруженного медиа
 }
 
 export interface ButtonBlock extends BaseBlock {
@@ -68,6 +73,13 @@ export interface ButtonBlock extends BaseBlock {
 export interface VideoBlock extends BaseBlock {
   type: 'video';
   url: string;
+}
+
+export interface InputBlock extends BaseBlock {
+  type: 'input';
+  value?: string;
+  placeholder?: string;
+  name?: string;
 }
 
 export interface ContainerBlock extends BaseBlock {
@@ -102,7 +114,7 @@ export interface GridCell {
   justify?: 'start' | 'center' | 'end' | 'stretch';
 }
 
-export type Block = TextBlock | ImageBlock | ButtonBlock | VideoBlock | ContainerBlock | GridBlock;
+export type Block = TextBlock | ImageBlock | ButtonBlock | VideoBlock | ContainerBlock | GridBlock | InputBlock;
 
 export interface Header {
   logoUrl?: string;

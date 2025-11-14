@@ -6,6 +6,7 @@ import { VideoBlock } from './VideoBlock';
 import { useProjectStore } from '../../store/useProjectStore';
 import { ContainerBlock } from './ContainerBlock';
 import { GridBlock } from './GridBlock';
+import { InputBlock } from './InputBlock';
 
 interface BlockRendererProps {
   block: Block;
@@ -25,6 +26,8 @@ export const BlockRenderer = ({ block, isPreview = false }: BlockRendererProps) 
       return <ButtonBlock block={block} isSelected={isSelected} isPreview={isPreview} />;
     case 'video':
       return <VideoBlock block={block} isSelected={isSelected} isPreview={isPreview} />;
+    case 'input':
+      return <InputBlock block={block as any} isSelected={isSelected} isPreview={isPreview} />;
     case 'container':
       return <ContainerBlock block={block as any} isSelected={isSelected} isPreview={isPreview} />;
     case 'grid':

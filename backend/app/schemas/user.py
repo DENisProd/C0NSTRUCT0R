@@ -57,6 +57,7 @@ class UserProfileResponse(BaseModel):
     id: int
     username: str
     email: EmailStr
+    created_at: Optional[datetime] = None
     nickname: Optional[str] = None
     avatar_url: Optional[str] = None
     projects_count: int

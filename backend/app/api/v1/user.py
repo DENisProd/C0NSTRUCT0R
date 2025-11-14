@@ -47,6 +47,7 @@ async def get_profile(
         id=current_user.id,
         username=current_user.username,
         email=current_user.email,
+        created_at=current_user.created_at,
         nickname=getattr(current_user, "nickname", None),
         avatar_url=getattr(current_user, "avatar_url", None),
         projects_count=projects_count or 0,

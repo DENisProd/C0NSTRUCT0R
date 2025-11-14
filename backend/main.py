@@ -28,12 +28,11 @@ async def lifespan(app: FastAPI):
         print(f"Предупреждение: не удалось инициализировать системные данные: {e}")
     
     yield
-    # Shutdown: очистка ресурсов (если нужно)
 
 
 app = FastAPI(
     title="Constructor Landing API",
-    description="API для конструктора лендингов с LLM интеграцией",
+    description="From dizhoka podval with love",
     version="1.0.0",
     lifespan=lifespan,
 )
@@ -43,7 +42,6 @@ logging.basicConfig(
     format="%(asctime)s %(levelname)s %(name)s: %(message)s",
 )
 
-# CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
@@ -64,7 +62,6 @@ app.include_router(project_media.router, tags=["Projects Media"])
 app.include_router(user_blocks.router, tags=["User Blocks"])  # router already has prefix "/api/user-blocks"
 app.include_router(ws_router, tags=["WebSocket"])
 
-# Prometheus metrics
 Instrumentator().instrument(app).expose(app, endpoint="/metrics", include_in_schema=False)
 
 

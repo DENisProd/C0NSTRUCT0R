@@ -9,11 +9,12 @@ import type { Project, Block } from '../types';
  */
 export function useWebSocketSync() {
   const { sendMessage, isConnected } = useWebSocketStore();
-  const { project, setProject } = useProjectStore();
+  const { project, setProject, currentProjectId, setCurrentProjectId } = useProjectStore();
   
   // Флаг для предотвращения циклических обновлений
   const isApplyingRemoteChange = useRef(false);
   const lastProjectHash = useRef<string>('');
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Вычисляем хеш проекта для отслеживания изменений
   const getProjectHash = (proj: Project) => {
@@ -45,6 +46,22 @@ export function useWebSocketSync() {
     });
   };
 
+  // Функция автосохранения проекта в БД
+  const autoSaveProject = () => {
+    if (!isConnected || isApplyingRemoteChange.current) {
+      return;
+    }
+
+    // Отправляем сообщение для сохранения проекта
+    sendMessage({
+      type: 'save_project',
+      payload: {
+        projectId: currentProjectId,
+        project: project,
+      },
+    });
+  };
+
   // Настройка обработчиков WebSocket при подключении
   useEffect(() => {
     if (!isConnected) {
@@ -64,6 +81,12 @@ export function useWebSocketSync() {
           }, 100);
         }
       },
+      onProjectSaved: (projectId: number) => {
+        // Обновляем ID проекта после сохранения
+        if (!currentProjectId) {
+          setCurrentProjectId(projectId);
+        }
+      },
     });
 
     // Отправляем текущее состояние при подключении
@@ -72,9 +95,10 @@ export function useWebSocketSync() {
     return () => {
       useWebSocketStore.setState({
         onProjectUpdate: undefined,
+        onProjectSaved: undefined,
       });
     };
-  }, [isConnected]);
+  }, [isConnected, currentProjectId, setCurrentProjectId]);
 
   // Отслеживание изменений проекта и отправка через WebSocket
   useEffect(() => {
@@ -87,13 +111,28 @@ export function useWebSocketSync() {
       return; // Нет изменений
     }
 
-    // Дебаунс для избежания слишком частых отправок
-    const timeoutId = setTimeout(() => {
+    // Очищаем предыдущий таймер автосохранения
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    // Дебаунс для избежания слишком частых отправок синхронизации
+    const syncTimeoutId = setTimeout(() => {
       syncProject();
     }, 500); // Увеличиваем задержку для уменьшения нагрузки
 
-    return () => clearTimeout(timeoutId);
-  }, [project, isConnected]);
+    // Автосохранение в БД с большей задержкой (2 секунды)
+    saveTimeoutRef.current = setTimeout(() => {
+      autoSaveProject();
+    }, 2000);
+
+    return () => {
+      clearTimeout(syncTimeoutId);
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [project, isConnected, currentProjectId]);
 
   // Функции-обертки для отправки конкретных событий
   const sendBlockUpdate = (blockId: string, updates: Partial<Block>) => {

@@ -13,7 +13,7 @@ from app.models.user import User
 from app.models.user_block import UserBlock
 from app.schemas.user import (
     MessageResponse,
-    PasswordChangePayload,
+    PasswordChangeRequest,
     UserProfileResponse,
     UserProfileUpdate,
 )
@@ -47,8 +47,8 @@ async def get_profile(
         id=current_user.id,
         username=current_user.username,
         email=current_user.email,
-        nickname=current_user.nickname,
-        avatar_url=current_user.avatar_url,
+        nickname=getattr(current_user, "nickname", None),
+        avatar_url=getattr(current_user, "avatar_url", None),
         projects_count=projects_count or 0,
         blocks_count=blocks_count or 0,
     )
@@ -60,9 +60,9 @@ async def update_profile(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> UserProfileResponse:
-    if payload.nickname is not None:
+    if payload.nickname is not None and hasattr(current_user, "nickname"):
         current_user.nickname = payload.nickname
-    if payload.avatar_url is not None:
+    if payload.avatar_url is not None and hasattr(current_user, "avatar_url"):
         current_user.avatar_url = payload.avatar_url
         current_user.has_avatar = bool(payload.avatar_url)
 
@@ -74,10 +74,9 @@ async def update_profile(
 
 @router.post("/change-password", response_model=MessageResponse)
 async def change_password_stub(
-    _: PasswordChangePayload,
+    _: PasswordChangeRequest,
     __: User = Depends(get_current_user),
 ) -> MessageResponse:
-    # Заглушка под будущую интеграцию авторизации/Keycloak.
     return MessageResponse(detail="Password change request accepted (stub).")
 
 

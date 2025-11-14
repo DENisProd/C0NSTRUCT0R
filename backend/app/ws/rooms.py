@@ -4,6 +4,13 @@ import json
 import uuid
 import asyncio
 from datetime import datetime
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.auth.security import decode_token
+from app.core.database import async_session_maker
+from app.models.project import Project
+from app.models.user import User
 
 
 router = APIRouter()
@@ -73,14 +80,36 @@ def broadcast_to_room(room_id: str, message: dict, exclude_user_id: Optional[str
         remove_user_from_room(room_id, user_id)
 
 
+async def get_user_from_token(token: str) -> Optional[User]:
+    """Получить пользователя из токена"""
+    try:
+        payload = decode_token(token)
+        subject = payload.get("sub")
+        if subject is None:
+            return None
+        user_id = int(subject)
+        async with async_session_maker() as db:
+            result = await db.execute(select(User).where(User.id == user_id))
+            return result.scalar_one_or_none()
+    except Exception:
+        return None
+
+
 @router.websocket("/ws/rooms/{room_id}")
 async def websocket_endpoint(
     websocket: WebSocket,
     room_id: str,
     name: str = Query(..., description="Имя пользователя"),
+    token: str = Query(None, description="JWT токен для аутентификации"),
 ):
     """WebSocket endpoint для подключения к комнате"""
+    # Токен опционален, но если передан, можно использовать для идентификации пользователя
     await websocket.accept()
+
+    # Получаем пользователя из токена, если он передан
+    user: Optional[User] = None
+    if token:
+        user = await get_user_from_token(token)
 
     # Генерируем ID пользователя
     user_id = f"user-{uuid.uuid4().hex[:12]}"
@@ -252,6 +281,60 @@ async def websocket_endpoint(
                 elif message_type == "cursor_update":
                     # Отправляем обновление курсора всем остальным
                     broadcast_to_room(room_id, message, exclude_user_id=user_id)
+
+                elif message_type == "save_project":
+                    # Автосохранение проекта в БД
+                    if user and room.state:
+                        project_id = payload.get("projectId")
+                        project_data = payload.get("project") or room.state
+                        
+                        if project_id:
+                            # Обновляем существующий проект
+                            async with async_session_maker() as db:
+                                result = await db.execute(
+                                    select(Project).where(
+                                        Project.id == project_id,
+                                        Project.user_id == user.id,
+                                        Project.deleted_at.is_(None),
+                                    )
+                                )
+                                project = result.scalar_one_or_none()
+                                if project:
+                                    project.title = project_data.get("projectName", project.title)
+                                    project.data = project_data
+                                    db.add(project)
+                                    await db.commit()
+                                    # Отправляем подтверждение сохранения
+                                    await websocket.send_text(
+                                        json.dumps({
+                                            "type": "project_saved",
+                                            "payload": {
+                                                "projectId": project.id,
+                                            },
+                                            "timestamp": datetime.now().isoformat(),
+                                        })
+                                    )
+                        else:
+                            # Создаем новый проект, если его нет
+                            async with async_session_maker() as db:
+                                new_project = Project(
+                                    user_id=user.id,
+                                    title=project_data.get("projectName", "Untitled Project"),
+                                    data=project_data,
+                                )
+                                db.add(new_project)
+                                await db.commit()
+                                await db.refresh(new_project)
+                                # Отправляем ID нового проекта обратно клиенту
+                                await websocket.send_text(
+                                    json.dumps({
+                                        "type": "project_saved",
+                                        "payload": {
+                                            "projectId": new_project.id,
+                                        },
+                                        "timestamp": datetime.now().isoformat(),
+                                    })
+                                )
 
                 else:
                     # Игнорируем неизвестные типы сообщений

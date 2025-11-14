@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
@@ -29,8 +30,8 @@ class PasswordChangePayload(PasswordChangeRequest):
 class UserResponse(UserBase):
     id: int
     has_avatar: bool
-    created_at: datetime | None = None
-    updated_at: datetime | None = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -43,3 +44,18 @@ class TokenResponse(BaseModel):
 
 class MessageResponse(BaseModel):
     detail: str
+
+
+class UserProfileUpdate(BaseModel):
+    nickname: Optional[str] = None
+    avatar_url: Optional[str] = None
+
+
+class UserProfileResponse(BaseModel):
+    id: int
+    username: str
+    email: EmailStr
+    nickname: Optional[str] = None
+    avatar_url: Optional[str] = None
+    projects_count: int
+    blocks_count: int

@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Box, Button, Input, VStack, HStack, Text, Alert, Badge } from '@chakra-ui/react';
 import { useWebSocketStore } from '../store/useWebSocketStore';
+import { useAuthStore } from '../store/useAuthStore';
+import { useUserStore } from '../store/useUserStore';
+import { useLocation, useParams } from 'react-router-dom';
 
 export const RoomConnection = () => {
   const {
@@ -13,15 +16,16 @@ export const RoomConnection = () => {
     connect,
     disconnect,
   } = useWebSocketStore();
+  const { token, email, username: authUsername } = useAuthStore();
+  const { profile, fetchProfile } = useUserStore();
+  const location = useLocation();
 
-  const [localRoomId, setLocalRoomId] = useState('');
-  const [localUserName, setLocalUserName] = useState('');
-  const defaultWsUrl =
-    (import.meta as any).env?.VITE_WS_BASE_URL ||
-    ((import.meta as any).env?.VITE_API_BASE_URL
-      ? String((import.meta as any).env.VITE_API_BASE_URL).replace(/^http/i, 'ws')
-      : 'ws://localhost:8001');
-  const [showConnectionForm, setShowConnectionForm] = useState(!isConnected);
+  const params = useParams<{ id?: string }>();
+  const initialRoomId = (location.pathname.startsWith('/editor') && params.id) ? String(params.id) : '';
+  const derivedName = (profile?.username || authUsername || (email ? email.split('@')[0] : '') || '').trim();
+  const [localRoomId, setLocalRoomId] = useState(initialRoomId);
+  const [localUserName, setLocalUserName] = useState(derivedName);
+  const [showConnectionForm, setShowConnectionForm] = useState(!(initialRoomId && derivedName));
 
   useEffect(() => {
     if (isConnected) {
@@ -29,12 +33,37 @@ export const RoomConnection = () => {
     }
   }, [isConnected]);
 
+  useEffect(() => {
+    if (!isConnected && !isConnecting && initialRoomId && derivedName) {
+      connect(initialRoomId.trim(), derivedName.trim(), undefined, token);
+    }
+  }, [isConnected, isConnecting, initialRoomId, derivedName, token]);
+
+  useEffect(() => {
+    if (connectionError) {
+      setShowConnectionForm(true);
+    }
+  }, [connectionError]);
+
+  useEffect(() => {
+    if (token && !profile) {
+      fetchProfile().catch(() => {});
+    }
+  }, [token]);
+
+  useEffect(() => {
+    const name = (profile?.username || authUsername || (email ? email.split('@')[0] : '') || '').trim();
+    if (name && name !== localUserName) {
+      setLocalUserName(name);
+    }
+  }, [profile?.username, authUsername, email]);
+
   const handleConnect = () => {
     if (!localRoomId.trim() || !localUserName.trim()) {
       alert('Пожалуйста, введите ID комнаты и имя');
       return;
     }
-    connect(localRoomId.trim(), localUserName.trim());
+    connect(localRoomId.trim(), localUserName.trim(), undefined, token);
   };
 
   const handleDisconnect = () => {
@@ -59,7 +88,7 @@ export const RoomConnection = () => {
         zIndex={2000}
       >
         <Box
-          backgroundColor="white"
+          backgroundColor="var(--app-surface)"
           width="90%"
           maxWidth="500px"
           borderRadius="8px"
@@ -113,7 +142,13 @@ export const RoomConnection = () => {
             </VStack>
 
             <HStack justify="flex-end" gap="8px">
-              <Button onClick={handleConnect} colorScheme="blue" loading={isConnecting}>
+              <Button
+                onClick={handleConnect}
+                loading={isConnecting}
+                backgroundColor="var(--app-accent)"
+                color="white"
+                _hover={{ backgroundColor: 'var(--app-accent)', opacity: 0.9 }}
+              >
                 {isConnecting ? 'Подключение...' : 'Подключиться'}
               </Button>
             </HStack>
@@ -123,63 +158,6 @@ export const RoomConnection = () => {
     );
   }
 
-  return (
-    <Box
-      position="fixed"
-      top="70px"
-      right="20px"
-      backgroundColor="white"
-      borderRadius="8px"
-      boxShadow="lg"
-      padding="12px 16px"
-      zIndex={1000}
-      minWidth="220px"
-      maxWidth="280px"
-      border="1px solid #e0e0e0"
-    >
-      <VStack gap="8px" align="stretch">
-        <HStack justify="space-between">
-          <Text fontSize="14px" fontWeight="bold">
-            Комната: {roomId}
-          </Text>
-          <Badge colorScheme={isConnected ? 'green' : 'red'}>
-            {isConnected ? 'Подключено' : 'Отключено'}
-          </Badge>
-        </HStack>
-
-        <Text fontSize="12px" color="#666">
-          Вы: {userName}
-        </Text>
-
-        <Box>
-          <Text fontSize="12px" fontWeight="bold" marginBottom="4px">
-            Участники ({users.length}):
-          </Text>
-          <VStack gap="4px" align="stretch" maxHeight="150px" overflowY="auto">
-            {users.map((user) => (
-              <HStack key={user.id} gap="8px">
-                <Box
-                  width="8px"
-                  height="8px"
-                  borderRadius="50%"
-                  backgroundColor={user.id === useWebSocketStore.getState().userId ? '#007bff' : '#28a745'}
-                />
-                <Text fontSize="12px">{user.name}</Text>
-                {user.id === useWebSocketStore.getState().userId && (
-                  <Text fontSize="10px" color="#666">
-                    (Вы)
-                  </Text>
-                )}
-              </HStack>
-            ))}
-          </VStack>
-        </Box>
-
-        <Button size="sm" colorScheme="red" onClick={handleDisconnect}>
-          Отключиться
-        </Button>
-      </VStack>
-    </Box>
-  );
+  return null;
 };
 

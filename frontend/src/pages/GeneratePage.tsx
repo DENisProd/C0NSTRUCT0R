@@ -1,38 +1,46 @@
-import { useState } from 'react';
-import {
-  Box,
-  VStack,
-  Textarea,
-  Button,
-  Heading,
-  Text,
-  Spinner,
-  Alert,
-  HStack,
-  Badge,
-} from '@chakra-ui/react';
+import { useState, useEffect, useRef } from 'react';
+import { Box, VStack, Heading, Text, HStack, Button } from '@chakra-ui/react';
+import { Brain, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { generateLanding } from '../lib/api/generateLanding';
 import { useGenerateStore } from '../store/useGenerateStore';
 import { useProjectStore } from '../store/useProjectStore';
+import { useAuthStore } from '../store/useAuthStore';
 import { applyPaletteToProject } from '../lib/applyPalette';
-
-const BLOCK_CATEGORIES = [
-  { value: 'hero', label: 'Hero секция' },
-  { value: 'features', label: 'Особенности' },
-  { value: 'testimonials', label: 'Отзывы' },
-  { value: 'pricing', label: 'Цены' },
-  { value: 'cta', label: 'Призыв к действию' },
-  { value: 'about', label: 'О нас' },
-  { value: 'contact', label: 'Контакты' },
-];
+import { GenerateForm } from '../components/generate/GenerateForm';
+import { GenerateLoading } from '../components/generate/GenerateLoading';
+import { GeneratePreview } from '../components/generate/GeneratePreview';
 
 export const GeneratePage = () => {
   const navigate = useNavigate();
   const [prompt, setPrompt] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const { isLoading, error, setLoading, setError, setGenerated } = useGenerateStore();
-  const { addTemplateBlocks, updateTheme } = useProjectStore();
+  const {
+    isLoading,
+    error,
+    setLoading,
+    setError,
+    setGenerated,
+    generatedBlocks,
+    generatedPalette,
+    generatedMeta,
+    clearGenerated,
+  } = useGenerateStore();
+  const { addTemplateBlocks, updateTheme, project } = useProjectStore();
+  const { token } = useAuthStore();
+  const previewRef = useRef<HTMLDivElement>(null);
+
+  // Автоматическая прокрутка к превью после генерации
+  useEffect(() => {
+    if (generatedBlocks.length > 0 && previewRef.current) {
+      setTimeout(() => {
+        previewRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+        });
+      }, 100);
+    }
+  }, [generatedBlocks.length]);
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
@@ -41,29 +49,44 @@ export const GeneratePage = () => {
     }
 
     setLoading(true);
+    setError(null);
     try {
-      const response = await generateLanding({
-        prompt: prompt.trim(),
-        categories: selectedCategories.length > 0 ? selectedCategories : undefined,
-      });
+      const response = await generateLanding(
+        {
+          prompt: prompt.trim(),
+          categories:
+            selectedCategories.length > 0 ? selectedCategories : undefined,
+        },
+        token
+      );
 
       setGenerated(response);
-
-      // Применяем палитру к проекту
-      if (response.palette) {
-        applyPaletteToProject(response.palette, updateTheme);
-      }
-
-      // Добавляем блоки в проект
-      if (response.blocks.length > 0) {
-        addTemplateBlocks(response.blocks);
-      }
-
-      // Переходим в редактор
-      navigate('/editor');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка генерации');
     }
+  };
+
+  const handleAddToProject = () => {
+    if (generatedBlocks.length > 0) {
+      // Применяем палитру к проекту
+      if (generatedPalette) {
+        applyPaletteToProject(generatedPalette, updateTheme);
+      }
+
+      // Добавляем блоки в проект
+      addTemplateBlocks(generatedBlocks);
+
+      // Очищаем сгенерированные данные
+      clearGenerated();
+
+      // Переходим в редактор
+      navigate('/editor');
+    }
+  };
+
+  const handleRegenerate = () => {
+    clearGenerated();
+    setError(null);
   };
 
   const toggleCategory = (category: string) => {
@@ -77,103 +100,64 @@ export const GeneratePage = () => {
   return (
     <Box minHeight="100vh" backgroundColor="#f5f5f5" padding="40px 20px">
       <Box maxWidth="800px" margin="0 auto">
+        <HStack justify="flex-start" align="center" marginBottom="12px">
+          <Button variant="ghost" onClick={() => navigate(-1)}>
+            <HStack gap="8px" align="center">
+              <ArrowLeft size={18} />
+              <Text as="span">Назад</Text>
+            </HStack>
+          </Button>
+        </HStack>
+
+        {isLoading && (
+          <GenerateLoading hasGeneratedBlocks={generatedBlocks.length > 0} />
+        )}
+
         <VStack gap="24px" align="stretch">
           <Heading size="xl" textAlign="center">
-            🧠 Генерация лендинга с помощью AI
+            <HStack gap="10px" justify="center" align="center">
+              <Brain size={24} />
+              <Text as="span">Генерация лендинга с помощью AI</Text>
+            </HStack>
           </Heading>
 
           <Text color="gray.600" textAlign="center">
-            Опишите, какой лендинг вы хотите создать, и AI сгенерирует его для вас
+            Опишите, какой лендинг вы хотите создать, и AI сгенерирует его для
+            вас
           </Text>
 
-          <VStack gap="16px" align="stretch">
-            <Box>
-              <Text mb="8px" fontWeight="medium">
-                Описание лендинга
-              </Text>
-              <Textarea
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                placeholder="Например: Создай лендинг для интернет-магазина электроники с hero-секцией, каталогом товаров и формой обратной связи"
-                minHeight="120px"
-                backgroundColor="white"
+          {generatedBlocks.length === 0 && (
+            <GenerateForm
+              prompt={prompt}
+              setPrompt={setPrompt}
+              selectedCategories={selectedCategories}
+              toggleCategory={toggleCategory}
+              error={error}
+              isLoading={isLoading}
+              onGenerate={handleGenerate}
+              onBackToEditor={() => navigate('/editor')}
+            />
+          )}
+
+          {isLoading && generatedBlocks.length === 0 && (
+            <GenerateLoading hasGeneratedBlocks={false} />
+          )}
+
+          {generatedBlocks.length > 0 && (
+            <Box ref={previewRef}>
+              <GeneratePreview
+                generatedBlocks={generatedBlocks}
+                generatedPalette={generatedPalette}
+                generatedMeta={generatedMeta}
+                projectTheme={project.theme}
+                isLoading={isLoading}
+                onRegenerate={handleRegenerate}
+                onAddToProject={handleAddToProject}
               />
             </Box>
-
-            <Box>
-              <Text mb="8px" fontWeight="medium">
-                Категории блоков (опционально)
-              </Text>
-              <HStack gap="8px" flexWrap="wrap">
-                {BLOCK_CATEGORIES.map((category) => (
-                  <Badge
-                    key={category.value}
-                    as="button"
-                    onClick={() => toggleCategory(category.value)}
-                    padding="8px 16px"
-                    borderRadius="full"
-                    cursor="pointer"
-                    backgroundColor={
-                      selectedCategories.includes(category.value)
-                        ? 'blue.500'
-                        : 'gray.200'
-                    }
-                    color={
-                      selectedCategories.includes(category.value)
-                        ? 'white'
-                        : 'gray.700'
-                    }
-                    _hover={{
-                      backgroundColor: selectedCategories.includes(category.value)
-                        ? 'blue.600'
-                        : 'gray.300',
-                    }}
-                  >
-                    {category.label}
-                  </Badge>
-                ))}
-              </HStack>
-            </Box>
-
-            {error && (
-              <Alert.Root status="error">
-                <Box as="span" marginRight="8px">⚠️</Box>
-                <Alert.Description>{error}</Alert.Description>
-              </Alert.Root>
-            )}
-
-            <Button
-              onClick={handleGenerate}
-              loading={isLoading}
-              loadingText="Генерация..."
-              colorScheme="blue"
-              size="lg"
-              width="100%"
-              disabled={!prompt.trim() || isLoading}
-            >
-              {isLoading ? (
-                <HStack gap="8px">
-                  <Spinner size="sm" />
-                  <Text>Генерация...</Text>
-                </HStack>
-              ) : (
-                'Сгенерировать лендинг'
-              )}
-            </Button>
-
-            <Button
-              onClick={() => navigate('/editor')}
-              variant="outline"
-              size="md"
-              width="100%"
-            >
-              Вернуться в редактор
-            </Button>
-          </VStack>
+          )}
         </VStack>
       </Box>
     </Box>
   );
 };
-
-

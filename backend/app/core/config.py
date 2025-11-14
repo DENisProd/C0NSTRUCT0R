@@ -1,12 +1,11 @@
 from pydantic_settings import BaseSettings
-from pydantic import field_validator
-from typing import List
+from pydantic import field_validator, model_validator
+from typing import List, Optional, Union
 
 
 class Settings(BaseSettings):
     DATABASE_URL: str = "postgresql+asyncpg://constructor:constructor@localhost:5432/constructor"
     API_BASE_URL: str = "http://localhost:8000"
-<<<<<<< Updated upstream
     CORS_ORIGINS: List[str] = [
         "http://localhost:5173",
         "http://127.0.0.1:5173",
@@ -19,7 +18,6 @@ class Settings(BaseSettings):
         "http://127.0.0.1:8080",
         "http://127.0.0.1:8081",
     ]
-=======
     
     # Frontend configuration
     FRONTEND_PORT: int = 8080
@@ -38,7 +36,6 @@ class Settings(BaseSettings):
     MINIO_PUBLIC_ENDPOINT: Optional[str] = None
 
     CORS_ORIGINS: Union[List[str], str] = []
->>>>>>> Stashed changes
     JWT_SECRET_KEY: str = "change_me"
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 30  # 30 days
@@ -49,12 +46,9 @@ class Settings(BaseSettings):
 
     @field_validator("CORS_ORIGINS", mode="before")
     def _parse_cors_origins(cls, v):
-        # Поддержка формата в .env: CORS_ORIGINS=http://a,http://b
         if isinstance(v, str):
-<<<<<<< Updated upstream
             return [s.strip() for s in v.split(",") if s.strip()]
         return v
-=======
             parsed = [s.strip() for s in v.split(",") if s.strip()]
             if parsed:
                 return parsed
@@ -81,7 +75,6 @@ class Settings(BaseSettings):
         if not self.MINIO_SECRET_KEY and self.MINIO_SA_SECRET_KEY:
             self.MINIO_SECRET_KEY = self.MINIO_SA_SECRET_KEY
         return self
->>>>>>> Stashed changes
 
 
 settings = Settings()

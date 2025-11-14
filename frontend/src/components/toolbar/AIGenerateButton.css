@@ -1,0 +1,63 @@
+.ai-generate-button {
+  background-color: var(--app-accent);
+  color: #ffffff;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+
+  transition-duration: 0.5s;
+	z-index: 0;
+}
+
+.ai-generate-button:hover {
+  background-color: var(--app-accent);
+  opacity: 0.9;
+}
+
+.ai-generate-button__content {
+  gap: 6px;
+  align-items: center;
+  display: inline-flex;
+}
+
+.ai-generate-button__icon {
+  display: inline-block;
+}
+
+.ai-generate-button::after {
+	content: "";
+	z-index: -1;
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	background-color: var(--app-accent);
+	left: 0;
+	top: 0;
+}
+
+.ai-generate-button::before {
+	content: "";
+	background: linear-gradient(45deg, var(--app-accent), #018dff, #37c6ff, #018dff, var(--app-accent), #018dff, #37c6ff, #018dff);
+	position: absolute;
+	top: -2px;
+	left: -2px;
+	background-size: 600%;
+	z-index: -1;
+	width: calc(100% + 4px);
+	height: calc(100% + 4px);
+	filter: blur(8px);
+	animation: glowing 20s linear infinite;
+	transition: opacity 0.3s ease-in-out;
+	/* border-radius: 100px; */
+	opacity: 1;
+}
+
+@keyframes glowing {
+	0% {
+		background-position: 0 0;
+	}
+	50% {
+		background-position: 400% 0;
+	}
+	100% {
+		background-position: 0 0;
+	}
+}

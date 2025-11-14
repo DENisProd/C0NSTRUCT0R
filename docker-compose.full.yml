@@ -1,4 +1,19 @@
 services:
+  db:
+    image: postgres:16-alpine
+    container_name: constructor-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U constructor -d constructor"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
   nginx:
     image: nginx:alpine
     container_name: constructor-nginx
@@ -9,7 +24,7 @@ services:
       - frontend_dist:/usr/share/nginx/html:ro
     depends_on:
       - backend
-      - ml-service
+      # - ml-service
 
   frontend-build:
     build:
@@ -22,25 +37,31 @@ services:
   backend:
     build: ./backend
     container_name: constructor-backend
-    ports:
-      - "8000:8000"
-    restart: unless-stopped
-
-  ml-service:
-    build: ./ml-service
-    container_name: ml-service
     env_file:
-      - ./ml-service/.env
+      - ./backend/.env
     environment:
-      - OLLAMA_MOCK=0
+      DATABASE_URL: ${DATABASE_URL}
+      SQLALCHEMY_NULLPOOL: "1"
+      MINIO_MAIN_BUCKET: ${MINIO_MAIN_BUCKET}
+      MINIO_SA_ACCESS_KEY: ${MINIO_SA_ACCESS_KEY}
+      MINIO_SA_SECRET_KEY: ${MINIO_SA_SECRET_KEY}
+
+  minio-service:
+    image: 'minio/minio:RELEASE.2025-04-22T22-12-26Z'
+    container_name: minio-service
     ports:
-      - "8088:8088"
-    restart: unless-stopped
+      - '${FORWARD_MINIO_PORT:-9000}:9000'
+      - '${FORWARD_MINIO_CONSOLE_PORT:-9090}:9090'
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - 'minio:/data/minio'
+    command: minio server /data/minio --console-address ":9090"
+    
+  minio-init:
+    image: minio/mc:latest
     depends_on:
-<<<<<<< Updated upstream
-      ollama:
-        condition: service_healthy
-=======
       - minio-service
     restart: on-failure:5
     environment:
@@ -56,7 +77,7 @@ services:
       mc alias set myminio http://minio-service:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD} &&
       mc mb myminio/${MINIO_MAIN_BUCKET} --ignore-existing &&
       mc mb myminio/${MINIO_BACKUP_BUCKET:-${MINIO_MAIN_BUCKET}-backup} --ignore-existing &&
-      mc admin user svcacct add myminio ${MINIO_ROOT_USER} --access-key ${MINIO_SA_ACCESS_KEY} --secret-key ${MINIO_SA_SECRET_KEY} || true &&
+      mc admin user svcacct add myminio ${MINIO_ROOT_USER} --access-key ${MINIO_SA_ACCESS_KEY} --secret-key ${MINIO_SA_SECRET_KEY} &&
       echo 'Initialization complete'"
   # ml-service:
   #   build: ./ml-service
@@ -66,21 +87,7 @@ services:
   #   ports:
   #     - "8088:8088"
   #   restart: unless-stopped
->>>>>>> Stashed changes
 
-  ollama:
-    image: ollama/ollama:latest
-    container_name: ollama
-    restart: unless-stopped
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama:/root/.ollama
-    healthcheck:
-      test: ["CMD", "ollama", "list"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
 
   prometheus:
     image: prom/prometheus:latest
@@ -90,8 +97,8 @@ services:
     ports:
       - "9090:9090"
     restart: unless-stopped
-    depends_on:
-      - ml-service
+    # depends_on:
+    #   - ml-service
 
   grafana:
     image: grafana/grafana:latest
@@ -99,8 +106,8 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_USER=${GF_SECURITY_ADMIN_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD}
     volumes:
       - ./ml-service/grafana/provisioning:/etc/grafana/provisioning:ro
       - ./ml-service/grafana/dashboards:/var/lib/grafana/dashboards:ro
@@ -109,5 +116,6 @@ services:
       - prometheus
 
 volumes:
-  ollama: {}
   frontend_dist: {}
+  minio:
+    driver: local

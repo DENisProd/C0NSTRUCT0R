@@ -1,10 +1,6 @@
 import os
-<<<<<<< Updated upstream
-from fastapi import FastAPI
-=======
 import logging
 from fastapi import Depends, FastAPI
->>>>>>> Stashed changes
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
@@ -13,11 +9,8 @@ from app.auth.dependencies import get_current_user
 from app.core.config import settings
 from app.core.database import Base, engine, async_session_maker
 from app.core.init_db import init_preset_palettes, init_system_blocks
-<<<<<<< Updated upstream
 from app.api.v1 import ai, library, palette
-=======
-from app.api.v1 import ai, library, palette, projects, project_media, user, user_blocks
->>>>>>> Stashed changes
+from app.api.v1 import ai, library, palette, user, projects, user_blocks
 from app.ws.rooms import router as ws_router
 
 
@@ -45,6 +38,11 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+)
+
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -60,13 +58,9 @@ app.include_router(ai.router, prefix="/api/ai", tags=["AI"])
 app.include_router(auth_router, prefix="/api", tags=["Auth"])
 app.include_router(library.router, prefix="/api/library", tags=["Library"])
 app.include_router(palette.router, prefix="/api/palette", tags=["Palette"])
-<<<<<<< Updated upstream
-=======
-app.include_router(user.router, tags=["User"], dependencies=auth_dependency)
-app.include_router(projects.router, tags=["Projects"], dependencies=auth_dependency)
-app.include_router(project_media.router, tags=["Projects Media"], dependencies=auth_dependency)
-app.include_router(user_blocks.router, tags=["User Blocks"])
->>>>>>> Stashed changes
+app.include_router(user.router, tags=["User"])  # router already has prefix "/api/user"
+app.include_router(projects.router, tags=["Projects"])  # router already has prefix "/api/projects"
+app.include_router(user_blocks.router, tags=["User Blocks"])  # router already has prefix "/api/user-blocks"
 app.include_router(ws_router, tags=["WebSocket"])
 
 

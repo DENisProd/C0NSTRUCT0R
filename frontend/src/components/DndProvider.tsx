@@ -20,7 +20,7 @@ interface DndProviderProps {
 }
 
 export const DndProvider = ({ children }: DndProviderProps) => {
-  const { project, moveBlock, addBlock, addBlockToContainer, addBlockToGridCell, moveGridItem, addTemplateBlocks, addTemplateBlocksAt, addTemplateToContainer, addTemplateToGridCell } = useProjectStore();
+  const { project, moveBlock, addBlock, addBlockToContainer, addBlockToGridCell, moveGridItem, addTemplateBlocksAt, addTemplateToContainer, addTemplateToGridCell } = useProjectStore();
   const { getTemplate } = useTemplatesStore();
   const { systemBlocks, communityBlocks, userBlocks } = useLibraryStore();
   const { blocks } = project;

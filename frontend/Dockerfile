@@ -15,4 +15,4 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 
 # Собираем статику
-RUN pnpm run build
+RUN [ -f .env.prod ] && cp .env.prod .env.production || true && pnpm run build

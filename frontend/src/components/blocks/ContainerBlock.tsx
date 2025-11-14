@@ -3,6 +3,8 @@ import { useDroppable } from '@dnd-kit/core';
 import type { ContainerBlock as ContainerBlockType, Block } from '../../types';
 import { useProjectStore } from '../../store/useProjectStore';
 import { BlockRenderer } from './BlockRenderer';
+import { useResponsiveStore } from '../../store/useResponsiveStore';
+import { getStyleForBreakpoint } from '../../lib/responsiveUtils';
 
 interface ContainerBlockProps {
   block: ContainerBlockType;
@@ -40,12 +42,13 @@ const InnerDropZone = ({ id, isEmpty = false }: { id: string; isEmpty?: boolean 
 
 export const ContainerBlock = ({ block, isSelected, isPreview }: ContainerBlockProps) => {
   const { selectBlock, project, deleteBlock } = useProjectStore();
+  const { currentBreakpoint } = useResponsiveStore();
   const children = (block.children || []) as Block[];
+  
+  const responsiveStyle = getStyleForBreakpoint(block.style, currentBreakpoint);
 
   const handleClick = (e: React.MouseEvent) => {
     if (!isPreview) {
-      // Выделяем контейнер только при прямом клике по его фону,
-      // а не при клике по вложенному контенту
       if (e.currentTarget === e.target) {
         selectBlock(block.id);
       }
@@ -59,11 +62,18 @@ export const ContainerBlock = ({ block, isSelected, isPreview }: ContainerBlockP
       onClick={handleClick}
       style={{
         ...block.style,
+        padding: responsiveStyle.padding || block.style.padding,
+        margin: responsiveStyle.margin || block.style.margin,
+        width: responsiveStyle.width || block.style.width,
+        display: responsiveStyle.display || block.style.display || 'flex',
+        flexDirection: responsiveStyle.flexDirection || block.style.flexDirection || 'column',
+        flexWrap: responsiveStyle.flexWrap || block.style.flexWrap || 'nowrap',
+        textAlign: responsiveStyle.textAlign || block.style.textAlign,
         boxShadow: isSelected && !isPreview ? `0 0 0 2px ${project.theme.accent}` : 'none',
         backgroundColor: block.style.backgroundColor || '#fafafa',
         position: 'relative',
       }}
-      borderRadius={block.style.borderRadius}
+      borderRadius={responsiveStyle.borderRadius || block.style.borderRadius}
       overflow={block.style.borderRadius ? 'hidden' : undefined}
       _hover={{
         border: !isPreview ? '1px dashed #ccc' : 'none',

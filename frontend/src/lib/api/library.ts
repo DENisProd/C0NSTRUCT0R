@@ -13,10 +13,31 @@ export interface LibraryBlock {
   createdAt: number;
 }
 
-const API_BASE_URL =
+const RAW_BASE =
   import.meta.env.VITE_LIBRARY_API_BASE_URL ||
   import.meta.env.VITE_API_BASE_URL ||
-  'http://localhost:8001';
+  '';
+
+// Получаем правильный API URL
+function getApiBaseUrl(): string {
+  if (RAW_BASE) {
+    if (RAW_BASE.startsWith('/')) {
+      return `${window.location.origin}${RAW_BASE}`;
+    }
+    return RAW_BASE;
+  }
+  
+  // Fallback: используем порт бекенда (8000)
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    const protocol = window.location.protocol;
+    return `${protocol}//${hostname}:8000/api`;
+  }
+  
+  return 'http://localhost:8000/api';
+}
+
+const API_BASE_URL = getApiBaseUrl();
 
 function mapLibraryBlock(item: any): LibraryBlock {
   return {
@@ -34,7 +55,7 @@ function mapLibraryBlock(item: any): LibraryBlock {
 }
 
 export async function getSystemBlocks(): Promise<LibraryBlock[]> {
-  const response = await fetch(`${API_BASE_URL}/api/library/ready`);
+  const response = await fetch(`${API_BASE_URL}/library/ready`);
   if (!response.ok) {
     throw new Error('Ошибка загрузки системных блоков');
   }
@@ -43,7 +64,7 @@ export async function getSystemBlocks(): Promise<LibraryBlock[]> {
 }
 
 export async function getUserBlocks(): Promise<LibraryBlock[]> {
-  const response = await fetch(`${API_BASE_URL}/api/library/blocks?is_custom=true`);
+  const response = await fetch(`${API_BASE_URL}/library/blocks?is_custom=true`);
   if (!response.ok) {
     throw new Error('Ошибка загрузки пользовательских блоков');
   }
@@ -52,7 +73,7 @@ export async function getUserBlocks(): Promise<LibraryBlock[]> {
 }
 
 export async function getCommunityBlocks(): Promise<LibraryBlock[]> {
-  const response = await fetch(`${API_BASE_URL}/api/library/blocks?is_custom=false`);
+  const response = await fetch(`${API_BASE_URL}/library/blocks?is_custom=false`);
   if (!response.ok) {
     throw new Error('Ошибка загрузки блоков сообщества');
   }
@@ -69,7 +90,7 @@ export interface UploadBlockRequest {
 }
 
 export async function uploadBlock(request: UploadBlockRequest): Promise<LibraryBlock> {
-  const response = await fetch(`${API_BASE_URL}/api/library/upload`, {
+  const response = await fetch(`${API_BASE_URL}/library/upload`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

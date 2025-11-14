@@ -51,6 +51,7 @@ async def get_profile(
         avatar_url=getattr(current_user, "avatar_url", None),
         projects_count=projects_count or 0,
         blocks_count=blocks_count or 0,
+        totp_enabled=getattr(current_user, "totp_enabled", False),
     )
 
 

@@ -1,4 +1,5 @@
 from typing import Any, Dict, List
+import random
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
@@ -10,6 +11,99 @@ from app.schemas.palette import PaletteCreate, PaletteResponse, PaletteSchema
 from app.services.palette_generator import PaletteGenerator
 
 router = APIRouter()
+
+RANDOM_PALETTES: List[Dict[str, str]] = [
+    {
+        "name": "Neutral 1",
+        "accent": "#101B39",
+        "text": "#333136",
+        "heading": "#101B39",
+        "background": "#E9E8EE",
+        "surface": "#FFFFFF",
+        "border": "#B4B1B8",
+    },
+    {
+        "name": "Neutral 2",
+        "accent": "#9F624F",
+        "text": "#59372B",
+        "heading": "#4B2E24",
+        "background": "#F7E7CE",
+        "surface": "#FFFFFF",
+        "border": "#CCA98D",
+    },
+    {
+        "name": "Neutral 3",
+        "accent": "#727A6B",
+        "text": "#383931",
+        "heading": "#1C2915",
+        "background": "#EDE3D9",
+        "surface": "#CCD5C4",
+        "border": "#AF9D89",
+    },
+    {
+        "name": "Neutral 4",
+        "accent": "#333333",
+        "text": "#555555",
+        "heading": "#000000",
+        "background": "#FFFFFF",
+        "surface": "#F4F4F4",
+        "border": "#CCCCCC",
+    },
+    {
+        "name": "Pastel 1",
+        "accent": "#98BAD5",
+        "text": "#304674",
+        "heading": "#26385C",
+        "background": "#EAF4FB",
+        "surface": "#C6D3E3",
+        "border": "#AFC6DC",
+    },
+    {
+        "name": "Pastel 2",
+        "accent": "#F0B6D5",
+        "text": "#4C3B3B",
+        "heading": "#2C2222",
+        "background": "#FFF0F5",
+        "surface": "#FFD1DC",
+        "border": "#E4A0B7",
+    },
+    {
+        "name": "Pastel 3",
+        "accent": "#CCAEDB",
+        "text": "#332E41",
+        "heading": "#4B2E83",
+        "background": "#EFDFF9",
+        "surface": "#DCC0EC",
+        "border": "#B195C0",
+    },
+    {
+        "name": "Vivid 1",
+        "accent": "#2196F3",
+        "text": "#212121",
+        "heading": "#0D0D0D",
+        "background": "#FFFFFF",
+        "surface": "#E3F2FD",
+        "border": "#90CAF9",
+    },
+    {
+        "name": "Vivid 2",
+        "accent": "#4CAF50",
+        "text": "#212121",
+        "heading": "#0D0D0D",
+        "background": "#F1F8E9",
+        "surface": "#FFFFFF",
+        "border": "#AED581",
+    },
+    {
+        "name": "Vivid 3",
+        "accent": "#FF6F61",
+        "text": "#212121",
+        "heading": "#000000",
+        "background": "#FFFFFF",
+        "surface": "#FBE9E7",
+        "border": "#FFCCBC",
+    },
+]
 
 
 class ApplyPaletteRequest(BaseModel):
@@ -106,6 +200,14 @@ async def get_palette_list():
     Возвращает список предустановленных палитр
     """
     return PaletteGenerator.get_preset_palettes()
+
+
+@router.get("/random", response_model=Dict[str, str])
+async def get_random_palette():
+    """
+    Возвращает одну случайную палитру из набора предопределённых
+    """
+    return random.choice(RANDOM_PALETTES)
 
 
 class GeneratePaletteRequest(BaseModel):

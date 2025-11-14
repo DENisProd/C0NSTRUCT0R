@@ -18,6 +18,9 @@ class Settings(BaseSettings):
     MINIO_SA_SECRET_KEY: Optional[str] = None
     MINIO_MAIN_BUCKET: str = "constructor"
     MINIO_PUBLIC_ENDPOINT: Optional[str] = None
+
+    ENABLE_TOTP: bool = True
+    TOTP_ISSUER: str = "Constructor"
     CORS_ORIGINS: Union[List[str], str] = []
     JWT_SECRET_KEY: str = "change_me"
     JWT_ALGORITHM: str = "HS256"

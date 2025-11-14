@@ -16,6 +16,7 @@ class UserCreate(UserBase):
 class UserLogin(BaseModel):
     email: EmailStr
     password: str = Field(..., min_length=8, max_length=128)
+    totp_code: str | None = Field(default=None, min_length=6, max_length=8)
 
 
 class PasswordChangeRequest(BaseModel):
@@ -30,6 +31,7 @@ class PasswordChangePayload(PasswordChangeRequest):
 class UserResponse(UserBase):
     id: int
     has_avatar: bool
+    totp_enabled: bool
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
@@ -59,3 +61,15 @@ class UserProfileResponse(BaseModel):
     avatar_url: Optional[str] = None
     projects_count: int
     blocks_count: int
+    totp_enabled: bool
+
+
+class TOTPSetupResponse(BaseModel):
+    secret: str
+    provisioning_uri: str
+    issuer: str
+    label: str
+
+
+class TOTPCodePayload(BaseModel):
+    code: str = Field(..., min_length=6, max_length=8)

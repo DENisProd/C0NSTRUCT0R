@@ -11,6 +11,7 @@ from app.core.database import Base, engine, async_session_maker
 from app.core.init_db import init_preset_palettes, init_system_blocks
 from app.api.v1 import ai, library, palette, user, projects, user_blocks, project_media
 from app.ws.rooms import router as ws_router
+from prometheus_fastapi_instrumentator import Instrumentator
 
 
 @asynccontextmanager
@@ -62,6 +63,9 @@ app.include_router(projects.router, tags=["Projects"])  # router already has pre
 app.include_router(project_media.router, tags=["Projects Media"])  
 app.include_router(user_blocks.router, tags=["User Blocks"])  # router already has prefix "/api/user-blocks"
 app.include_router(ws_router, tags=["WebSocket"])
+
+# Prometheus metrics
+Instrumentator().instrument(app).expose(app, endpoint="/metrics", include_in_schema=False)
 
 
 @app.get("/")

@@ -5,11 +5,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth.security import get_password_hash, verify_password
 from app.models.user import User
 from app.schemas.user import PasswordChangeRequest, UserCreate
+from app.services.totp_service import TOTPService
 
 
 class AuthService:
     def __init__(self, db: AsyncSession):
         self.db = db
+        self.totp_service = TOTPService(db)
 
     async def register_user(self, payload: UserCreate) -> User:
         result = await self.db.execute(
@@ -32,7 +34,7 @@ class AuthService:
         await self.db.refresh(user)
         return user
 
-    async def authenticate(self, email: str, password: str) -> User:
+    async def authenticate(self, email: str, password: str, totp_code: str | None = None) -> User:
         result = await self.db.execute(select(User).where(User.email == email))
         user = result.scalar_one_or_none()
         if not user or not verify_password(password, user.password_hash):
@@ -40,6 +42,7 @@ class AuthService:
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Неверный email или пароль",
             )
+        TOTPService.require_login_code(user, totp_code)
         return user
 
     async def change_password(self, user: User, payload: PasswordChangeRequest) -> None:

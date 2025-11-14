@@ -19,4 +19,6 @@ asgi-lifespan==2.1.0
 google-genai>=0.6.0
 minio==7.2.7
 Pillow==10.4.0
+prometheus-fastapi-instrumentator==6.0.0
+pyotp==2.9.0
 google-genai>=0.6.0

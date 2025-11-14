@@ -23,6 +23,10 @@ class PasswordChangeRequest(BaseModel):
     new_password: str = Field(..., min_length=8, max_length=128)
 
 
+class PasswordChangePayload(PasswordChangeRequest):
+    confirm_new_password: str = Field(..., min_length=8, max_length=128)
+
+
 class UserResponse(UserBase):
     id: int
     has_avatar: bool

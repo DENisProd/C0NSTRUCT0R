@@ -1,11 +1,17 @@
+from __future__ import annotations
+
 from datetime import datetime
-from typing import Any, Dict
+from typing import TYPE_CHECKING, Any, Dict
 
 from sqlalchemy import DateTime, ForeignKey, Integer, JSON, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from app.core.database import Base
+
+if TYPE_CHECKING:
+    from app.models.project_media import ProjectMedia
+    from app.models.user import User
 
 
 class Project(Base):
@@ -19,4 +25,8 @@ class Project(Base):
     updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
-    owner: Mapped["User"] = relationship(back_populates="projects")
+    owner: Mapped[User] = relationship(back_populates="projects")
+    media: Mapped[list[ProjectMedia]] = relationship(
+        back_populates="project",
+        cascade="all, delete-orphan",
+    )

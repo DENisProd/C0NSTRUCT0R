@@ -1,13 +1,15 @@
 import os
 import logging
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from app.auth.router import router as auth_router
+from app.auth.dependencies import get_current_user
 from app.core.config import settings
 from app.core.database import Base, engine, async_session_maker
 from app.core.init_db import init_preset_palettes, init_system_blocks
+from app.api.v1 import ai, library, palette
 from app.api.v1 import ai, library, palette, user, projects, user_blocks
 from app.ws.rooms import router as ws_router
 
@@ -51,6 +53,7 @@ app.add_middleware(
 )
 
 # Подключение роутеров
+auth_dependency = [Depends(get_current_user)]
 app.include_router(ai.router, prefix="/api/ai", tags=["AI"])
 app.include_router(auth_router, prefix="/api", tags=["Auth"])
 app.include_router(library.router, prefix="/api/library", tags=["Library"])

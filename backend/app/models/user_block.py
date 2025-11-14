@@ -1,11 +1,16 @@
+from __future__ import annotations
+
 from datetime import datetime
-from typing import Any, Dict
+from typing import TYPE_CHECKING, Any, Dict
 
 from sqlalchemy import DateTime, ForeignKey, Integer, JSON, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from app.core.database import Base
+
+if TYPE_CHECKING:
+    from app.models.user import User
 
 
 class UserBlock(Base):
@@ -18,4 +23,4 @@ class UserBlock(Base):
     preview_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-    owner: Mapped["User"] = relationship(back_populates="user_blocks")
+    owner: Mapped[User] = relationship(back_populates="user_blocks")

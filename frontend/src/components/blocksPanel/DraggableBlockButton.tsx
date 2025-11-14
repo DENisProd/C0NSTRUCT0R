@@ -28,7 +28,7 @@ export const DraggableBlockButton = ({ type, label, icon }: DraggableBlockButton
       {...listeners}
       {...attributes}
       backgroundColor="var(--app-surface)"
-      color="black"
+      color="inherit"
       border="1px solid var(--app-border)"
       justifyContent="flex-start"
       cursor="grab"

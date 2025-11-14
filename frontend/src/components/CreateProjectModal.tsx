@@ -18,6 +18,9 @@ export const CreateProjectModal = ({ isOpen, onClose }: CreateProjectModalProps)
   const navigate = useNavigate();
 
   const handleCreate = async () => {
+    if (isCreating) {
+      return;
+    }
     if (!projectName.trim()) {
       window.alert('Введите название проекта');
       return;
@@ -48,13 +51,13 @@ export const CreateProjectModal = ({ isOpen, onClose }: CreateProjectModalProps)
     <Dialog.Root open={isOpen} onOpenChange={(e) => !e.open && onClose()}>
       <Dialog.Backdrop />
       <Dialog.Positioner>
-        <Dialog.Content>
+        <Dialog.Content backgroundColor="var(--app-surface)" border="1px solid var(--app-border)" color="inherit" padding="6">
           <Dialog.Header>
-            <Dialog.Title>Создать новый проект</Dialog.Title>
+            <Dialog.Title color="inherit">Создать новый проект</Dialog.Title>
           </Dialog.Header>
           <Dialog.Body>
             <VStack gap="16px" align="stretch">
-              <Text fontSize="14px" color="gray.600">
+              <Text fontSize="14px" color="var(--app-text-muted)">
                 Введите название для нового проекта
               </Text>
               <Input
@@ -62,22 +65,28 @@ export const CreateProjectModal = ({ isOpen, onClose }: CreateProjectModalProps)
                 value={projectName}
                 onChange={(e) => setProjectName(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
+                  if (e.key === 'Enter' && !isCreating) {
                     handleCreate();
                   }
                 }}
                 autoFocus
+                disabled={isCreating}
+                backgroundColor="var(--app-surface)"
+                border="1px solid var(--app-border)"
+                color="inherit"
+                _placeholder={{ color: 'var(--app-text-muted)' }}
               />
             </VStack>
           </Dialog.Body>
           <Dialog.Footer>
-            <HStack gap="8px">
-              <Button variant="outline" onClick={onClose} disabled={isCreating}>
+            <HStack gap="8px" justify="flex-end">
+              <Button variant="outline" onClick={onClose} disabled={isCreating} borderColor="var(--app-border)" color="inherit" _hover={{ backgroundColor: 'var(--app-hover)' }}>
                 Отмена
               </Button>
               <Button
                 onClick={handleCreate}
                 loading={isCreating}
+                disabled={isCreating}
                 backgroundColor="var(--app-accent)"
                 color="white"
                 _hover={{ backgroundColor: 'var(--app-accent)', opacity: 0.9 }}

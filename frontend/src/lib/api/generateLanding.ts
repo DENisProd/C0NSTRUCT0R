@@ -49,4 +49,23 @@ export async function generateLanding(
   return response.json();
 }
 
+export async function getRandomPalette(token?: string | null): Promise<ColorPalette> {
+  const url = `${API_BASE_URL}/api/palette/random`;
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+  };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  const response = await fetch(url, {
+    method: 'GET',
+    headers,
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: 'Ошибка получения палитры' }));
+    throw new Error(error.message || 'Ошибка получения палитры');
+  }
+  return response.json();
+}
+
 

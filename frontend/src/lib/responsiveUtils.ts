@@ -96,12 +96,9 @@ export function getStyleForBreakpoint(
   
   const responsive = blockStyle.responsive?.[breakpoint];
   if (!responsive) {
-    return blockStyle;
+    return {};
   }
-  return {
-    ...blockStyle,
-    ...responsive,
-  };
+  return responsive;
 }
 
 export function isDifferentFromDesktop(

@@ -30,23 +30,25 @@ export const PreviewPage = () => {
 
   if (isLoading) {
     return (
-      <Box minHeight="100vh" display="flex" alignItems="center" justifyContent="center">
-        <Spinner size="xl" />
+      <Box minHeight="100vh" display="flex" alignItems="center" justifyContent="center" backgroundColor="var(--app-bg-muted)">
+        <Spinner size="xl" color="var(--app-accent)" />
       </Box>
     );
   }
 
   if (error || !project) {
     return (
-      <Box minHeight="100vh" display="flex" alignItems="center" justifyContent="center" padding="24px">
-        <Text color="red.500">{error || 'Проект не найден'}</Text>
+      <Box minHeight="100vh" display="flex" alignItems="center" justifyContent="center" padding="24px" backgroundColor="var(--app-bg-muted)">
+        <Box padding="16px" backgroundColor="var(--app-surface)" border="1px solid var(--app-border)" borderRadius="8px">
+          <Text color="inherit">{error || 'Проект не найден'}</Text>
+        </Box>
       </Box>
     );
   }
 
   return (
     <Box minHeight="100vh" backgroundColor={project.theme.background}>
-      <Box maxWidth="1200px" margin="0 auto" padding="24px">
+      <Box maxWidth="1200px" margin="0 auto" padding="24px" backgroundColor={project.theme.surface} border="1px solid" borderColor={project.theme.border} borderRadius="10px">
         <Heading size="lg" marginBottom="16px" color={project.theme.heading}>{project.projectName}</Heading>
         <VStack gap="0" align="stretch">
           {project.blocks.map((block) => (

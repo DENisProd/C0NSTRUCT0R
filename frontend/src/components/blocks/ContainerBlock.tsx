@@ -68,23 +68,23 @@ export const ContainerBlock = ({ block, isSelected, isPreview }: ContainerBlockP
       border="1px dashed transparent"
       style={{
         ...block.style,
-        padding: responsiveStyle.padding || block.style.padding,
-        margin: responsiveStyle.margin || block.style.margin,
-        width: responsiveStyle.width || block.style.width,
-        display: responsiveStyle.display || block.style.display || 'flex',
+        padding: responsiveStyle.padding ?? block.style.padding,
+        margin: responsiveStyle.margin ?? block.style.margin,
+        width: responsiveStyle.width ?? block.style.width,
+        display: responsiveStyle.display ?? block.style.display ?? 'flex',
         flexDirection: direction,
-        flexWrap: responsiveStyle.flexWrap || block.style.flexWrap || 'nowrap',
-        alignItems: responsiveStyle.alignItems || block.style.alignItems || 'stretch',
-        justifyContent: responsiveStyle.justifyContent || block.style.justifyContent || 'flex-start',
-        textAlign: responsiveStyle.textAlign || block.style.textAlign,
+        flexWrap: responsiveStyle.flexWrap ?? block.style.flexWrap ?? 'nowrap',
+        alignItems: responsiveStyle.alignItems ?? block.style.alignItems ?? 'stretch',
+        justifyContent: responsiveStyle.justifyContent ?? block.style.justifyContent ?? 'flex-start',
+        textAlign: responsiveStyle.textAlign ?? block.style.textAlign,
         boxShadow: isSelected && !isPreview ? `0 0 0 2px ${project.theme.accent}` : 'none',
         backgroundColor: block.style.backgroundColor || project.theme.surface,
         position: 'relative',
       }}
-      borderRadius={responsiveStyle.borderRadius || block.style.borderRadius}
+      borderRadius={responsiveStyle.borderRadius ?? block.style.borderRadius}
       overflow={block.style.borderRadius ? 'hidden' : undefined}
       _hover={{
-        border: !isPreview ? '1px dashed #ccc' : 'none',
+        border: !isPreview ? '1px dashed var(--app-border)' : 'none',
         '& > .delete-btn': {
           display: !isPreview ? 'block' : 'none',
         },
@@ -96,11 +96,11 @@ export const ContainerBlock = ({ block, isSelected, isPreview }: ContainerBlockP
           top="6px"
           right="6px"
           zIndex={20}
-          backgroundColor="#fff"
-          border="1px solid #ddd"
+          backgroundColor="var(--app-surface)"
+          border="1px solid var(--app-border)"
           borderRadius="6px"
           fontSize="12px"
-          color="#555"
+          color="inherit"
           padding="4px 8px"
           boxShadow="0 1px 2px rgba(0,0,0,0.06)"
           cursor="pointer"

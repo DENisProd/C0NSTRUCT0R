@@ -47,7 +47,7 @@ export const BlockPreviewModal = ({ blockId, isOpen, onClose }: BlockPreviewModa
     >
       <Dialog.Backdrop />
       <Dialog.Positioner>
-        <Dialog.Content maxW="4xl" w="100%" maxH="80vh" overflowY="auto" p="6">
+        <Dialog.Content maxW="4xl" w="100%" maxH="80vh" overflowY="auto" p="6" backgroundColor="var(--app-surface)" border="1px solid var(--app-border)" color="inherit">
           <Dialog.Title>
             Предпросмотр блока
           </Dialog.Title>
@@ -69,12 +69,12 @@ export const BlockPreviewModal = ({ blockId, isOpen, onClose }: BlockPreviewModa
               {block.name}
             </Text>
             <HStack gap="8px">
-              <Badge colorScheme="blue">{block.category}</Badge>
-              {block.isCustom && <Badge colorScheme="green">Мой блок</Badge>}
+              <Badge fontSize="10px" border="1px solid var(--app-border)" backgroundColor="var(--app-surface)" color="inherit">{block.category}</Badge>
+              {block.isCustom && <Badge fontSize="10px" border="1px solid var(--app-border)" backgroundColor="var(--app-surface)" color="inherit">Мой блок</Badge>}
               {block.tags && block.tags.length > 0 && (
                 <HStack gap="4px">
                   {block.tags.map((tag) => (
-                    <Badge key={tag} fontSize="10px" colorScheme="gray">
+                    <Badge key={tag} fontSize="10px" border="1px solid var(--app-border)" backgroundColor="var(--app-surface)" color="inherit">
                       {tag}
                     </Badge>
                   ))}
@@ -85,17 +85,17 @@ export const BlockPreviewModal = ({ blockId, isOpen, onClose }: BlockPreviewModa
 
           <VStack gap="16px" align="stretch">
             {block.description && (
-              <Text color="gray.600">{block.description}</Text>
+              <Text color="var(--app-text-muted)">{block.description}</Text>
             )}
 
             <Box
               padding="24px"
-              backgroundColor="gray.50"
+              backgroundColor="var(--app-bg-muted)"
               borderRadius="12px"
               border="1px solid"
-              borderColor="gray.200"
+              borderColor="var(--app-border)"
             >
-              <Text mb="12px" fontWeight="medium" fontSize="14px" color="gray.700">
+              <Text mb="12px" fontWeight="medium" fontSize="14px" color="inherit">
                 Предпросмотр
               </Text>
               <Box display="flex" justifyContent="center">
@@ -105,14 +105,14 @@ export const BlockPreviewModal = ({ blockId, isOpen, onClose }: BlockPreviewModa
                   backgroundColor={project.theme.background}
                   borderRadius="10px"
                   border="1px solid"
-                  borderColor="gray.300"
+                  borderColor="var(--app-border)"
                   boxShadow="sm"
                 >
                   {block.blocks.map((b, idx) => (
                     <Box key={b.id} mb={idx !== block.blocks.length - 1 ? '16px' : 0}>
                       <BlockRenderer block={b} isPreview={true} />
                       {idx !== block.blocks.length - 1 && (
-                        <Box height="1px" backgroundColor="gray.200" my="16px" />
+                        <Box height="1px" backgroundColor="var(--app-border)" my="16px" />
                       )}
                     </Box>
                   ))}
@@ -121,17 +121,17 @@ export const BlockPreviewModal = ({ blockId, isOpen, onClose }: BlockPreviewModa
             </Box>
 
             <HStack gap="12px" justify="flex-end">
-              <Button variant="outline" onClick={onClose}>
+              <Button variant="outline" onClick={onClose} borderColor="var(--app-border)" color="inherit" _hover={{ backgroundColor: 'var(--app-hover)' }}>
                 Закрыть
               </Button>
-          <Button
-            onClick={handleAddToProject}
-            backgroundColor="var(--app-accent)"
-            color="white"
-            _hover={{ backgroundColor: 'var(--app-accent)', opacity: 0.9 }}
-          >
-            Добавить в проект
-          </Button>
+              <Button
+                onClick={handleAddToProject}
+                backgroundColor="var(--app-accent)"
+                color="white"
+                _hover={{ backgroundColor: 'var(--app-accent)', opacity: 0.9 }}
+              >
+                Добавить в проект
+              </Button>
             </HStack>
           </VStack>
         </VStack>

@@ -152,3 +152,97 @@ export async function updateUserProfile(request: UpdateUserProfileRequest): Prom
   };
 }
 
+export async function uploadAvatar(file: File): Promise<UserProfile> {
+  const token = getAuthToken();
+  const formData = new FormData();
+  formData.append('avatar', file);
+  formData.append('file', file);
+
+  const headers: HeadersInit = {};
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const response = await fetch(`${API_BASE_URL}/api/user/avatar`, {
+    method: 'POST',
+    headers,
+    body: formData,
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      try {
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('auth_token');
+          window.location.assign('/auth/login');
+        }
+      } catch {}
+      throw new Error('Unauthorized');
+    }
+    let message = 'Ошибка загрузки аватара';
+    try {
+      const data = await response.json();
+      if (typeof data === 'string') message = data;
+      else if (data?.detail) message = data.detail;
+      else if (data?.message) message = data.message;
+    } catch {
+      try {
+        const text = await response.text();
+        if (text) message = text;
+      } catch {}
+    }
+    throw new Error(message);
+  }
+
+  const data = await response.json();
+  return {
+    id: data.id,
+    username: data.username,
+    email: data.email,
+    hasAvatar: data.has_avatar ?? data.hasAvatar ?? false,
+    avatarUrl: data.avatar_url ?? data.avatarUrl,
+    createdAt: data.created_at ?? data.createdAt,
+    updatedAt: data.updated_at ?? data.updatedAt,
+    projectsCount: data.projects_count ?? data.projectsCount,
+    blocksCount: data.blocks_count ?? data.blocksCount,
+  };
+}
+
+export async function deleteAvatar(): Promise<UserProfile> {
+  const response = await fetch(`${API_BASE_URL}/api/user/avatar`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      try {
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('auth_token');
+          window.location.assign('/auth/login');
+        }
+      } catch {}
+      throw new Error('Unauthorized');
+    }
+    const error = await response.json().catch(() => ({ detail: 'Ошибка удаления аватара' }));
+    throw new Error(error.detail || 'Ошибка удаления аватара');
+  }
+
+  const data = await response.json();
+  return {
+    id: data.id,
+    username: data.username,
+    email: data.email,
+    hasAvatar: data.has_avatar ?? data.hasAvatar ?? false,
+    avatarUrl: data.avatar_url ?? data.avatarUrl,
+    createdAt: data.created_at ?? data.createdAt,
+    updatedAt: data.updated_at ?? data.updatedAt,
+    projectsCount: data.projects_count ?? data.projectsCount,
+    blocksCount: data.blocks_count ?? data.blocksCount,
+  };
+}
+
+export function getUserAvatarUrl(userId: number): string {
+  return `${API_BASE_URL}/api/user/${userId}/avatar`;
+}
+

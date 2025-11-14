@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { ChakraProvider, defaultSystem } from '@chakra-ui/react';
+import { ChakraProvider, defaultSystem, Box } from '@chakra-ui/react';
 import { EditorLayout } from './components/EditorLayout';
 import { GeneratePage } from './pages/GeneratePage';
 import { PreviewPage } from './pages/PreviewPage';
@@ -23,19 +23,21 @@ function App() {
   return (
     <ChakraProvider value={defaultSystem}>
       <BrowserRouter>
-        <Routes>
-          <Route path="/editor" element={<PrivateRoute><EditorLayout /></PrivateRoute>} />
-          <Route path="/editor/:id" element={<PrivateRoute><EditorLayout /></PrivateRoute>} />
-          <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
-          <Route path="/generate" element={<GeneratePage />} />
-          <Route path="/library" element={<LibraryPage />} />
-          <Route path="/library/add" element={<AddBlockPage />} />
-          <Route path="/auth/login" element={<AuthLoginPage />} />
-          <Route path="/auth/register" element={<AuthRegisterPage />} />
-          <Route path="/auth/change-password" element={<AuthChangePasswordPage />} />
-          <Route path="/preview/:id" element={<PreviewPage />} />
-          <Route path="/" element={<Navigate to="/editor" replace />} />
-        </Routes>
+        <Box color="inherit" minHeight="100vh">
+          <Routes>
+            <Route path="/editor" element={<PrivateRoute><EditorLayout /></PrivateRoute>} />
+            <Route path="/editor/:id" element={<PrivateRoute><EditorLayout /></PrivateRoute>} />
+            <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
+            <Route path="/generate" element={<GeneratePage />} />
+            <Route path="/library" element={<LibraryPage />} />
+            <Route path="/library/add" element={<AddBlockPage />} />
+            <Route path="/auth/login" element={<AuthLoginPage />} />
+            <Route path="/auth/register" element={<AuthRegisterPage />} />
+            <Route path="/auth/change-password" element={<AuthChangePasswordPage />} />
+            <Route path="/preview/:id" element={<PreviewPage />} />
+            <Route path="/" element={<Navigate to="/editor" replace />} />
+          </Routes>
+        </Box>
       </BrowserRouter>
     </ChakraProvider>
   );

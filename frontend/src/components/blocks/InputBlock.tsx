@@ -81,6 +81,10 @@ export const InputBlock = ({ block, isSelected, isPreview }: Props) => {
         onFocus={handleFocus}
         onBlur={handleBlur}
         onChange={handleChange}
+        backgroundColor="var(--app-surface)"
+        border="1px solid var(--app-border)"
+        color="inherit"
+        _placeholder={{ color: 'var(--app-text-muted)' }}
       />
 
       {!isPreview && (

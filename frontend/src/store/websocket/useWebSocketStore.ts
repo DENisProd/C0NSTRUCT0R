@@ -48,6 +48,8 @@ export interface WebSocketStore {
   reconnectAttempts: number;
   maxReconnectAttempts: number;
   reconnectDelay: number;
+  reconnectTimerId?: number | null;
+  lastReconnectAt?: number | null;
 
   // Room state
   roomId: string | null;
@@ -89,6 +91,8 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => ({
   reconnectAttempts: 0,
   maxReconnectAttempts: 5,
   reconnectDelay: 1000,
+  reconnectTimerId: null,
+  lastReconnectAt: null,
 
   roomId: null,
   userName: null,
@@ -133,12 +137,19 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => ({
 
   connect: (roomId: string, userName: string, serverUrl = WS_BASE_URL, token?: string | null) => {
     const state = get();
+    const now = Date.now();
+    if (state.lastReconnectAt && now - state.lastReconnectAt < 5000) {
+      console.warn('Подключение ограничено частотой, повторите через 5 секунд');
+      return;
+    }
     if (state.isConnecting || state.isConnected) {
       console.warn('WebSocket уже подключен или подключается');
       return;
     }
 
     try {
+      // Предотвращаем гонку одновременных вызовов connect
+      set({ isConnecting: true, connectionError: null, roomId, userName, token: token || null });
       const ws = createWebSocketConnection(
         roomId,
         userName,
@@ -156,12 +167,18 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => ({
             currentState.userName
           ) {
             const delay =
-              currentState.reconnectDelay *
-              Math.pow(2, currentState.reconnectAttempts);
-            setTimeout(() => {
-              set({ reconnectAttempts: currentState.reconnectAttempts + 1 });
-              get().connect(currentState.roomId!, currentState.userName!, serverUrl, currentState.token);
-            }, delay);
+              Math.max(
+                currentState.reconnectDelay * Math.pow(2, currentState.reconnectAttempts),
+                5000
+              );
+            if (!currentState.reconnectTimerId) {
+              const timerId = window.setTimeout(() => {
+                // Очистим таймер перед новым подключением
+                set({ reconnectTimerId: null, reconnectAttempts: currentState.reconnectAttempts + 1 });
+                get().connect(currentState.roomId!, currentState.userName!, serverUrl, currentState.token);
+              }, delay);
+              set({ reconnectTimerId: timerId, lastReconnectAt: Date.now() });
+            }
           } else if (currentState.reconnectAttempts >= currentState.maxReconnectAttempts) {
             set({
               connectionError:
@@ -170,7 +187,7 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => ({
           }
         }
       );
-      set({ ws });
+      set({ ws, lastReconnectAt: Date.now() });
     } catch (error) {
       console.error('Ошибка создания WebSocket:', error);
       set({
@@ -185,6 +202,9 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => ({
     if (state.ws) {
       state.ws.close();
     }
+    if (state.reconnectTimerId) {
+      try { clearTimeout(state.reconnectTimerId); } catch {}
+    }
     set({
       ws: null,
       isConnected: false,
@@ -198,6 +218,8 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => ({
       userColors: new Map(),
       connectionError: null,
       reconnectAttempts: 0,
+      reconnectTimerId: null,
+      lastReconnectAt: null,
     });
   },
 

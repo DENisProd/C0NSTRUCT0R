@@ -304,7 +304,7 @@ export const ImageUploader = ({
         try {
           const media = await uploadProjectMedia(projectId, file);
           if (media.etag) {
-            const url = getMediaUrlByEtag(media.etag);
+            const url = media.file_url || getMediaUrlByEtag(media.etag);
             onImageSelected(media.etag, url);
             setIsCropping(false);
             setPreviewUrl(null);

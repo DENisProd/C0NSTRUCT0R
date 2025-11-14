@@ -53,7 +53,7 @@ const DraggableBlockButton = ({ type, label, icon }: DraggableBlockButtonProps) 
       {...listeners}
       {...attributes}
       backgroundColor="var(--app-surface)"
-      color="black"
+      color="inherit"
       border="1px solid var(--app-border)"
       justifyContent="flex-start"
       cursor="grab"
@@ -179,12 +179,16 @@ export const BlocksPanel = () => {
   return (
     <Box
       width={`${blocksPanelWidth}px`}
-      height="100vh"
+      height="calc(100vh - 60px)"
       backgroundColor="var(--app-bg-muted)"
       borderRight="1px solid var(--app-border)"
       display="flex"
       flexDirection="column"
-      position="relative"
+      position="fixed"
+      top="60px"
+      left={0}
+      zIndex={100}
+      boxShadow="0 0 0 1px var(--app-border), 0 8px 20px rgba(0,0,0,0.08)"
     >
       <Box
         position="absolute"
@@ -259,10 +263,10 @@ export const BlocksPanel = () => {
           display="flex"
           alignItems="center"
           justifyContent="center"
-          zIndex={1000}
+          zIndex={20000}
         >
-          <Box backgroundColor="white" width="90%" maxWidth="520px" borderRadius="8px" boxShadow="md">
-            <HStack padding="16px" borderBottom="1px solid #eee" justify="space-between">
+          <Box backgroundColor="var(--app-surface)" border="1px solid var(--app-border)" width="90%" maxWidth="520px" borderRadius="8px" boxShadow="md">
+            <HStack padding="16px" borderBottom="1px solid var(--app-border)" justify="space-between">
               <Text fontWeight="bold">Сохранить как готовый блок</Text>
               <Button variant="ghost" size="sm" onClick={onClose}>×</Button>
             </HStack>
@@ -321,18 +325,18 @@ export const BlocksPanel = () => {
                     ))}
                   </VStack>
                   {project.blocks.length === 0 && (
-                    <Text fontSize="12px" color="#999">
+                    <Text fontSize="12px" color="var(--app-text-muted)">
                       Нет блоков на странице
                     </Text>
                   )}
                 </Box>
               </VStack>
             </Box>
-            <HStack padding="16px" borderTop="1px solid #eee" justify="flex-end">
+            <HStack padding="16px" borderTop="1px solid var(--app-border)" justify="flex-end">
               <Button variant="ghost" onClick={onClose} marginRight="8px">
                 Отмена
               </Button>
-              <Button onClick={handleSaveAsTemplate} backgroundColor="#007bff" color="white">
+              <Button onClick={handleSaveAsTemplate} backgroundColor="var(--app-accent)" color="white" _hover={{ backgroundColor: 'var(--app-accent)', opacity: 0.9 }}>
                 Сохранить
               </Button>
             </HStack>

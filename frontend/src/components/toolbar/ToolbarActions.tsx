@@ -59,16 +59,22 @@ export const ToolbarActions = ({
               </HStack>
             </Button>
           </Menu.Trigger>
-          <Menu.Positioner>
-            <Menu.Content>
-              <Menu.Item value="my_profile" onClick={goToProfile}>
-                <Box as="span">Мой профиль</Box>
+          <Menu.Positioner zIndex={30000}>
+            <Menu.Content
+              padding="12px"
+              backgroundColor="var(--app-surface)"
+              border="1px solid var(--app-border)"
+              color="inherit"
+              boxShadow="0 8px 20px rgba(0,0,0,0.2)"
+            >
+              <Menu.Item value="my_profile" onClick={goToProfile} color="inherit" _hover={{ backgroundColor: 'var(--app-hover)' }}>
+                <Box as="span" color="inherit">Мой профиль</Box>
               </Menu.Item>
-              <Menu.Item value="projects" onClick={() => goToProfileTab('projects')}>
-                <Box as="span">Мои проекты</Box>
+              <Menu.Item value="projects" onClick={() => goToProfileTab('projects')} color="inherit" _hover={{ backgroundColor: 'var(--app-hover)' }}>
+                <Box as="span" color="inherit">Мои проекты</Box>
               </Menu.Item>
-              <Menu.Item value="logout" onClick={handleLogout}>
-                <Box as="span">Выйти</Box>
+              <Menu.Item value="logout" onClick={handleLogout} color="inherit" _hover={{ backgroundColor: 'var(--app-hover)' }}>
+                <Box as="span" color="inherit">Выйти</Box>
               </Menu.Item>
             </Menu.Content>
           </Menu.Positioner>
@@ -100,18 +106,24 @@ export const ToolbarActions = ({
             Ещё
           </Button>
         </Menu.Trigger>
-        <Menu.Positioner>
-          <Menu.Content>
-            <Menu.Item value="export_json" onClick={onExportJSON}>
+        <Menu.Positioner zIndex={30000}>
+          <Menu.Content
+            padding="12px"
+            backgroundColor="var(--app-surface)"
+            border="1px solid var(--app-border)"
+            color="inherit"
+            boxShadow="0 8px 20px rgba(0,0,0,0.2)"
+          >
+            <Menu.Item value="export_json" onClick={onExportJSON} color="inherit" _hover={{ backgroundColor: 'var(--app-hover)' }}>
               <HStack gap="6px">
                 <Download size={16} />
-                <Box as="span">Экспорт JSON</Box>
+                <Box as="span" color="inherit">Экспорт JSON</Box>
               </HStack>
             </Menu.Item>
-            <Menu.Item value="import_json" onClick={onTriggerImport}>
+            <Menu.Item value="import_json" onClick={onTriggerImport} color="inherit" _hover={{ backgroundColor: 'var(--app-hover)' }}>
               <HStack gap="6px">
                 <Upload size={16} />
-                <Box as="span">Импорт JSON</Box>
+                <Box as="span" color="inherit">Импорт JSON</Box>
               </HStack>
             </Menu.Item>
           </Menu.Content>

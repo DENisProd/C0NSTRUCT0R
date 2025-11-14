@@ -7,7 +7,6 @@ import { UserProjectsList } from '../components/UserProjectsList';
 import { UserBlocksList } from '../components/UserBlocksList';
 import { CreateProjectModal } from '../components/CreateProjectModal';
 import { HeaderService } from '../components/Header';
-import { Footer } from '../components/Footer';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 export const ProfilePage = () => {
@@ -34,7 +33,6 @@ export const ProfilePage = () => {
         <Box flex="1" display="flex" justifyContent="center" alignItems="center">
           <Spinner size="lg" />
         </Box>
-        <Footer />
       </Box>
     );
   }
@@ -48,9 +46,35 @@ export const ProfilePage = () => {
             <UserInfoCard />
 
             <Tabs.Root defaultValue={initialTab} variant="enclosed">
-              <Tabs.List>
-                <Tabs.Trigger value="projects">Мои проекты</Tabs.Trigger>
-                <Tabs.Trigger value="blocks">Мои блоки</Tabs.Trigger>
+              <Tabs.List
+                backgroundColor="var(--app-surface)"
+                border="1px solid var(--app-border)"
+                borderRadius="8px"
+                padding="6px"
+                gap="8px"
+              >
+                <Tabs.Trigger
+                  value="projects"
+                  color="inherit"
+                  border="1px solid var(--app-border)"
+                  borderRadius="6px"
+                  padding="8px 12px"
+                  _hover={{ backgroundColor: 'var(--app-hover)' }}
+                  _selected={{ backgroundColor: 'var(--app-selected)', color: 'inherit', borderColor: 'var(--app-accent)' }}
+                >
+                  Мои проекты
+                </Tabs.Trigger>
+                <Tabs.Trigger
+                  value="blocks"
+                  color="inherit"
+                  border="1px solid var(--app-border)"
+                  borderRadius="6px"
+                  padding="8px 12px"
+                  _hover={{ backgroundColor: 'var(--app-hover)' }}
+                  _selected={{ backgroundColor: 'var(--app-selected)', color: 'inherit', borderColor: 'var(--app-accent)' }}
+                >
+                  Мои блоки
+                </Tabs.Trigger>
               </Tabs.List>
 
               <Box 
@@ -59,6 +83,7 @@ export const ProfilePage = () => {
                 borderRadius="8px" 
                 border="1px solid var(--app-border)" 
                 marginTop="16px"
+                color="inherit"
               >
                 <Tabs.Content value="projects">
                   <UserProjectsList onCreateClick={() => setIsCreateModalOpen(true)} />
@@ -71,7 +96,6 @@ export const ProfilePage = () => {
           </VStack>
         </Container>
       </Box>
-      <Footer />
 
       <CreateProjectModal
         isOpen={isCreateModalOpen}

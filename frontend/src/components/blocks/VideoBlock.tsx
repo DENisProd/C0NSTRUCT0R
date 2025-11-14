@@ -62,7 +62,7 @@ export const VideoBlock = ({ block, isSelected, isPreview }: VideoBlockProps) =>
       }}
       borderRadius={responsiveStyle.borderRadius || block.style.borderRadius}
       _hover={{
-        border: !isPreview ? '1px dashed #ccc' : 'none',
+        border: !isPreview ? '1px dashed var(--app-border)' : 'none',
         '& > .delete-btn': {
           display: !isPreview ? 'block' : 'none',
         },
@@ -93,13 +93,13 @@ export const VideoBlock = ({ block, isSelected, isPreview }: VideoBlockProps) =>
         </Box>
       ) : (
         <Box
-          border="2px dashed #ccc"
+          border="2px dashed var(--app-border)"
           padding="40px"
           textAlign="center"
-          backgroundColor="#f9f9f9"
+          backgroundColor="var(--app-bg-muted)"
           borderRadius="inherit"
         >
-          <Text color="#999">Введите YouTube URL в панели свойств</Text>
+          <Text color="var(--app-text-muted)">Введите YouTube URL в панели свойств</Text>
         </Box>
       )}
       {!isPreview && (
@@ -108,22 +108,26 @@ export const VideoBlock = ({ block, isSelected, isPreview }: VideoBlockProps) =>
           position="absolute"
           top="5px"
           right="5px"
-          backgroundColor="red"
-          color="white"
-          padding="5px 10px"
-          borderRadius="4px"
+          backgroundColor="var(--app-surface)"
+          color="var(--app-text-muted)"
+          padding="6px"
+          borderRadius="6px"
+          border="1px solid var(--app-border)"
           cursor="pointer"
           display="none"
+          _hover={{ backgroundColor: 'var(--app-hover)', color: 'var(--app-accent)' }}
           onClick={(e) => {
             e.stopPropagation();
             deleteBlock(block.id);
           }}
         >
-          🗑 Удалить
+          <Trash2 size={14} />
         </Box>
       )}
     </Box>
   );
 };
+
+import { Trash2 } from 'lucide-react';
 
 

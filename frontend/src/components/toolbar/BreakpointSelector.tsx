@@ -24,8 +24,16 @@ export const BreakpointSelector = ({
     <Box>
       <HStack gap="8px" align="center">
         {breakpointIcon}
-        <NativeSelect.Root size="sm" width="140px" backgroundColor="#fff">
+        <NativeSelect.Root
+          size="sm"
+          width="140px"
+          backgroundColor="var(--app-surface)"
+          border="1px solid var(--app-border)"
+          color="inherit"
+        >
           <NativeSelect.Field
+            backgroundColor="var(--app-surface)"
+            color="inherit"
             value={currentBreakpoint}
             onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
               setBreakpoint(e.target.value as Breakpoint)
@@ -35,12 +43,13 @@ export const BreakpointSelector = ({
             <option value="tablet">Tablet</option>
             <option value="mobile">Mobile</option>
           </NativeSelect.Field>
-          <NativeSelect.Indicator />
+          <NativeSelect.Indicator color="var(--app-text-muted)" />
         </NativeSelect.Root>
       </HStack>
     </Box>
   );
 };
+
 
 
 

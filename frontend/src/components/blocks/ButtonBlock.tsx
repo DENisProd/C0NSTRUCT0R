@@ -77,15 +77,15 @@ export const ButtonBlock = ({ block, isSelected, isPreview }: ButtonBlockProps) 
       border="1px dashed transparent"
       style={{
         ...block.style,
-        padding: responsiveStyle.padding || block.style.padding,
-        margin: responsiveStyle.margin || block.style.margin,
-        width: responsiveStyle.width || block.style.width,
+        padding: responsiveStyle.padding ?? block.style.padding,
+        margin: responsiveStyle.margin ?? block.style.margin,
+        width: responsiveStyle.width ?? block.style.width,
         boxShadow: isSelected && !isPreview ? `0 0 0 2px ${project.theme.accent}` : 'none',
         cursor: isPreview ? (block.events?.onClick ? 'pointer' : 'default') : 'pointer',
       }}
-      borderRadius={responsiveStyle.borderRadius || block.style.borderRadius}
+      borderRadius={responsiveStyle.borderRadius ?? block.style.borderRadius}
       _hover={{
-        border: !isPreview ? '1px dashed #ccc' : 'none',
+        border: !isPreview ? '1px dashed var(--app-border)' : 'none',
         '& > .delete-btn': {
           display: !isPreview ? 'block' : 'none',
         },
@@ -138,17 +138,17 @@ export const ButtonBlock = ({ block, isSelected, isPreview }: ButtonBlockProps) 
               }
             }}
           >
-            <Button
-              backgroundColor={block.buttonColor || project.theme.accent}
-              color="white"
-              padding={responsiveStyle.padding || "10px 20px"}
-              borderRadius={responsiveStyle.borderRadius || block.style.borderRadius || '4px'}
-              cursor="pointer"
-              pointerEvents="auto"
-              style={{ width: responsiveStyle.width || block.style.width || 'auto' }}
-            >
-              {block.text}
-            </Button>
+          <Button
+            backgroundColor={block.buttonColor || project.theme.accent}
+            color="white"
+            padding={responsiveStyle.padding ?? "10px 20px"}
+            borderRadius={responsiveStyle.borderRadius ?? block.style.borderRadius ?? '4px'}
+            cursor="pointer"
+            pointerEvents="auto"
+            style={{ width: responsiveStyle.width ?? block.style.width ?? 'auto' }}
+          >
+            {block.text}
+          </Button>
           </a>
         )
       ) : (
@@ -167,11 +167,11 @@ export const ButtonBlock = ({ block, isSelected, isPreview }: ButtonBlockProps) 
             as="div"
             backgroundColor={block.buttonColor || project.theme.accent}
             color="white"
-            padding={responsiveStyle.padding || "10px 20px"}
-            borderRadius={responsiveStyle.borderRadius || block.style.borderRadius || '4px'}
+            padding={responsiveStyle.padding ?? "10px 20px"}
+            borderRadius={responsiveStyle.borderRadius ?? block.style.borderRadius ?? '4px'}
             cursor="default"
             pointerEvents="none"
-            style={{ width: responsiveStyle.width || block.style.width || 'auto' }}
+            style={{ width: responsiveStyle.width ?? block.style.width ?? 'auto' }}
           >
             {block.text}
           </Button>

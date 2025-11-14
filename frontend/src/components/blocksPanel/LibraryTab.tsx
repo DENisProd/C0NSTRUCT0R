@@ -1,4 +1,5 @@
 import { VStack, Text, Button, Input, HStack, SimpleGrid, Box } from '@chakra-ui/react';
+import { BookOpen } from 'lucide-react';
 import { BlockCard } from '../BlockCard';
 import type { LibraryBlock } from '../../lib/api/library';
 
@@ -43,10 +44,16 @@ export const LibraryTab = ({
 
   return (
     <VStack gap="12px" align="stretch">
-      <Text fontSize="18px" fontWeight="bold">Библиотека блоков</Text>
-      <Button onClick={onNavigateAll} colorScheme="orange" size="sm">
-        <HStack gap="6px">
-          <span>📚</span>
+      <Text fontSize="18px" fontWeight="bold" color="inherit">Библиотека блоков</Text>
+      <Button
+        onClick={onNavigateAll}
+        size="sm"
+        backgroundColor="var(--app-accent)"
+        color="white"
+        _hover={{ backgroundColor: 'var(--app-accent)', opacity: 0.9 }}
+      >
+        <HStack gap="6px" align="center">
+          <BookOpen size={16} />
           <Box as="span">Все</Box>
         </HStack>
       </Button>
@@ -55,13 +62,46 @@ export const LibraryTab = ({
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
         size="sm"
-        backgroundColor="white"
+        backgroundColor="var(--app-surface)"
+        border="1px solid var(--app-border)"
+        color="inherit"
+        _placeholder={{ color: 'var(--app-text-muted)' }}
       />
 
-      <HStack gap="4px">
-        <Button size="xs" variant={activeLibraryTab === 'system' ? 'solid' : 'ghost'} onClick={() => setActiveLibraryTab('system')}>Системные ({systemBlocks.length})</Button>
-        <Button size="xs" variant={activeLibraryTab === 'community' ? 'solid' : 'ghost'} onClick={() => setActiveLibraryTab('community')}>Сообщество ({communityBlocks.length})</Button>
-        <Button size="xs" variant={activeLibraryTab === 'user' ? 'solid' : 'ghost'} onClick={() => setActiveLibraryTab('user')}>Мои ({userBlocks.length + systemBlocks.filter((b) => b.isCustom).length})</Button>
+      <HStack gap="4px" flexWrap="wrap">
+        <Button
+          size="xs"
+          variant="outline"
+          borderColor="var(--app-accent)"
+          backgroundColor={activeLibraryTab === 'system' ? 'var(--app-accent)' : 'transparent'}
+          color={activeLibraryTab === 'system' ? 'white' : 'var(--app-accent)'}
+          _hover={{ backgroundColor: activeLibraryTab === 'system' ? 'var(--app-accent)' : 'var(--app-hover)' }}
+          onClick={() => setActiveLibraryTab('system')}
+        >
+          Системные ({systemBlocks.length})
+        </Button>
+        <Button
+          size="xs"
+          variant="outline"
+          borderColor="var(--app-accent)"
+          backgroundColor={activeLibraryTab === 'community' ? 'var(--app-accent)' : 'transparent'}
+          color={activeLibraryTab === 'community' ? 'white' : 'var(--app-accent)'}
+          _hover={{ backgroundColor: activeLibraryTab === 'community' ? 'var(--app-accent)' : 'var(--app-hover)' }}
+          onClick={() => setActiveLibraryTab('community')}
+        >
+          Сообщество ({communityBlocks.length})
+        </Button>
+        <Button
+          size="xs"
+          variant="outline"
+          borderColor="var(--app-accent)"
+          backgroundColor={activeLibraryTab === 'user' ? 'var(--app-accent)' : 'transparent'}
+          color={activeLibraryTab === 'user' ? 'white' : 'var(--app-accent)'}
+          _hover={{ backgroundColor: activeLibraryTab === 'user' ? 'var(--app-accent)' : 'var(--app-hover)' }}
+          onClick={() => setActiveLibraryTab('user')}
+        >
+          Мои ({userBlocks.length + systemBlocks.filter((b) => b.isCustom).length})
+        </Button>
       </HStack>
 
       {source.length === 0 ? (

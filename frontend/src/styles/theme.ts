@@ -18,7 +18,7 @@ export const theme = {
     surfaceAlt: '#f8fafc',
     surfaceMuted: '#f9fafb',
     border: '#e0e0e0',
-    primary: '#007bff',
+    primary: '#4200FF',
     success: '#28a745',
     highlightBlue: '#f0f8ff',
     highlightGreen: '#f0fff4',

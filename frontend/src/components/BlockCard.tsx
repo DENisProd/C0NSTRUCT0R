@@ -1,4 +1,5 @@
 import { Box, VStack, Text, Badge, Image, HStack } from '@chakra-ui/react';
+import { Package } from 'lucide-react';
 import { useDraggable } from '@dnd-kit/core';
 import type { LibraryBlock } from '../lib/api/library';
 
@@ -30,15 +31,15 @@ export const BlockCard = ({ block, onSelect, draggable = false }: BlockCardProps
       {...(draggable ? attributes : {})}
       as="button"
       onClick={onSelect}
-      backgroundColor="white"
+      backgroundColor="var(--app-surface)"
       borderRadius="8px"
       padding="16px"
       border="1px solid"
-      borderColor="gray.200"
+      borderColor="var(--app-border)"
       cursor={draggable ? 'grab' : 'pointer'}
       transition="all 0.2s"
       _hover={{
-        borderColor: 'blue.500',
+        borderColor: 'var(--app-accent)',
         boxShadow: 'md',
         transform: 'translateY(-2px)',
       }}
@@ -59,26 +60,24 @@ export const BlockCard = ({ block, onSelect, draggable = false }: BlockCardProps
         ) : (
           <Box
             height="120px"
-            backgroundColor="gray.100"
+            backgroundColor="var(--app-bg-muted)"
             borderRadius="4px"
             display="flex"
             alignItems="center"
             justifyContent="center"
           >
-            <Text color="gray.400" fontSize="24px">
-              📦
-            </Text>
+            <Package size={24} color="var(--app-text-muted)" />
           </Box>
         )}
 
         <VStack gap="4px" align="stretch">
-          <Text fontWeight="bold" fontSize="16px" truncate>
+          <Text fontWeight="bold" fontSize="16px" color="inherit" truncate>
             {block.name}
           </Text>
           {block.description && (
             <Text
               fontSize="14px"
-              color="gray.600"
+              color="var(--app-text-muted)"
               style={{
                 display: '-webkit-box',
                 WebkitLineClamp: 2,
@@ -92,11 +91,11 @@ export const BlockCard = ({ block, onSelect, draggable = false }: BlockCardProps
         </VStack>
 
         <HStack gap="8px" flexWrap="wrap">
-          <Badge colorScheme="blue" fontSize="10px">
+          <Badge fontSize="10px" border="1px solid var(--app-border)" color="inherit" backgroundColor="var(--app-surface)">
             {block.category}
           </Badge>
           {block.isCustom && (
-            <Badge colorScheme="green" fontSize="10px">
+            <Badge fontSize="10px" border="1px solid var(--app-border)" color="inherit" backgroundColor="var(--app-surface)">
               Мой блок
             </Badge>
           )}

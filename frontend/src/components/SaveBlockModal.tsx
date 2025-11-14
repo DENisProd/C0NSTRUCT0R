@@ -92,7 +92,7 @@ export const SaveBlockModal = ({ isOpen, onClose, block, onSaved }: SaveBlockMod
     <Dialog.Root open={isOpen} onOpenChange={(e) => !e.open && handleClose()}>
       <Dialog.Backdrop />
       <Dialog.Positioner>
-        <Dialog.Content maxW="500px">
+        <Dialog.Content maxW="500px" backgroundColor="var(--app-surface)" border="1px solid var(--app-border)" color="inherit">
           <Dialog.Header>
             <Dialog.Title>Сохранить блок в библиотеку</Dialog.Title>
           </Dialog.Header>
@@ -101,11 +101,11 @@ export const SaveBlockModal = ({ isOpen, onClose, block, onSaved }: SaveBlockMod
             {error && (
               <Box
                 padding="12px"
-                backgroundColor="#fee"
-                border="1px solid #fcc"
+                backgroundColor="var(--app-bg-muted)"
+                border="1px solid var(--app-border)"
                 borderRadius="6px"
               >
-                <Text color="#c33" fontSize="14px">
+                <Text color="var(--app-text-muted)" fontSize="14px">
                   {error}
                 </Text>
               </Box>
@@ -113,13 +113,14 @@ export const SaveBlockModal = ({ isOpen, onClose, block, onSaved }: SaveBlockMod
 
             <Box>
               <Text marginBottom="6px" fontSize="14px" fontWeight="medium">
-                Название <Text as="span" color="#c33">*</Text>
+                Название <Text as="span" color="var(--app-accent)">*</Text>
               </Text>
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Например: Красивый заголовок"
                 disabled={isSaving}
+                color="inherit"
               />
             </Box>
 
@@ -132,12 +133,13 @@ export const SaveBlockModal = ({ isOpen, onClose, block, onSaved }: SaveBlockMod
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Краткое описание блока"
                 disabled={isSaving}
+                color="inherit"
               />
             </Box>
 
             <Box>
               <Text marginBottom="6px" fontSize="14px" fontWeight="medium">
-                Категория <Text as="span" color="#c33">*</Text>
+                Категория <Text as="span" color="var(--app-accent)">*</Text>
               </Text>
               <select
                 value={category}
@@ -146,9 +148,10 @@ export const SaveBlockModal = ({ isOpen, onClose, block, onSaved }: SaveBlockMod
                 style={{
                   width: '100%',
                   padding: '8px',
-                  border: '1px solid #e0e0e0',
+                  border: '1px solid var(--app-border)',
                   borderRadius: '4px',
-                  backgroundColor: '#fff',
+                  backgroundColor: 'var(--app-surface)',
+                  color: 'inherit',
                   fontSize: '14px',
                 }}
               >
@@ -177,8 +180,9 @@ export const SaveBlockModal = ({ isOpen, onClose, block, onSaved }: SaveBlockMod
                 onChange={(e) => setTags(e.target.value)}
                 placeholder="Например: заголовок, синий, современный"
                 disabled={isSaving}
+                color="inherit"
               />
-              <Text fontSize="12px" color="#666" marginTop="4px">
+              <Text fontSize="12px" color="var(--app-text-muted)" marginTop="4px">
                 Разделяйте теги запятыми
               </Text>
             </Box>
@@ -190,6 +194,9 @@ export const SaveBlockModal = ({ isOpen, onClose, block, onSaved }: SaveBlockMod
                 variant="outline"
                 onClick={handleClose}
                 disabled={isSaving}
+                borderColor="var(--app-border)"
+                color="inherit"
+                _hover={{ backgroundColor: 'var(--app-hover)' }}
               >
                 <HStack gap="6px" align="center">
                   <X size={16} />
@@ -197,9 +204,11 @@ export const SaveBlockModal = ({ isOpen, onClose, block, onSaved }: SaveBlockMod
                 </HStack>
               </Button>
               <Button
-                colorScheme="blue"
+                backgroundColor="var(--app-accent)"
                 onClick={handleSave}
                 loading={isSaving}
+                color="white"
+                _hover={{ backgroundColor: 'var(--app-accent)', opacity: 0.9 }}
               >
                 <HStack gap="6px" align="center">
                   <Save size={16} />

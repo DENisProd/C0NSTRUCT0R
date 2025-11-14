@@ -437,7 +437,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   setCurrentProjectId: (id) => set({ currentProjectId: id }),
 
   addBlock: (type) => {
-    const newBlock = createNewBlock(type, get().project.theme.accent);
+    const newBlock = createNewBlock(type, get().project.theme);
     set((state) => ({
       project: {
         ...state.project,
@@ -448,7 +448,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   },
 
   addGrid: (columns, rows) => {
-    const grid = createGrid(columns, rows);
+    const grid = createGrid(columns, rows, get().project.theme);
     set((state) => ({
       project: { ...state.project, blocks: [...state.project.blocks, grid] },
       selectedBlockId: grid.id,
@@ -456,7 +456,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   },
 
   addBlockToContainer: (containerId, index, type) => {
-    const newChild = createNewBlock(type, get().project.theme.accent);
+    const newChild = createNewBlock(type, get().project.theme);
 
     // Ограничение: максимум 4 уровня вложенности контейнеров
     if (newChild.type === 'container') {
@@ -476,7 +476,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   },
 
   addBlockToGridCell: (gridId, cellIndex, type) => {
-    const newChild = createNewBlock(type, get().project.theme.accent);
+    const newChild = createNewBlock(type, get().project.theme);
     set((state) => ({
       project: {
         ...state.project,
@@ -516,10 +516,10 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   addTemplateBlocks: (templateBlocks) => {
     const timestamp = Date.now();
     const makeId = createIdGenerator(timestamp);
-    const currentAccent = get().project.theme.accent;
+    const currentTheme = get().project.theme;
 
     const newBlocks: Block[] = templateBlocks.map((b, i) =>
-      cloneBlockDeep(b, makeId, i, currentAccent)
+      cloneBlockDeep(b, makeId, i, currentTheme)
     );
 
     set((state) => ({
@@ -536,9 +536,10 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   addTemplateBlocksAt: (insertIndex, templateBlocks) => {
     const timestamp = Date.now();
     const makeId = createIdGenerator(timestamp);
+    const currentTheme = get().project.theme;
 
     const newBlocks: Block[] = templateBlocks.map((b, i) =>
-      cloneBlockDeep(b, makeId, i)
+      cloneBlockDeep(b, makeId, i, currentTheme)
     );
 
     set((state) => {
@@ -561,7 +562,8 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     const timestamp = Date.now();
     const makeId = createIdGenerator(timestamp);
 
-    const clones = templateBlocks.map((b, i) => cloneBlockDeep(b, makeId, i));
+    const currentTheme = get().project.theme;
+    const clones = templateBlocks.map((b, i) => cloneBlockDeep(b, makeId, i, currentTheme));
 
     set((state) => ({
       project: {
@@ -608,11 +610,12 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   addTemplateToGridCell: (gridId, cellIndex, templateBlocks) => {
     const timestamp = Date.now();
     const makeId = createIdGenerator(timestamp);
+    const currentTheme = get().project.theme;
 
     // Если в шаблоне несколько блоков, оборачиваем их в контейнер
     const prepared: Block =
       templateBlocks.length === 1
-        ? cloneBlockDeep(templateBlocks[0], makeId, 0)
+        ? cloneBlockDeep(templateBlocks[0], makeId, 0, currentTheme)
         : ({
             id: makeId(0),
             type: 'container',
@@ -620,9 +623,9 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
               margin: '10px 0',
               padding: '10px',
               width: '100%',
-              backgroundColor: '#fafafa',
+              backgroundColor: currentTheme.surface,
             },
-            children: templateBlocks.map((b, i) => cloneBlockDeep(b, makeId, i)),
+            children: templateBlocks.map((b, i) => cloneBlockDeep(b, makeId, i, currentTheme)),
           } as Block);
 
     set((state) => ({
@@ -699,7 +702,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
           newTheme = {
             ...prevTheme,
             mode: 'dark',
-            accent: '#ffc107',
+            accent: '#7c5cff',
             text: '#ffffff',
             heading: '#ffffff',
             background: '#212529',
@@ -711,7 +714,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
           newTheme = {
             ...prevTheme,
             mode: 'light',
-            accent: '#007bff',
+            accent: '#4200FF',
             text: '#000000',
             heading: '#000000',
             background: '#ffffff',

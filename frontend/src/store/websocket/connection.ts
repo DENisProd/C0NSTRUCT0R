@@ -41,14 +41,32 @@ export const createWebSocketConnection = (
   const ws = new WebSocket(wsUrl);
 
   ws.onopen = () => {
-    console.log('WebSocket подключен');
     setState({
       ws,
       isConnected: true,
       isConnecting: false,
       connectionError: null,
       reconnectAttempts: 0,
+      reconnectTimerId: null,
+      lastReconnectAt: null,
     });
+    const s = getState();
+    const self = { id: userId, name: userName };
+    const exists = s.users.some((u) => u.id === self.id || u.name === self.name);
+    if (!exists) {
+      setState({ users: [...s.users, self] });
+    }
+    try {
+      ws.send(
+        JSON.stringify({
+          type: 'join',
+          payload: self,
+          userId: self.id,
+          userName: self.name,
+          timestamp: Date.now(),
+        })
+      );
+    } catch {}
   };
 
   ws.onmessage = (event) => {

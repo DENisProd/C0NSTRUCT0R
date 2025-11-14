@@ -4,6 +4,7 @@ import { useWebSocketStore } from '../store/useWebSocketStore';
 import { useAuthStore } from '../store/useAuthStore';
 import { useUserStore } from '../store/useUserStore';
 import { useLocation, useParams } from 'react-router-dom';
+import { useProjectStore } from '../store/useProjectStore';
 
 export const RoomConnection = () => {
   const {
@@ -13,27 +14,32 @@ export const RoomConnection = () => {
     connect,
     disconnect,
     roomId,
+    userName,
   } = useWebSocketStore();
   const { token, email, username: authUsername } = useAuthStore();
   const { profile, fetchProfile } = useUserStore();
   const location = useLocation();
+  const { currentProjectId } = useProjectStore();
 
   const params = useParams<{ id?: string }>();
-  const initialRoomId = (location.pathname.startsWith('/editor') && params.id) ? String(params.id) : '';
+  const initialRoomId = (location.pathname.startsWith('/editor') && params.id)
+    ? String(params.id)
+    : (currentProjectId ? String(currentProjectId) : '');
   const derivedName = (profile?.username || authUsername || (email ? email.split('@')[0] : '') || '').trim();
+  const safeName = derivedName || 'Guest';
 
   useEffect(() => {
-    const targetRoom = initialRoomId.trim();
-    if (!targetRoom || !derivedName) return;
+    const targetRoom = initialRoomId.trim() || (currentProjectId ? String(currentProjectId) : (localStorage.getItem('ws-local-room-id') || 'local'));
+    if (!targetRoom || !safeName) return;
     if (isConnected) {
-      if (roomId !== targetRoom) {
+      if (roomId !== targetRoom || (userName && userName !== safeName.trim())) {
         disconnect();
-        connect(targetRoom, derivedName.trim(), undefined, token);
+        connect(targetRoom, safeName.trim(), undefined, token);
       }
     } else if (!isConnecting) {
-      connect(targetRoom, derivedName.trim(), undefined, token);
+      connect(targetRoom, safeName.trim(), undefined, token);
     }
-  }, [isConnected, isConnecting, roomId, initialRoomId, derivedName, token, connect, disconnect]);
+  }, [isConnected, isConnecting, roomId, userName, initialRoomId, safeName, token, connect, disconnect, currentProjectId]);
 
   useEffect(() => {
     if (token && !profile) {

@@ -53,13 +53,14 @@ export const UserBlocksList = ({ onAddClick }: UserBlocksListProps) => {
     return (
       <Box
         padding="24px"
-        backgroundColor="#ffffff"
+        backgroundColor="var(--app-surface)"
         borderRadius="8px"
-        border="1px solid #e0e0e0"
+        border="1px solid var(--app-border)"
         display="flex"
         justifyContent="center"
         alignItems="center"
         minHeight="200px"
+        color="inherit"
       >
         <Spinner size="lg" />
       </Box>
@@ -69,7 +70,7 @@ export const UserBlocksList = ({ onAddClick }: UserBlocksListProps) => {
   return (
     <VStack gap="16px" align="stretch">
       <HStack justifyContent="space-between">
-        <Text fontSize="20px" fontWeight="bold">
+        <Text fontSize="20px" fontWeight="bold" color="inherit">
           Мои блоки ({blocks.length})
         </Text>
         {onAddClick && (
@@ -91,13 +92,14 @@ export const UserBlocksList = ({ onAddClick }: UserBlocksListProps) => {
       {blocks.length === 0 ? (
         <Box
           padding="48px"
-          backgroundColor="#ffffff"
+          backgroundColor="var(--app-surface)"
           borderRadius="8px"
-          border="1px solid #e0e0e0"
+          border="1px solid var(--app-border)"
           textAlign="center"
+          color="inherit"
         >
           <VStack gap="16px">
-            <Text fontSize="16px" color="gray.600">
+            <Text fontSize="16px" color="var(--app-text-muted)">
               У вас пока нет пользовательских блоков
             </Text>
             {onAddClick && (
@@ -121,16 +123,17 @@ export const UserBlocksList = ({ onAddClick }: UserBlocksListProps) => {
             <Box
               key={block.id}
               padding="16px"
-              backgroundColor="#ffffff"
+              backgroundColor="var(--app-surface)"
               borderRadius="8px"
-              border="1px solid #e0e0e0"
+              border="1px solid var(--app-border)"
+              color="inherit"
             >
               <VStack gap="12px" align="stretch">
                 {block.preview && (
                   <Box
                     width="100%"
                     height="120px"
-                    backgroundColor="#f5f5f5"
+                    backgroundColor="var(--app-bg-muted)"
                     borderRadius="4px"
                     overflow="hidden"
                   >
@@ -145,7 +148,7 @@ export const UserBlocksList = ({ onAddClick }: UserBlocksListProps) => {
                   {block.name}
                 </Text>
                 {block.description && (
-                  <Text fontSize="14px" color="gray.600">
+                  <Text fontSize="14px" color="var(--app-text-muted)">
                     {block.description}
                   </Text>
                 )}
@@ -154,6 +157,9 @@ export const UserBlocksList = ({ onAddClick }: UserBlocksListProps) => {
                     size="sm"
                     variant="outline"
                     colorScheme="red"
+                    color="inherit"
+                    borderColor="var(--app-border)"
+                    _hover={{ backgroundColor: 'var(--app-hover)', borderColor: 'var(--app-accent)' }}
                     onClick={() => handleDelete(block.id, block.name)}
                     disabled={deletingId === block.id}
                   >

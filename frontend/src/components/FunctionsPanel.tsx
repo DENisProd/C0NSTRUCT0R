@@ -185,7 +185,7 @@ export const FunctionsPanel = () => {
                           handleStartEditName(fn.id, fn.name);
                         }}
                         flex="1"
-                        _hover={{ color: '#007bff' }}
+                        _hover={{ color: 'var(--app-accent)' }}
                       >
                         {fn.name}
                       </Text>
@@ -327,7 +327,7 @@ export const FunctionsPanel = () => {
                               <option value="custom">Кастомное действие</option>
                             </select>
                             <Input size="sm" value={action.name} onChange={(e) => handleUpdateAction(selectedFunction.id, action.id, { name: e.target.value })} placeholder="Название действия" />
-                            <Button size="sm" colorScheme="red" variant="ghost" onClick={() => handleRemoveAction(selectedFunction.id, action.id)}>Удалить</Button>
+                        <Button size="sm" colorScheme="red" variant="ghost" onClick={() => handleRemoveAction(selectedFunction.id, action.id)}>Удалить</Button>
                           </HStack>
 
                           {action.type === 'custom' ? (

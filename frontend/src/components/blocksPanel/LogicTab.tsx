@@ -104,7 +104,7 @@ export const LogicTab = ({
                         setTempName(fn.name);
                       }}
                       flex="1"
-                      _hover={{ color: '#007bff' }}
+                      _hover={{ color: 'var(--app-accent)' }}
                     >
                       {fn.name}
                     </Text>

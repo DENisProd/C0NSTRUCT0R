@@ -1,4 +1,4 @@
-import type { Block, GridBlock, GridCell } from '../../types';
+import type { Block, GridBlock, GridCell, Theme } from '../../types';
 import { theme } from '../../styles/theme';
 
 /**
@@ -41,15 +41,32 @@ export const cloneBlockDeep = (
   block: Block,
   makeId: (idx?: number) => string,
   idxHint?: number,
-  currentAccent?: string
+  currentTheme?: Theme
 ): Block => {
-  const base = { ...block, id: makeId(idxHint) } as Block;
+  const initialStyle = (block as any).style ?? {
+    margin: '10px 0',
+    padding: '10px',
+    width: '100%',
+  };
+  const base = { ...(block as any), id: makeId(idxHint), style: initialStyle } as Block;
+  const applyStyle = (s: any) => {
+    if (!currentTheme) return s;
+    const next = { ...s };
+    if (next?.color === theme.colors.textPrimary || next?.color === theme.colors.textSecondary || next?.color === theme.colors.textMuted) {
+      next.color = currentTheme.text;
+    }
+    if (next?.backgroundColor === theme.colors.surface || next?.backgroundColor === theme.colors.surfaceAlt || next?.backgroundColor === theme.colors.surfaceMuted || next?.backgroundColor === theme.colors.highlightBlue || next?.backgroundColor === theme.colors.highlightGreen) {
+      next.backgroundColor = currentTheme.surface;
+    }
+    return next;
+  };
   
   if (block.type === 'container') {
     const children = ((block as any).children as Block[]).map((child, i) =>
-      cloneBlockDeep(child, makeId, i, currentAccent)
+      cloneBlockDeep(child, makeId, i, currentTheme)
     );
-    return { ...(base as any), children } as Block;
+    const styled = applyStyle((base as any).style);
+    return { ...(base as any), style: styled, children } as Block;
   }
   
   if (block.type === 'grid') {
@@ -58,25 +75,29 @@ export const cloneBlockDeep = (
       if (!cell.block) return { ...cell } as GridCell;
       return {
         ...cell,
-        block: cloneBlockDeep(cell.block, makeId, i, currentAccent),
+        block: cloneBlockDeep(cell.block, makeId, i, currentTheme),
       } as GridCell;
     });
-    return {
-      ...(base as any),
-      settings: { ...gb.settings },
-      cells,
-    } as Block;
+    const settings = { ...gb.settings };
+    if (currentTheme && settings.cellBorderColor === theme.colors.border) {
+      settings.cellBorderColor = currentTheme.border;
+    }
+    const styled = applyStyle((base as any).style);
+    return { ...(base as any), style: styled, settings, cells } as Block;
   }
   
-  // Нормализуем цвет кнопок из шаблонов: primary -> текущий accent
-  if (block.type === 'button' && currentAccent) {
+  if (block.type === 'button' && currentTheme) {
     const btn = base as any;
     const originalColor = (block as any).buttonColor;
-    const normalizedColor =
-      originalColor === theme.colors.primary ? currentAccent : originalColor;
-    return { ...btn, buttonColor: normalizedColor } as Block;
+    const normalizedColor = originalColor === theme.colors.primary ? currentTheme.accent : originalColor;
+    const styled = applyStyle(btn.style);
+    return { ...btn, style: styled, buttonColor: normalizedColor } as Block;
   }
   
+  const styled = applyStyle((base as any).style);
+  if (styled !== (base as any).style) {
+    return { ...(base as any), style: styled } as Block;
+  }
   return base;
 };
 
@@ -87,6 +108,7 @@ export const createIdGenerator = (timestamp: number) => {
   return (idx?: number) =>
     `block-${timestamp}-${idx ?? 0}-${Math.random().toString(36).substr(2, 9)}`;
 };
+
 
 
 

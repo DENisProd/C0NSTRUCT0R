@@ -20,7 +20,7 @@ class ProjectMedia(Base):
     project_id: Mapped[int] = mapped_column(ForeignKey("projects.id", ondelete="CASCADE"), index=True)
     bucket: Mapped[str] = mapped_column(String(255), nullable=False)
     object_name: Mapped[str] = mapped_column(String(512), nullable=False)
-    etag: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    etag: Mapped[str | None] = mapped_column(String(128), nullable=True, unique=True)
     version_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
     content_type: Mapped[str | None] = mapped_column(String(128), nullable=True)
     file_url: Mapped[str | None] = mapped_column(Text, nullable=True)

@@ -12,7 +12,7 @@ import {
   Text,
   HStack,
 } from '@chakra-ui/react';
-import { Book, Plus } from 'lucide-react';
+import { Book, Plus, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLibraryStore } from '../store/useLibraryStore';
 import { getUserBlocks, getCommunityBlocks, type LibraryBlock } from '../lib/api/library';
@@ -88,10 +88,13 @@ export const LibraryPage = () => {
       <Box maxWidth="1400px" margin="0 auto">
         <VStack gap="24px" align="stretch">
           <HStack justify="space-between" align="center">
-            <Heading size="xl">
+            <Button variant="outline" onClick={() => navigate(currentProjectId ? `/editor/${currentProjectId}` : '/editor')} borderColor="var(--app-accent)" color="var(--app-accent)" _hover={{ backgroundColor: 'var(--app-hover)' }}>
+              Вернуться в редактор
+            </Button>
+            <Heading size="xl" color="inherit">
               <HStack gap="10px" align="center">
                 <Book size={24} />
-                <Text as="span">Библиотека блоков</Text>
+                <Text as="span" color="inherit">Библиотека блоков</Text>
               </HStack>
             </Heading>
             <Button
@@ -112,31 +115,61 @@ export const LibraryPage = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             backgroundColor="var(--app-surface)"
+            border="1px solid var(--app-border)"
+            color="inherit"
+            _placeholder={{ color: 'var(--app-text-muted)' }}
             size="lg"
           />
 
           {error && (
-            <Alert.Root status="error">
-              <Box as="span" marginRight="8px">⚠️</Box>
+            <Alert.Root status="error" backgroundColor="var(--app-surface)" border="1px solid var(--app-border)" color="inherit">
+              <Box as="span" marginRight="8px"><AlertTriangle size={16} /></Box>
               <Alert.Description>{error}</Alert.Description>
             </Alert.Root>
           )}
 
           {isLoading ? (
             <Box textAlign="center" padding="40px">
-              <Spinner size="xl" />
+              <Spinner size="xl" color="var(--app-accent)" />
             </Box>
           ) : (
             <Tabs.Root defaultValue="system">
-              <Tabs.List>
-                <Tabs.Trigger value="system">Системные блоки ({systemBlocks.length})</Tabs.Trigger>
-                <Tabs.Trigger value="community">Сообщество ({communityBlocks.length})</Tabs.Trigger>
-                <Tabs.Trigger value="user">Мои блоки ({userBlocks.length})</Tabs.Trigger>
+              <Tabs.List backgroundColor="var(--app-surface)" border="1px solid var(--app-border)" borderRadius="8px" padding="6px" gap="8px">
+                <Tabs.Trigger
+                  value="system"
+                  color="inherit"
+                  border="1px solid var(--app-border)"
+                  borderRadius="6px"
+                  padding="8px 12px"
+                  _hover={{ backgroundColor: 'var(--app-hover)' }}
+                >
+                  Системные блоки ({systemBlocks.length})
+                </Tabs.Trigger>
+                <Tabs.Trigger
+                  value="community"
+                  color="inherit"
+                  border="1px solid var(--app-border)"
+                  borderRadius="6px"
+                  padding="8px 12px"
+                  _hover={{ backgroundColor: 'var(--app-hover)' }}
+                >
+                  Сообщество ({communityBlocks.length})
+                </Tabs.Trigger>
+                <Tabs.Trigger
+                  value="user"
+                  color="inherit"
+                  border="1px solid var(--app-border)"
+                  borderRadius="6px"
+                  padding="8px 12px"
+                  _hover={{ backgroundColor: 'var(--app-hover)' }}
+                >
+                  Мои блоки ({userBlocks.length})
+                </Tabs.Trigger>
               </Tabs.List>
 
               <Tabs.Content value="system" padding="24px 0">
                 {filteredSystemBlocks.length === 0 ? (
-                  <Text textAlign="center" color="gray.500" padding="40px">
+                  <Text textAlign="center" color="var(--app-text-muted)" padding="40px">
                     Блоки не найдены
                   </Text>
                 ) : (
@@ -154,7 +187,7 @@ export const LibraryPage = () => {
 
               <Tabs.Content value="community" padding="24px 0">
                 {filteredCommunityBlocks.length === 0 ? (
-                  <Text textAlign="center" color="gray.500" padding="40px">
+                  <Text textAlign="center" color="var(--app-text-muted)" padding="40px">
                     Блоки не найдены
                   </Text>
                 ) : (
@@ -173,17 +206,17 @@ export const LibraryPage = () => {
               <Tabs.Content value="user" padding="24px 0">
                 {filteredUserBlocks.length === 0 ? (
                   <VStack gap="16px" padding="40px">
-                    <Text textAlign="center" color="gray.500">
+                    <Text textAlign="center" color="var(--app-text-muted)">
                       У вас пока нет пользовательских блоков
                     </Text>
-                <Button
-                  onClick={() => navigate('/library/add')}
-                  backgroundColor="var(--app-accent)"
-                  color="white"
-                  _hover={{ backgroundColor: 'var(--app-accent)', opacity: 0.9 }}
-                >
-                  Создать первый блок
-                </Button>
+                    <Button
+                      onClick={() => navigate('/library/add')}
+                      backgroundColor="var(--app-accent)"
+                      color="white"
+                      _hover={{ backgroundColor: 'var(--app-accent)', opacity: 0.9 }}
+                    >
+                      Создать первый блок
+                    </Button>
                   </VStack>
                 ) : (
                   <SimpleGrid columns={{ base: 1, md: 2, lg: 3, xl: 4 }} gap="16px">
@@ -200,9 +233,6 @@ export const LibraryPage = () => {
             </Tabs.Root>
           )}
 
-          <Button variant="outline" onClick={() => navigate(currentProjectId ? `/editor/${currentProjectId}` : '/editor')}>
-            Вернуться в редактор
-          </Button>
         </VStack>
       </Box>
 

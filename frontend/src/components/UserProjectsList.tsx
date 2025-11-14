@@ -37,9 +37,9 @@ export const UserProjectsList = ({ onCreateClick }: UserProjectsListProps) => {
     return (
       <Box
         padding="24px"
-        backgroundColor="#ffffff"
+        backgroundColor="var(--app-surface)"
         borderRadius="8px"
-        border="1px solid #e0e0e0"
+        border="1px solid var(--app-border)"
         display="flex"
         justifyContent="center"
         alignItems="center"
@@ -53,7 +53,7 @@ export const UserProjectsList = ({ onCreateClick }: UserProjectsListProps) => {
   return (
     <VStack gap="16px" align="stretch">
       <HStack justifyContent="space-between">
-        <Text fontSize="20px" fontWeight="bold">
+        <Text fontSize="20px" fontWeight="bold" color="inherit">
           Мои проекты ({projects.length})
         </Text>
         <Button
@@ -73,13 +73,14 @@ export const UserProjectsList = ({ onCreateClick }: UserProjectsListProps) => {
       {projects.length === 0 ? (
         <Box
           padding="48px"
-          backgroundColor="#ffffff"
+          backgroundColor="var(--app-surface)"
           borderRadius="8px"
-          border="1px solid #e0e0e0"
+          border="1px solid var(--app-border)"
           textAlign="center"
+          color="inherit"
         >
           <VStack gap="16px">
-            <Text fontSize="16px" color="gray.600">
+            <Text fontSize="16px" color="var(--app-text-muted)">
               У вас пока нет проектов
             </Text>
             <Button
@@ -98,12 +99,12 @@ export const UserProjectsList = ({ onCreateClick }: UserProjectsListProps) => {
       ) : (
         <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap="16px">
           {projects.map((project) => (
-            <Card.Root key={project.id} padding="16px" border="1px solid #e0e0e0">
+            <Card.Root key={project.id} padding="16px" backgroundColor="var(--app-surface)" border="1px solid var(--app-border)" color="inherit">
               <VStack gap="12px" align="stretch">
-                <Text fontSize="18px" fontWeight="bold">
+                <Text fontSize="18px" fontWeight="bold" color="inherit">
                   {project.name || project.projectName}
                 </Text>
-                <HStack gap="8px" fontSize="12px" color="gray.600">
+                <HStack gap="8px" fontSize="12px" color="var(--app-text-muted)">
                   <Calendar size={14} />
                   <Text>
                     {new Date(project.updatedAt).toLocaleDateString('ru-RU', {
@@ -117,6 +118,9 @@ export const UserProjectsList = ({ onCreateClick }: UserProjectsListProps) => {
                   <Button
                     size="sm"
                     variant="outline"
+                    borderColor="var(--app-accent)"
+                    color="var(--app-accent)"
+                    _hover={{ backgroundColor: 'var(--app-hover)' }}
                     flex="1"
                     onClick={() => handleEdit(project.id)}
                   >
@@ -129,6 +133,9 @@ export const UserProjectsList = ({ onCreateClick }: UserProjectsListProps) => {
                     size="sm"
                     variant="outline"
                     colorScheme="red"
+                    color="inherit"
+                    borderColor="var(--app-border)"
+                    _hover={{ backgroundColor: 'var(--app-hover)', borderColor: 'var(--app-accent)' }}
                     onClick={() => handleDelete(project.id, project.name || project.projectName)}
                     disabled={deletingId === project.id}
                   >

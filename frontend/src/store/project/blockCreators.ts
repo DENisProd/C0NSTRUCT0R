@@ -1,6 +1,6 @@
 import type { Block, BlockType, GridBlock, Theme } from '../../types';
 
-export const createNewBlock = (type: BlockType, themeAccent?: string): Block => {
+export const createNewBlock = (type: BlockType, theme?: Theme): Block => {
   const baseBlock = {
     id: `block-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     style: {
@@ -18,9 +18,9 @@ export const createNewBlock = (type: BlockType, themeAccent?: string): Block => 
         content: 'Новый текстовый блок',
         style: {
           ...baseBlock.style,
-          color: '#000000',
+          color: theme?.text || '#000000',
           fontSize: '16px',
-          textAlign: 'left',
+          textAlign: 'center',
         },
       } as Block;
     case 'image':
@@ -39,7 +39,7 @@ export const createNewBlock = (type: BlockType, themeAccent?: string): Block => 
         type: 'button',
         text: 'Кнопка',
         link: '#',
-        buttonColor: themeAccent || '#007bff',
+        buttonColor: (theme && theme.accent) || '#4200FF',
         style: {
           ...baseBlock.style,
           textAlign: 'center',
@@ -74,7 +74,11 @@ export const createNewBlock = (type: BlockType, themeAccent?: string): Block => 
         style: {
           ...baseBlock.style,
           padding: '20px',
-          backgroundColor: '#fafafa',
+          backgroundColor: theme?.surface || '#fafafa',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          textAlign: 'center',
         },
         children: [],
       } as Block;
@@ -91,19 +95,19 @@ export const createNewBlock = (type: BlockType, themeAccent?: string): Block => 
           rows: 2,
           gapX: 12,
           gapY: 12,
-          align: 'stretch',
-          justify: 'start',
+          align: 'center',
+          justify: 'center',
           placementType: 'fraction',
           showCellBorders: false,
-          cellBorderColor: '#e0e0e0',
+          cellBorderColor: theme?.border || '#e0e0e0',
           cellBorderWidth: 1,
         },
-        cells: Array.from({ length: 4 }, () => ({ block: null })),
+        cells: Array.from({ length: 4 }, () => ({ block: null, align: 'center', justify: 'center' })),
       } as Block;
   }
 };
 
-export const createGrid = (columns: number, rows: number): GridBlock => {
+export const createGrid = (columns: number, rows: number, theme?: Theme): GridBlock => {
   const baseBlock = {
     id: `block-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     style: {
@@ -121,14 +125,14 @@ export const createGrid = (columns: number, rows: number): GridBlock => {
       rows,
       gapX: 12,
       gapY: 12,
-      align: 'stretch',
-      justify: 'start',
+      align: 'center',
+      justify: 'center',
       placementType: 'fraction',
       showCellBorders: false,
-      cellBorderColor: '#e0e0e0',
+      cellBorderColor: theme?.border || '#e0e0e0',
       cellBorderWidth: 1,
     },
-    cells: Array.from({ length: columns * rows }, () => ({ block: null })),
+    cells: Array.from({ length: columns * rows }, () => ({ block: null, align: 'center', justify: 'center' })),
   };
 };
 

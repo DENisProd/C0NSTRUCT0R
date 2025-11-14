@@ -71,7 +71,7 @@ export const TextBlock = ({ block, isSelected, isPreview }: TextBlockProps) => {
         '& > .delete-btn': {
           display: !isPreview ? 'block' : 'none',
         },
-        border: !isPreview ? '1px dashed #ccc' : 'none',
+        border: !isPreview ? '1px dashed var(--app-border)' : 'none',
       }}
       style={{
         boxShadow: isSelected && !isPreview ? `0 0 0 2px ${project.theme.accent}` : 'none',
@@ -84,15 +84,15 @@ export const TextBlock = ({ block, isSelected, isPreview }: TextBlockProps) => {
         onInput={() => {}}
         onFocus={() => setIsEditing(true)}
         onBlur={handleBlur}
-        fontSize={responsiveStyle.fontSize || block.style.fontSize}
-        color={block.style.color}
-        textAlign={responsiveStyle.textAlign || block.style.textAlign}
+        fontSize={responsiveStyle.fontSize ?? block.style.fontSize}
+        color={block.style.color || project.theme.text}
+        textAlign={responsiveStyle.textAlign ?? block.style.textAlign}
         fontWeight={block.style.fontWeight}
         backgroundColor={block.style.backgroundColor}
-        padding={responsiveStyle.padding || block.style.padding}
-        margin={responsiveStyle.margin || block.style.margin}
-        width={responsiveStyle.width || block.style.width}
-        borderRadius={responsiveStyle.borderRadius || block.style.borderRadius}
+        padding={responsiveStyle.padding ?? block.style.padding}
+        margin={responsiveStyle.margin ?? block.style.margin}
+        width={responsiveStyle.width ?? block.style.width}
+        borderRadius={responsiveStyle.borderRadius ?? block.style.borderRadius}
         style={{
           cursor: isPreview ? 'default' : 'text',
           minHeight: '30px',

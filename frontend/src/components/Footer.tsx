@@ -13,21 +13,21 @@ export const Footer = () => {
 
   return (
     <Box
-      backgroundColor={footer.backgroundColor || '#f5f5f5'}
-      color={footer.textColor || '#000000'}
+      backgroundColor={footer.backgroundColor || 'var(--app-surface)'}
+      color={footer.textColor || 'inherit'}
       padding="20px"
       textAlign="center"
-      borderTop="1px solid #e0e0e0"
+      borderTop="1px solid var(--app-border)"
       cursor={isPreviewMode ? 'default' : 'pointer'}
       onClick={handleClick}
       _hover={{
-        outline: !isPreviewMode ? '1px dashed #ccc' : 'none',
+        outline: !isPreviewMode ? '1px dashed var(--app-accent)' : 'none',
       }}
     >
       <Text>{footer.text || '© 2025 My Landing'}</Text>
     </Box>
   );
-};
+}
 
 
 

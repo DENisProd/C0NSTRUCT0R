@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Box, Flex } from '@chakra-ui/react';
+import { useLayoutStore } from '../store/useLayoutStore';
 import { useProjectStore } from '../store/useProjectStore';
 import { useTemplatesStore } from '../store/useTemplatesStore';
 import { useFunctionsStore } from '../store/useFunctionsStore';
@@ -17,6 +18,7 @@ import { useWebSocketSync } from '../lib/useWebSocketSync';
 export function EditorLayout() {
   const { id } = useParams<{ id?: string }>();
   const { loadFromLocalStorage, isPreviewMode, loadProjectFromApi, currentProjectId, project } = useProjectStore();
+  const { blocksPanelWidth, propertiesPanelWidth } = useLayoutStore();
   const { loadFromLocalStorage: loadTemplates } = useTemplatesStore();
   const { loadFromLocalStorage: loadFunctions } = useFunctionsStore();
   
@@ -52,8 +54,8 @@ export function EditorLayout() {
     // Режим предпросмотра - только контент без панелей
     return (
       <Box minHeight="100vh" display="flex" flexDirection="column">
-        <Box style={themeVars}>
-        <HeaderEditor />
+        <Box style={{ ...themeVars, backgroundColor: project.theme.background }}>
+          <HeaderEditor />
           <Workspace />
           <Footer />
         </Box>
@@ -69,7 +71,18 @@ export function EditorLayout() {
         <Toolbar />
         <Flex flex="1" overflow="hidden">
           <BlocksPanel />
-          <Box flex="1" display="flex" flexDirection="column" overflow="hidden" style={themeVars}>
+          <Box
+            flex="1"
+            display="flex"
+            flexDirection="column"
+            overflow="hidden"
+            style={{
+              ...themeVars,
+              backgroundColor: project.theme.background,
+              marginLeft: `${blocksPanelWidth}px`,
+              marginRight: `${propertiesPanelWidth}px`,
+            }}
+          >
             <HeaderEditor />
             <Workspace />
             <Footer />
@@ -80,6 +93,7 @@ export function EditorLayout() {
     </DndProvider>
   );
 }
+
 
 
 

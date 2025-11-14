@@ -10,7 +10,7 @@ import { ToolbarActions } from './toolbar/ToolbarActions';
 import { AIGenerateButton } from './toolbar/AIGenerateButton';
 import { exportProjectToJSON, importProjectFromJSON } from '../lib/projectImportExport';
 import { useWebSocketStore } from '../store/useWebSocketStore';
-import { Play } from 'lucide-react';
+import { Play, Lock, Sun, Moon } from 'lucide-react';
 
 export const Toolbar = () => {
   const navigate = useNavigate();
@@ -28,42 +28,22 @@ export const Toolbar = () => {
   const applyGlobalTheme = (mode: 'light' | 'dark') => {
     const root = document.documentElement;
     const isDark = mode === 'dark';
-    const vars = isDark
-      ? {
-          '--app-bg-muted': '#0f1216',
-          '--app-surface': '#343a40',
-          '--app-border': '#495057',
-          '--app-text-muted': '#9aa1a9',
-          '--app-accent': '#ffc107',
-          '--app-success': '#00CE5F',
-          '--app-hover': '#2b2f36',
-          '--app-selected': '#233043',
-          '--app-resize': '#274060',
-          bodyBg: '#212529',
-          bodyColor: '#ededed',
-        }
-      : {
-          '--app-bg-muted': '#F4F6FA',
-          '--app-surface': '#ffffff',
-          '--app-border': '#DCDEE1',
-          '--app-text-muted': '#666666',
-          '--app-accent': '#4200FF',
-          '--app-success': '#00CE5F',
-          '--app-hover': '#eaf3ff',
-          '--app-selected': '#e3f2fd',
-          '--app-resize': '#cde4ff',
-          bodyBg: '#ffffff',
-          bodyColor: '#213547',
-        };
 
-    Object.entries(vars).forEach(([key, value]) => {
-      if (key.startsWith('--')) {
-        root.style.setProperty(key, value);
-      }
-    });
+    const cssVars = [
+      '--app-bg-muted',
+      '--app-surface',
+      '--app-border',
+      '--app-text-muted',
+      '--app-accent',
+      '--app-success',
+      '--app-hover',
+      '--app-selected',
+      '--app-resize',
+    ];
+    cssVars.forEach((v) => root.style.removeProperty(v));
+
+    root.setAttribute('data-theme', mode);
     root.style.colorScheme = isDark ? 'dark' : 'light';
-    document.body.style.backgroundColor = vars.bodyBg;
-    document.body.style.color = vars.bodyColor;
     localStorage.setItem('global-theme-mode', mode);
     setGlobalMode(mode);
   };
@@ -72,18 +52,6 @@ export const Toolbar = () => {
     const saved = (localStorage.getItem('global-theme-mode') as 'light' | 'dark') || 'light';
     applyGlobalTheme(saved);
   }, []);
-
-  const handleSave = async () => {
-    try {
-      await saveToApi();
-      window.alert('Изменения сохранены');
-    } catch (error) {
-      console.error('Ошибка сохранения:', error);
-      window.alert(
-        'Не удалось сохранить изменения на сервер. Изменения сохранены локально.'
-      );
-    }
-  };
 
   const handlePreview = () => {
     setPreviewMode(!isPreviewMode);
@@ -141,26 +109,39 @@ export const Toolbar = () => {
       display="flex"
       alignItems="center"
       justifyContent="space-between"
+      position="sticky"
+      top="0"
+      zIndex={30000}
     >
-      <Input
-        value={project.projectName}
-        onChange={handleProjectNameChange}
-        fontSize="18px"
-        fontWeight="bold"
-        border="none"
-        width="auto"
-        minWidth="200px"
-        _focus={{ border: '1px solid var(--app-accent)' }}
-      />
+      <HStack gap="8px" align="center">
+        <HStack gap="6px" align="center">
+          <Lock size={18} />
+          <Box as="span" fontSize="18px" fontWeight="bolder">Dark Secrets</Box>
+        </HStack>
+        <Box as="span" color="var(--app-text-muted)">|</Box>
+        <Input
+          value={project.projectName}
+          onChange={handleProjectNameChange}
+          fontSize="18px"
+          fontWeight="bold"
+          border="none"
+          width="auto"
+          minWidth="200px"
+          _focus={{ border: '1px solid var(--app-accent)' }}
+        />
+      </HStack>
       <HStack gap="10px">
-        <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <input
-            type="checkbox"
-            checked={globalMode === 'dark'}
-            onChange={(e) => applyGlobalTheme(e.target.checked ? 'dark' : 'light')}
-          />
-          <Box as="span" fontSize="12px">Тёмная тема сервиса</Box>
-        </label>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => applyGlobalTheme(globalMode === 'dark' ? 'light' : 'dark')}
+          borderColor="var(--app-accent)"
+          color="var(--app-accent)"
+          _hover={{ backgroundColor: 'var(--app-hover)' }}
+          title={globalMode === 'dark' ? 'Светлая тема' : 'Тёмная тема'}
+        >
+          {globalMode === 'dark' ? <Moon size={16} /> : <Sun size={16} />}
+        </Button>
         {location.pathname.startsWith('/editor') && (
           <>
             <BreakpointSelector
@@ -194,9 +175,9 @@ export const Toolbar = () => {
                 </Button>
               </Popover.Trigger>
               <Popover.Positioner>
-                <Popover.Content padding="12px">
+                <Popover.Content padding="12px" backgroundColor="var(--app-surface)" border="1px solid var(--app-border)" color="inherit">
                   <VStack gap="8px" align="stretch">
-                    <Text fontSize="12px" fontWeight="bold">Участники ({users.length}):</Text>
+                    <Text fontSize="12px" fontWeight="bold" color="inherit">Участники ({users.length}):</Text>
                     <VStack gap="4px" align="stretch" maxHeight="200px" overflowY="auto">
                       {users.map((user) => (
                         <HStack key={user.id} gap="8px">
@@ -206,13 +187,29 @@ export const Toolbar = () => {
                             borderRadius="50%"
                             backgroundColor="var(--app-accent)"
                           />
-                          <Text fontSize="12px">{user.name}</Text>
+                          <Text fontSize="12px" color="inherit">{user.name}</Text>
                         </HStack>
                       ))}
                     </VStack>
                     <HStack gap="8px" justifyContent="flex-end">
-                      <Button size="sm" variant="outline">Закрыть</Button>
-                      <Button size="sm" colorScheme="red" onClick={() => { disconnect(); }}>Отключиться</Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        borderColor="var(--app-border)"
+                        color="var(--app-text-muted)"
+                        _hover={{ borderColor: 'var(--app-accent)', backgroundColor: 'var(--app-hover)' }}
+                      >
+                        Закрыть
+                      </Button>
+                      <Button
+                        size="sm"
+                        backgroundColor="var(--app-accent)"
+                        color="white"
+                        _hover={{ backgroundColor: 'var(--app-accent)', opacity: 0.9 }}
+                        onClick={() => { disconnect(); navigate('/profile'); }}
+                      >
+                        Отключиться
+                      </Button>
                     </HStack>
                   </VStack>
                 </Popover.Content>

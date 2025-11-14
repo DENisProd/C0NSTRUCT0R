@@ -102,8 +102,8 @@ export const GeneratePage = () => {
   };
 
   return (
-    <Box minHeight="100vh" backgroundColor="var(--app-bg-muted)" padding="40px 20px">
-      <Box maxWidth="800px" margin="0 auto">
+    <Box minHeight="100vh" backgroundColor="var(--app-bg-muted)" padding="40px 20px" color="inherit">
+      <Box maxWidth="800px" margin="0 auto" backgroundColor="var(--app-surface)" border="1px solid var(--app-border)" borderRadius="8px" padding="20px">
         <HStack justify="flex-start" align="center" marginBottom="12px">
           <Button
             variant="ghost"
@@ -119,7 +119,7 @@ export const GeneratePage = () => {
         </HStack>
 
         <VStack gap="24px" align="stretch">
-          <Heading size="xl" textAlign="center">
+          <Heading size="xl" textAlign="center" color="inherit">
             <HStack gap="10px" justify="center" align="center">
               <WandSparkles size={24} color="var(--app-accent)" />
               <Text as="span">Генерация лендинга с помощью AI</Text>

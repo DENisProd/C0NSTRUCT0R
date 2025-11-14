@@ -21,6 +21,7 @@ export const ImageBlock = ({ block, isSelected, isPreview }: ImageBlockProps) =>
   const imageRef = useRef<HTMLImageElement>(null);
   
   const responsiveStyle = getStyleForBreakpoint(block.style, currentBreakpoint);
+  const appliedTextAlign = (responsiveStyle.textAlign || block.style.textAlign) as 'left' | 'center' | 'right' | undefined;
 
   useEffect(() => {
     if (blockRef.current) {
@@ -60,7 +61,7 @@ export const ImageBlock = ({ block, isSelected, isPreview }: ImageBlockProps) =>
     }
   };
 
-  // Определяем URL изображения: приоритет у mediaEtag, затем url
+  // Определяем URL изображения: приоритет у mediaEtag (через /api), затем явный URL
   const imageUrl = block.mediaEtag
     ? getMediaUrlByEtag(block.mediaEtag)
     : block.url;
@@ -79,13 +80,14 @@ export const ImageBlock = ({ block, isSelected, isPreview }: ImageBlockProps) =>
         padding: responsiveStyle.padding || block.style.padding,
         margin: responsiveStyle.margin || block.style.margin,
         width: responsiveStyle.width || block.style.width,
+        textAlign: appliedTextAlign,
         boxShadow: isSelected && !isPreview ? `0 0 0 2px ${project.theme.accent}` : 'none',
         cursor: isPreview ? (block.events?.onClick ? 'pointer' : 'default') : 'pointer',
       }}
       borderRadius={responsiveStyle.borderRadius || block.style.borderRadius}
       overflow={block.style.borderRadius ? 'hidden' : undefined}
       _hover={{
-        border: !isPreview ? '1px dashed #ccc' : 'none',
+        border: !isPreview ? '1px dashed var(--app-border)' : 'none',
         '& > .delete-btn': {
           display: !isPreview ? 'block' : 'none',
         },
@@ -100,16 +102,19 @@ export const ImageBlock = ({ block, isSelected, isPreview }: ImageBlockProps) =>
           maxHeight="400px"
           objectFit="contain"
           borderRadius="inherit"
+          display="block"
+          margin={appliedTextAlign === 'center' ? '0 auto' : undefined}
+          marginLeft={appliedTextAlign === 'right' ? 'auto' : undefined}
         />
       ) : (
         <Box
-          border="2px dashed #ccc"
+          border="2px dashed var(--app-border)"
           padding="40px"
           textAlign="center"
-          backgroundColor="#f9f9f9"
+          backgroundColor="var(--app-bg-muted)"
           borderRadius="inherit"
         >
-          <Text color="#999">Загрузите изображение в панели свойств</Text>
+          <Text color="var(--app-text-muted)">Загрузите изображение в панели свойств</Text>
         </Box>
       )}
       {!isPreview && (

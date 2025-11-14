@@ -24,6 +24,22 @@
   --app-resize: #cde4ff;
 }
 
+/* Dark theme variables */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  color: #e6e6e6;
+  background-color: #0f1115;
+  --app-bg-muted: #0f1115;
+  --app-surface: #1a1f29;
+  --app-border: #2a2f3a;
+  --app-text-muted: #9aa4b2;
+  --app-accent: #008cff;
+  --app-success: #00CE5F;
+  --app-hover: #212735;
+  --app-selected: #24324a;
+  --app-resize: #2c3a52;
+}
+
 body {
   margin: 0;
   padding: 0;

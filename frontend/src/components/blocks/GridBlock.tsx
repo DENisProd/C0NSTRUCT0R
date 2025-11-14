@@ -52,13 +52,13 @@ export const GridBlock = ({ block, isSelected, isPreview }: GridBlockProps) => {
       border="1px dashed transparent"
       style={{
         ...block.style,
-        padding: responsiveStyle.padding || block.style.padding,
-        margin: responsiveStyle.margin || block.style.margin,
-        width: responsiveStyle.width || block.style.width,
+        padding: responsiveStyle.padding ?? block.style.padding,
+        margin: responsiveStyle.margin ?? block.style.margin,
+        width: responsiveStyle.width ?? block.style.width,
         boxShadow: isSelected && !isPreview ? `0 0 0 2px ${project.theme.accent}` : 'none',
       }}
-      borderRadius={responsiveStyle.borderRadius || block.style.borderRadius}
-      _hover={{ border: !isPreview ? '1px dashed #ccc' : 'none' }}
+      borderRadius={responsiveStyle.borderRadius ?? block.style.borderRadius}
+      _hover={{ border: !isPreview ? '1px dashed var(--app-border)' : 'none' }}
     >
       {!isPreview && <GridDragMonitor onChange={setIsDragging} />}
       <Box
@@ -167,9 +167,9 @@ const GridCellView = ({
         top="6px"
         left="6px"
         fontSize="11px"
-        color="#444"
-        backgroundColor="rgba(255,255,255,0.9)"
-        border="1px solid #ddd"
+        color="inherit"
+        backgroundColor="var(--app-surface)"
+        border="1px solid var(--app-border)"
         borderRadius="6px"
         padding="2px 6px"
         pointerEvents="none"

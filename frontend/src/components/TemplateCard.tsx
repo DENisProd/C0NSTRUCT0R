@@ -103,7 +103,7 @@ export const TemplateCard = ({ template, showDeleteButton = false }: TemplateCar
               justifyContent="center"
               pointerEvents="none"
             >
-              <Text fontSize="12px" color="#999">
+              <Text fontSize="12px" color="var(--app-text-muted)">
                 {template.name || 'Шаблон'}
               </Text>
             </Box>
@@ -126,7 +126,7 @@ export const TemplateCard = ({ template, showDeleteButton = false }: TemplateCar
               {template.name}
             </Text>
             {template.category && (
-              <Text fontSize="10px" color="#666" backgroundColor="#f0f0f0" padding="2px 6px" borderRadius="4px">
+              <Text fontSize="10px" color="var(--app-text-muted)" backgroundColor="#f0f0f0" padding="2px 6px" borderRadius="4px">
                 {template.category}
               </Text>
             )}
@@ -134,7 +134,7 @@ export const TemplateCard = ({ template, showDeleteButton = false }: TemplateCar
           {template.description && (
             <Text
               fontSize="12px"
-              color="#666"
+              color="var(--app-text-muted)"
               style={{
                 display: '-webkit-box',
                 WebkitLineClamp: '2',
@@ -145,7 +145,7 @@ export const TemplateCard = ({ template, showDeleteButton = false }: TemplateCar
               {template.description}
             </Text>
           )}
-          <Text fontSize="11px" color="#999">
+          <Text fontSize="11px" color="var(--app-text-muted)">
             {template.blocks.length} {template.blocks.length === 1 ? 'блок' : 'блоков'}
           </Text>
         </VStack>
@@ -155,11 +155,12 @@ export const TemplateCard = ({ template, showDeleteButton = false }: TemplateCar
           onClick={handleClick}
           fontSize="12px"
           padding="6px"
-          backgroundColor="#007bff"
+          backgroundColor="var(--app-accent)"
           color="white"
           borderRadius="4px"
           _hover={{
-            backgroundColor: '#0056b3',
+            backgroundColor: 'var(--app-accent)',
+            opacity: 0.9,
           }}
           onMouseDown={(e) => e.stopPropagation()}
         >

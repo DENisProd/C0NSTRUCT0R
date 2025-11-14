@@ -27,11 +27,11 @@ export const BlockRenderer = ({ block, isPreview = false }: BlockRendererProps) 
     case 'video':
       return <VideoBlock block={block} isSelected={isSelected} isPreview={isPreview} />;
     case 'input':
-      return <InputBlock block={block as any} isSelected={isSelected} isPreview={isPreview} />;
+      return <InputBlock block={block} isSelected={isSelected} isPreview={isPreview} />;
     case 'container':
-      return <ContainerBlock block={block as any} isSelected={isSelected} isPreview={isPreview} />;
+      return <ContainerBlock block={block} isSelected={isSelected} isPreview={isPreview} />;
     case 'grid':
-      return <GridBlock block={block as any} isSelected={isSelected} isPreview={isPreview} />;
+      return <GridBlock block={block} isSelected={isSelected} isPreview={isPreview} />;
     default:
       return null;
   }

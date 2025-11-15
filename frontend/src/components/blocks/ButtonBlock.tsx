@@ -11,9 +11,10 @@ interface ButtonBlockProps {
   block: ButtonBlockType;
   isSelected: boolean;
   isPreview: boolean;
+  interactionsEnabled?: boolean;
 }
 
-export const ButtonBlock = ({ block, isSelected, isPreview }: ButtonBlockProps) => {
+export const ButtonBlock = ({ block, isSelected, isPreview, interactionsEnabled = true }: ButtonBlockProps) => {
   const { selectBlock, deleteBlock, project } = useProjectStore();
   const { currentBreakpoint } = useResponsiveStore();
   const blockRef = useRef<HTMLDivElement>(null);
@@ -28,7 +29,7 @@ export const ButtonBlock = ({ block, isSelected, isPreview }: ButtonBlockProps) 
 
   const handleClick = (e: React.MouseEvent) => {
     if (isPreview) {
-      if (block.events?.onClick) {
+      if (interactionsEnabled && block.events?.onClick) {
         e.preventDefault();
         e.stopPropagation();
         executeBlockEventFunctions(block.id, 'onClick', block.events);
@@ -47,19 +48,19 @@ export const ButtonBlock = ({ block, isSelected, isPreview }: ButtonBlockProps) 
   };
 
   const handleMouseEnter = () => {
-    if (isPreview && block.events?.onHover) {
+    if (isPreview && interactionsEnabled && block.events?.onHover) {
       executeBlockEventFunctions(block.id, 'onHover', block.events);
     }
   };
 
   const handleFocus = () => {
-    if (isPreview && block.events?.onFocus) {
+    if (isPreview && interactionsEnabled && block.events?.onFocus) {
       executeBlockEventFunctions(block.id, 'onFocus', block.events);
     }
   };
 
   const handleBlur = () => {
-    if (isPreview && block.events?.onBlur) {
+    if (isPreview && interactionsEnabled && block.events?.onBlur) {
       executeBlockEventFunctions(block.id, 'onBlur', block.events);
     }
   };

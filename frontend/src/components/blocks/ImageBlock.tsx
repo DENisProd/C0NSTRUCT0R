@@ -12,9 +12,10 @@ interface ImageBlockProps {
   block: ImageBlockType;
   isSelected: boolean;
   isPreview: boolean;
+  interactionsEnabled?: boolean;
 }
 
-export const ImageBlock = ({ block, isSelected, isPreview }: ImageBlockProps) => {
+export const ImageBlock = ({ block, isSelected, isPreview, interactionsEnabled = true }: ImageBlockProps) => {
   const { selectBlock, deleteBlock, project } = useProjectStore();
   const { currentBreakpoint } = useResponsiveStore();
   const blockRef = useRef<HTMLDivElement>(null);
@@ -44,7 +45,7 @@ export const ImageBlock = ({ block, isSelected, isPreview }: ImageBlockProps) =>
 
   const handleClick = (e: React.MouseEvent) => {
     if (isPreview) {
-      if (block.events?.onClick) {
+      if (interactionsEnabled && block.events?.onClick) {
         e.preventDefault();
         e.stopPropagation();
         executeBlockEventFunctions(block.id, 'onClick', block.events);
@@ -56,7 +57,7 @@ export const ImageBlock = ({ block, isSelected, isPreview }: ImageBlockProps) =>
   };
 
   const handleMouseEnter = () => {
-    if (isPreview && block.events?.onHover) {
+    if (isPreview && interactionsEnabled && block.events?.onHover) {
       executeBlockEventFunctions(block.id, 'onHover', block.events);
     }
   };
@@ -99,10 +100,12 @@ export const ImageBlock = ({ block, isSelected, isPreview }: ImageBlockProps) =>
           src={imageUrl}
           alt="Block image"
           width="100%"
-          maxHeight="400px"
+          maxWidth="100%"
+          height="auto"
           objectFit="contain"
           borderRadius="inherit"
           display="block"
+          style={{ boxSizing: 'border-box' }}
           margin={appliedTextAlign === 'center' ? '0 auto' : undefined}
           marginLeft={appliedTextAlign === 'right' ? 'auto' : undefined}
         />

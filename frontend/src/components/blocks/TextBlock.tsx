@@ -11,9 +11,10 @@ interface TextBlockProps {
   block: TextBlockType;
   isSelected: boolean;
   isPreview: boolean;
+  interactionsEnabled?: boolean;
 }
 
-export const TextBlock = ({ block, isSelected, isPreview }: TextBlockProps) => {
+export const TextBlock = ({ block, isSelected, isPreview, interactionsEnabled = true }: TextBlockProps) => {
   const { selectBlock, updateBlock, deleteBlock, project } = useProjectStore();
   const { currentBreakpoint } = useResponsiveStore();
   const contentRef = useRef<HTMLDivElement | null>(null);
@@ -36,7 +37,7 @@ export const TextBlock = ({ block, isSelected, isPreview }: TextBlockProps) => {
 
   const handleClick = (e: React.MouseEvent) => {
     if (isPreview) {
-      if (block.events?.onClick) {
+      if (interactionsEnabled && block.events?.onClick) {
         e.stopPropagation();
         executeBlockEventFunctions(block.id, 'onClick', block.events);
       }
@@ -47,7 +48,7 @@ export const TextBlock = ({ block, isSelected, isPreview }: TextBlockProps) => {
   };
 
   const handleMouseEnter = () => {
-    if (isPreview && block.events?.onHover) {
+    if (isPreview && interactionsEnabled && block.events?.onHover) {
       executeBlockEventFunctions(block.id, 'onHover', block.events);
     }
   };

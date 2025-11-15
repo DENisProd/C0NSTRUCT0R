@@ -4,18 +4,20 @@ import { getUserProfile } from './user';
 const RAW_BASE = (import.meta as any).env?.VITE_API_BASE_URL || '';
 
 function getApiBaseUrl(): string {
+  let base = '';
   if (RAW_BASE) {
     if (RAW_BASE.startsWith('/')) {
-      return `${window.location.origin}${RAW_BASE}`;
+      base = `${window.location.origin}${RAW_BASE}`;
+    } else {
+      base = RAW_BASE;
     }
-    return RAW_BASE;
+  } else if (typeof window !== 'undefined') {
+    base = window.location.origin;
+  } else {
+    base = 'http://localhost';
   }
-  
-  if (typeof window !== 'undefined') {
-    return window.location.origin;
-  }
-  
-  return 'http://localhost';
+  if (!base.endsWith('/')) base += '/';
+  return base;
 }
 
 const API_BASE_URL = getApiBaseUrl();
@@ -39,6 +41,7 @@ export interface UpdateProjectRequest {
   title?: string;
   data?: Project;
   previewUrl?: string | null;
+  isPublic?: boolean;
 }
 
 function getAuthToken(): string | null {
@@ -101,6 +104,56 @@ export async function getProject(id: number): Promise<Project> {
   return data.project ?? data;
 }
 
+export async function getPublicProject(id: number): Promise<Project> {
+  const response = await fetch(`${API_BASE_URL}api/projects/public/${id}`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'Ошибка получения публичного проекта' }));
+    throw new Error(error.detail || 'Ошибка получения публичного проекта');
+  }
+
+  const data = await response.json();
+  const raw = data?.data ?? data?.project ?? data;
+  const defaults = {
+    projectName: 'Новый лендинг',
+    header: {
+      logoUrl: '',
+      companyName: 'Моя компания',
+      backgroundColor: '#ffffff',
+      textColor: '#213547',
+    },
+    blocks: [],
+    footer: {
+      text: '© 2025 My Landing',
+      backgroundColor: '#ffffff',
+      textColor: '#213547',
+    },
+    theme: {
+      mode: 'light',
+      accent: '#4200FF',
+      text: '#213547',
+      heading: '#213547',
+      background: '#ffffff',
+      surface: '#ffffff',
+      border: '#DCDEE1',
+    },
+  } as Project;
+
+  const merged: Project = {
+    ...defaults,
+    ...raw,
+    header: { ...defaults.header, ...(raw?.header || {}) },
+    footer: { ...defaults.footer, ...(raw?.footer || {}) },
+    theme: { ...defaults.theme, ...(raw?.theme || {}) },
+    blocks: Array.isArray(raw?.blocks) ? raw.blocks : [],
+  };
+
+  return merged;
+}
+
 export async function createProject(request: CreateProjectRequest): Promise<ProjectListItem> {
   const response = await fetch(`${API_BASE_URL}api/projects`, {
     method: 'POST',
@@ -136,6 +189,7 @@ export async function updateProject(id: number, request: UpdateProjectRequest): 
       title: request.title,
       data: request.data,
       preview_url: request.previewUrl,
+      is_public: request.isPublic,
     }),
   });
 

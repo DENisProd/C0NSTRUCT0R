@@ -11,19 +11,20 @@ import { InputBlock } from './InputBlock';
 interface BlockRendererProps {
   block: Block;
   isPreview?: boolean;
+  interactionsEnabled?: boolean;
 }
 
-export const BlockRenderer = ({ block, isPreview = false }: BlockRendererProps) => {
+export const BlockRenderer = ({ block, isPreview = false, interactionsEnabled = true }: BlockRendererProps) => {
   const { selectedBlockId } = useProjectStore();
   const isSelected = selectedBlockId === block.id;
 
   switch (block.type) {
     case 'text':
-      return <TextBlock block={block} isSelected={isSelected} isPreview={isPreview} />;
+      return <TextBlock block={block} isSelected={isSelected} isPreview={isPreview} interactionsEnabled={interactionsEnabled} />;
     case 'image':
-      return <ImageBlock block={block} isSelected={isSelected} isPreview={isPreview} />;
+      return <ImageBlock block={block} isSelected={isSelected} isPreview={isPreview} interactionsEnabled={interactionsEnabled} />;
     case 'button':
-      return <ButtonBlock block={block} isSelected={isSelected} isPreview={isPreview} />;
+      return <ButtonBlock block={block} isSelected={isSelected} isPreview={isPreview} interactionsEnabled={interactionsEnabled} />;
     case 'video':
       return <VideoBlock block={block} isSelected={isSelected} isPreview={isPreview} />;
     case 'input':

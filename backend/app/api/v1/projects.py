@@ -76,6 +76,24 @@ async def get_project(
     return project
 
 
+@router.get("/public/{project_id}", response_model=ProjectResponse)
+async def get_public_project(
+    project_id: int,
+    db: AsyncSession = Depends(get_db),
+) -> ProjectResponse:
+    result = await db.execute(
+        select(Project).where(
+            Project.id == project_id,
+            Project.deleted_at.is_(None),
+            Project.is_public.is_(True),
+        )
+    )
+    project = result.scalar_one_or_none()
+    if not project:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+    return project
+
+
 @router.patch("/{project_id}", response_model=MessageResponse)
 async def update_project(
     project_id: int,
@@ -91,6 +109,8 @@ async def update_project(
         project.data = payload.data
     if payload.preview_url is not None:
         project.preview_url = payload.preview_url
+    if payload.is_public is not None:
+        project.is_public = payload.is_public
 
     db.add(project)
     await db.commit()

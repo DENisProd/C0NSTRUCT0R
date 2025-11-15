@@ -3,6 +3,7 @@ import { ChakraProvider, defaultSystem, Box } from '@chakra-ui/react';
 import { EditorLayout } from './components/EditorLayout';
 import { GeneratePage } from './pages/GeneratePage';
 import { PreviewPage } from './pages/PreviewPage';
+import ViewPage from './pages/ViewPage';
 import { LibraryPage } from './pages/LibraryPage';
 import { AddBlockPage } from './pages/AddBlockPage';
 import { AuthLoginPage } from './pages/AuthLoginPage';
@@ -35,6 +36,7 @@ function App() {
             <Route path="/auth/register" element={<AuthRegisterPage />} />
             <Route path="/auth/change-password" element={<AuthChangePasswordPage />} />
             <Route path="/preview/:id" element={<PreviewPage />} />
+            <Route path="/view/:projectId" element={<ViewPage />} />
             <Route path="/" element={<Navigate to="/editor" replace />} />
           </Routes>
         </Box>

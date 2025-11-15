@@ -18,6 +18,7 @@ class ProjectUpdate(BaseModel):
     title: Optional[str] = Field(None, min_length=1, max_length=255)
     data: Optional[Dict[str, Any]] = None
     preview_url: Optional[str] = Field(None, max_length=500)
+    is_public: Optional[bool] = None
 
 
 class ProjectResponse(BaseModel):
@@ -25,6 +26,7 @@ class ProjectResponse(BaseModel):
     title: str
     data: Dict[str, Any]
     preview_url: Optional[str] = None
+    is_public: bool
     updated_at: Optional[datetime] = None
 
     model_config = ConfigDict(from_attributes=True)

@@ -2,18 +2,20 @@ const RAW_BASE = (import.meta as any).env?.VITE_API_BASE_URL || '';
 
 // Получаем правильный API URL
 function getApiBaseUrl(): string {
+  let base = '';
   if (RAW_BASE) {
     if (RAW_BASE.startsWith('/')) {
-      return `${window.location.origin}${RAW_BASE}`;
+      base = `${window.location.origin}${RAW_BASE}`;
+    } else {
+      base = RAW_BASE;
     }
-    return RAW_BASE;
+  } else if (typeof window !== 'undefined') {
+    base = window.location.origin;
+  } else {
+    base = 'http://localhost';
   }
-  
-  if (typeof window !== 'undefined') {
-    return window.location.origin;
-  }
-  
-  return 'http://localhost';
+  if (!base.endsWith('/')) base += '/';
+  return base;
 }
 
 const API_BASE_URL = getApiBaseUrl();

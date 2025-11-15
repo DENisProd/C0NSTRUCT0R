@@ -1,10 +1,12 @@
 import { Box, VStack, Text, Button, HStack } from '@chakra-ui/react';
+import { useState } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import {
   SortableContext,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { useProjectStore } from '../store/useProjectStore';
+import { updateProject } from '../lib/api/projects';
 import { SortableBlock } from './SortableBlock';
 import { usePresence } from '../lib/usePresence';
 import { CursorsOverlay } from './CursorsOverlay';
@@ -38,9 +40,23 @@ const DropZone = ({ id, isEmpty = false }: { id: string; isEmpty?: boolean }) =>
 };
 
 export const Workspace = () => {
-  const { project, isPreviewMode, setPreviewMode } = useProjectStore();
+  const { project, isPreviewMode, setPreviewMode, currentProjectId } = useProjectStore();
   const { blocks } = project;
   usePresence(!isPreviewMode);
+  const [isSharing, setIsSharing] = useState(false);
+
+  const handleShare = async () => {
+    if (!currentProjectId) return;
+    try {
+      setIsSharing(true);
+      await updateProject(currentProjectId, { isPublic: true });
+      const url = `${window.location.origin}/view/${currentProjectId}`;
+      await navigator.clipboard.writeText(url);
+      alert('Ссылка скопирована: ' + url);
+    } finally {
+      setIsSharing(false);
+    }
+  };
 
   return (
     <Box
@@ -70,12 +86,17 @@ export const Workspace = () => {
       </Box>
       {isPreviewMode && (
         <Box position="fixed" bottom="20px" right="20px" zIndex={1000}>
-          <Button onClick={() => setPreviewMode(false)} colorScheme="gray" size="md" boxShadow="md">
-            <HStack gap="6px">
-              <span>↩</span>
-              <Box as="span">Выйти из предпросмотра</Box>
-            </HStack>
-          </Button>
+          <HStack gap="8px">
+            <Button onClick={() => setPreviewMode(false)} colorScheme="gray" size="md" boxShadow="md">
+              <HStack gap="6px">
+                <span>↩</span>
+                <Box as="span">Выйти из предпросмотра</Box>
+              </HStack>
+            </Button>
+            <Button onClick={handleShare} loading={isSharing} colorScheme="blue" size="md" boxShadow="md">
+              Поделиться лендингом
+            </Button>
+          </HStack>
         </Box>
       )}
     </Box>

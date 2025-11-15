@@ -7,21 +7,25 @@ const generateUserId = () =>
 const RAW_WS = (import.meta as any).env?.VITE_WS_BASE_URL || '';
 const RAW_API = (import.meta as any).env?.VITE_API_BASE_URL || '';
 
+function normalize(u: string): string {
+  return u.replace(/\/+$/, '');
+}
+
 function resolveWsBase(): string {
   if (RAW_WS) {
     if (RAW_WS.startsWith('/')) {
-      return (window.location.origin.replace(/^https?:/, 'ws:')) + RAW_WS;
+      return normalize(window.location.origin.replace(/^https?:/, 'ws:') + RAW_WS);
     }
-    return RAW_WS.replace(/^https?:/, 'ws:').replace(/^http:/, 'ws:');
+    return normalize(RAW_WS.replace(/^https?:/, 'ws:').replace(/^http:/, 'ws:'));
   }
   if (RAW_API) {
     if (RAW_API.startsWith('/')) {
-      return (window.location.origin.replace(/^https?:/, 'ws:')) + RAW_API;
+      return normalize(window.location.origin.replace(/^https?:/, 'ws:') + RAW_API);
     }
-    return RAW_API.replace(/^https?:/, 'ws:').replace(/^http:/, 'ws:');
+    return normalize(RAW_API.replace(/^https?:/, 'ws:').replace(/^http:/, 'ws:'));
   }
   if (typeof window !== 'undefined') {
-    return window.location.origin.replace(/^https?:/, 'ws:');
+    return normalize(window.location.origin.replace(/^https?:/, 'ws:'));
   }
   return 'ws://localhost';
 }
@@ -39,8 +43,9 @@ export const createWebSocketConnection = (
   onReconnect: () => void
 ): WebSocket => {
   const userId = generateUserId();
-  // Строим URL с токеном, если он есть
-  let wsUrl = `${serverUrl}/ws/rooms/${roomId}?name=${encodeURIComponent(userName)}`;
+  const base = normalize(serverUrl || WS_BASE_URL);
+  const withWs = /\/ws$/.test(base) ? base : `${base}/ws`;
+  let wsUrl = `${withWs}/rooms/${roomId}?name=${encodeURIComponent(userName)}`;
   if (token) {
     wsUrl += `&token=${encodeURIComponent(token)}`;
   }

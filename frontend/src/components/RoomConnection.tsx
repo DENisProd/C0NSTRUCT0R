@@ -11,6 +11,8 @@ export const RoomConnection = () => {
     isConnected,
     isConnecting,
     connectionError,
+    reconnectAttempts,
+    reconnectTimerId,
     connect,
     disconnect,
     roomId,
@@ -72,6 +74,38 @@ export const RoomConnection = () => {
         >
           <Spinner size="lg" />
           <Text>Подключение к комнате...</Text>
+        </Box>
+      </Box>
+    );
+  }
+
+  if (!isConnected && !isConnecting && (connectionError || (reconnectAttempts > 0 && reconnectTimerId))) {
+    return (
+      <Box
+        position="fixed"
+        top="0"
+        left="0"
+        width="100vw"
+        height="100vh"
+        backgroundColor="rgba(0, 0, 0, 0.5)"
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+        zIndex={2000}
+      >
+        <Box
+          backgroundColor="var(--app-surface)"
+          padding="24px"
+          borderRadius="8px"
+          boxShadow="lg"
+          display="flex"
+          alignItems="center"
+          gap="12px"
+        >
+          <Spinner size="lg" />
+          <Text>
+            Не удалось подключиться, попытка переподключения...
+          </Text>
         </Box>
       </Box>
     );

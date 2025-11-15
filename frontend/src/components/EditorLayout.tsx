@@ -1,10 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { Box, Flex } from '@chakra-ui/react';
 import { useLayoutStore } from '../store/useLayoutStore';
 import { useProjectStore } from '../store/useProjectStore';
 import { useTemplatesStore } from '../store/useTemplatesStore';
 import { useFunctionsStore } from '../store/useFunctionsStore';
+import { useResponsiveStore } from '../store/useResponsiveStore';
 import { Toolbar } from './Toolbar';
 import { BlocksPanel } from './BlocksPanel';
 import { Workspace } from './Workspace';
@@ -21,9 +22,50 @@ export function EditorLayout() {
   const { blocksPanelWidth, propertiesPanelWidth } = useLayoutStore();
   const { loadFromLocalStorage: loadTemplates } = useTemplatesStore();
   const { loadFromLocalStorage: loadFunctions } = useFunctionsStore();
+  const { setBreakpoint } = useResponsiveStore();
+  const containerRef = useRef<HTMLDivElement | null>(null);
   
   // Инициализация синхронизации через WebSocket
   useWebSocketSync();
+
+  // Автоматическое определение breakpoint на основе ширины окна
+  // В редакторе breakpoint можно переключать вручную, но по умолчанию определяется автоматически
+  useEffect(() => {
+    const updateBreakpoint = () => {
+      // Используем ширину окна для определения breakpoint
+      const width = window.innerWidth;
+      if (width < 768) {
+        setBreakpoint('mobile');
+      } else if (width < 1024) {
+        setBreakpoint('tablet');
+      } else {
+        setBreakpoint('desktop');
+      }
+    };
+
+    // Устанавливаем начальный breakpoint
+    updateBreakpoint();
+
+    // Слушаем изменения размера окна
+    window.addEventListener('resize', updateBreakpoint);
+
+    // Также используем ResizeObserver для более точного отслеживания
+    const target = containerRef.current;
+    if (target) {
+      const resizeObserver = new ResizeObserver(() => {
+        updateBreakpoint();
+      });
+      resizeObserver.observe(target);
+      return () => {
+        resizeObserver.disconnect();
+        window.removeEventListener('resize', updateBreakpoint);
+      };
+    }
+
+    return () => {
+      window.removeEventListener('resize', updateBreakpoint);
+    };
+  }, [setBreakpoint]);
 
   useEffect(() => {
     // Если есть ID в URL, загружаем проект с сервера
@@ -66,7 +108,7 @@ export function EditorLayout() {
   // Режим редактора - все панели
   return (
     <DndProvider>
-      <Box minHeight="100vh" display="flex" flexDirection="column">
+      <Box ref={containerRef} minHeight="100vh" display="flex" flexDirection="column">
         <RoomConnection />
         <Toolbar />
         <Flex flex="1" overflow="hidden">
@@ -93,6 +135,7 @@ export function EditorLayout() {
     </DndProvider>
   );
 }
+
 
 
 

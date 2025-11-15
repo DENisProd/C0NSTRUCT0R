@@ -15,7 +15,7 @@ export const ViewPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { setProject: setStoreProject, setPreviewMode } = useProjectStore();
-  const { setBreakpoint } = useResponsiveStore();
+  const { setBreakpoint, currentBreakpoint } = useResponsiveStore();
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -45,17 +45,37 @@ export const ViewPage = () => {
   }, [projectId]);
 
   useEffect(() => {
+    const updateBreakpoint = () => {
+      const width = window.innerWidth;
+      if (width < 768) {
+        setBreakpoint('mobile');
+      } else if (width < 1024) {
+        setBreakpoint('tablet');
+      } else {
+        setBreakpoint('desktop');
+      }
+    };
+
+    // Устанавливаем начальный breakpoint
+    updateBreakpoint();
+
+    // Слушаем изменения размера окна
+    window.addEventListener('resize', updateBreakpoint);
+
     const target = containerRef.current;
-    if (!target) return;
-    const ro = new ResizeObserver((entries) => {
-      const w = entries[0]?.contentRect?.width || target.clientWidth;
-      if (w < 768) setBreakpoint('mobile');
-      else if (w < 1024) setBreakpoint('tablet');
-      else setBreakpoint('desktop');
-    });
-    ro.observe(target);
+    if (target) {
+      const ro = new ResizeObserver(() => {
+        updateBreakpoint();
+      });
+      ro.observe(target);
+      return () => {
+        ro.disconnect();
+        window.removeEventListener('resize', updateBreakpoint);
+      };
+    }
+
     return () => {
-      ro.disconnect();
+      window.removeEventListener('resize', updateBreakpoint);
     };
   }, [setBreakpoint]);
 
@@ -108,10 +128,51 @@ export const ViewPage = () => {
     colorScheme: theme.mode === 'dark' ? 'dark' : 'light',
   } as React.CSSProperties;
 
+  // Адаптивные стили для контейнера
+  const getContainerStyles = () => {
+    const baseStyles = {
+      maxWidth: '1200px',
+      margin: '0 auto',
+      backgroundColor: theme.surface,
+      border: '1px solid',
+      borderColor: theme.border,
+      borderRadius: '10px',
+    };
+
+    if (currentBreakpoint === 'mobile') {
+      return {
+        ...baseStyles,
+        padding: '12px',
+        margin: '0',
+        borderRadius: '0',
+        border: 'none',
+        borderTop: `1px solid ${theme.border}`,
+        borderBottom: `1px solid ${theme.border}`,
+      };
+    } else if (currentBreakpoint === 'tablet') {
+      return {
+        ...baseStyles,
+        padding: '16px',
+        margin: '0 auto',
+      };
+    }
+    return {
+      ...baseStyles,
+      padding: '24px',
+    };
+  };
+
   return (
     <Box minHeight="100vh" backgroundColor={theme.background} style={themeVars}>
-      <Box ref={containerRef} maxWidth="1200px" margin="0 auto" padding="24px" backgroundColor={theme.surface} border="1px solid" borderColor={theme.border} borderRadius="10px">
-        <Heading size="lg" marginBottom="16px" color={theme.heading}>{title}</Heading>
+      <Box ref={containerRef} {...getContainerStyles()}>
+        <Heading 
+          size="lg" 
+          marginBottom="16px" 
+          color={theme.heading}
+          fontSize={currentBreakpoint === 'mobile' ? '20px' : currentBreakpoint === 'tablet' ? '24px' : '32px'}
+        >
+          {title}
+        </Heading>
         <VStack gap="0" align="stretch">
           {blocks.map((block) => (
             <Box key={block.id}>

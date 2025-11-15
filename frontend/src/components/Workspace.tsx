@@ -10,6 +10,7 @@ import { updateProject } from '../lib/api/projects';
 import { SortableBlock } from './SortableBlock';
 import { usePresence } from '../lib/usePresence';
 import { CursorsOverlay } from './CursorsOverlay';
+import { useResponsiveStore } from '../store/useResponsiveStore';
 
 const DropZone = ({ id, isEmpty = false }: { id: string; isEmpty?: boolean }) => {
   const { setNodeRef, isOver } = useDroppable({ id });
@@ -41,9 +42,35 @@ const DropZone = ({ id, isEmpty = false }: { id: string; isEmpty?: boolean }) =>
 
 export const Workspace = () => {
   const { project, isPreviewMode, setPreviewMode, currentProjectId } = useProjectStore();
+  const { currentBreakpoint } = useResponsiveStore();
   const { blocks } = project;
   usePresence(!isPreviewMode);
   const [isSharing, setIsSharing] = useState(false);
+
+  const getContainerStyles = () => {
+    const baseStyles = {
+      maxWidth: '1200px',
+      margin: '0 auto',
+    };
+
+    if (currentBreakpoint === 'mobile') {
+      return {
+        ...baseStyles,
+        padding: '12px',
+        width: '100%',
+      };
+    } else if (currentBreakpoint === 'tablet') {
+      return {
+        ...baseStyles,
+        padding: '16px',
+        width: '100%',
+      };
+    }
+    return {
+      ...baseStyles,
+      padding: '20px',
+    };
+  };
 
   const handleShare = async () => {
     if (!currentProjectId) return;
@@ -92,7 +119,7 @@ export const Workspace = () => {
       minHeight="calc(100vh - 60px)"
     >
       {!isPreviewMode && <CursorsOverlay />}
-      <Box maxWidth="1200px" margin="0 auto" padding="20px">
+      <Box {...getContainerStyles()}>
         <SortableContext
           items={blocks.map((b) => b.id)}
           strategy={verticalListSortingStrategy}

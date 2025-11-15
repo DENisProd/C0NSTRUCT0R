@@ -14,7 +14,7 @@ export const PreviewPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSharing, setIsSharing] = useState(false);
-  const { setBreakpoint } = useResponsiveStore();
+  const { setBreakpoint, currentBreakpoint } = useResponsiveStore();
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -39,17 +39,37 @@ export const PreviewPage = () => {
   }, [id]);
 
   useEffect(() => {
+    const updateBreakpoint = () => {
+      const width = window.innerWidth;
+      if (width < 768) {
+        setBreakpoint('mobile');
+      } else if (width < 1024) {
+        setBreakpoint('tablet');
+      } else {
+        setBreakpoint('desktop');
+      }
+    };
+
+    // Устанавливаем начальный breakpoint
+    updateBreakpoint();
+
+    // Слушаем изменения размера окна
+    window.addEventListener('resize', updateBreakpoint);
+
     const target = containerRef.current;
-    if (!target) return;
-    const ro = new ResizeObserver((entries) => {
-      const w = entries[0]?.contentRect?.width || target.clientWidth;
-      if (w < 768) setBreakpoint('mobile');
-      else if (w < 1024) setBreakpoint('tablet');
-      else setBreakpoint('desktop');
-    });
-    ro.observe(target);
+    if (target) {
+      const ro = new ResizeObserver(() => {
+        updateBreakpoint();
+      });
+      ro.observe(target);
+      return () => {
+        ro.disconnect();
+        window.removeEventListener('resize', updateBreakpoint);
+      };
+    }
+
     return () => {
-      ro.disconnect();
+      window.removeEventListener('resize', updateBreakpoint);
     };
   }, [setBreakpoint]);
 

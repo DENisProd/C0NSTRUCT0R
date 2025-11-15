@@ -128,43 +128,19 @@ export const ViewPage = () => {
     colorScheme: theme.mode === 'dark' ? 'dark' : 'light',
   } as React.CSSProperties;
 
-  // Адаптивные стили для контейнера
   const getContainerStyles = () => {
-    const baseStyles = {
+    const padding = currentBreakpoint === 'mobile' ? '12px' : currentBreakpoint === 'tablet' ? '16px' : '24px';
+    return {
       maxWidth: '1200px',
       margin: '0 auto',
-      backgroundColor: theme.surface,
-      border: '1px solid',
-      borderColor: theme.border,
-      borderRadius: '10px',
-    };
-
-    if (currentBreakpoint === 'mobile') {
-      return {
-        ...baseStyles,
-        padding: '12px',
-        margin: '0',
-        borderRadius: '0',
-        border: 'none',
-        borderTop: `1px solid ${theme.border}`,
-        borderBottom: `1px solid ${theme.border}`,
-      };
-    } else if (currentBreakpoint === 'tablet') {
-      return {
-        ...baseStyles,
-        padding: '16px',
-        margin: '0 auto',
-      };
-    }
-    return {
-      ...baseStyles,
-      padding: '24px',
-    };
+      padding,
+      backgroundColor: 'transparent',
+    } as React.CSSProperties;
   };
 
   return (
     <Box minHeight="100vh" backgroundColor={theme.background} style={themeVars}>
-      <Box ref={containerRef} {...getContainerStyles()}>
+      <Box ref={containerRef} style={getContainerStyles()}>
         <Heading 
           size="lg" 
           marginBottom="16px" 

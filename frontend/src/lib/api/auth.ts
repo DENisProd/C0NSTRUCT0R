@@ -9,14 +9,11 @@ function getApiBaseUrl(): string {
     return RAW_BASE;
   }
   
-  // Fallback: используем порт бекенда (8000)
   if (typeof window !== 'undefined') {
-    const hostname = window.location.hostname;
-    const protocol = window.location.protocol;
-    return `${protocol}//${hostname}:8000`;
+    return window.location.origin;
   }
   
-  return 'http://localhost:8000';
+  return 'http://localhost';
 }
 
 const API_BASE_URL = getApiBaseUrl();
@@ -43,7 +40,7 @@ export interface ChangePasswordRequest {
 }
 
 export async function registerUser(payload: RegisterRequest): Promise<void> {
-  const resp = await fetch(`${API_BASE_URL}/api/auth/register`, {
+  const resp = await fetch(`${API_BASE_URL}api/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -55,7 +52,7 @@ export async function registerUser(payload: RegisterRequest): Promise<void> {
 }
 
 export async function login(payload: LoginRequest): Promise<TokenResponse> {
-  const resp = await fetch(`${API_BASE_URL}/api/auth/login`, {
+  const resp = await fetch(`${API_BASE_URL}api/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -68,7 +65,7 @@ export async function login(payload: LoginRequest): Promise<TokenResponse> {
 }
 
 export async function changePassword(payload: ChangePasswordRequest, token: string): Promise<void> {
-  const resp = await fetch(`${API_BASE_URL}/api/auth/change-password`, {
+  const resp = await fetch(`${API_BASE_URL}api/auth/change-password`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

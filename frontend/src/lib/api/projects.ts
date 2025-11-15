@@ -12,12 +12,10 @@ function getApiBaseUrl(): string {
   }
   
   if (typeof window !== 'undefined') {
-    const hostname = window.location.hostname;
-    const protocol = window.location.protocol;
-    return `${protocol}//${hostname}:8000`;
+    return window.location.origin;
   }
   
-  return 'http://localhost:8000';
+  return 'http://localhost';
 }
 
 const API_BASE_URL = getApiBaseUrl();
@@ -60,7 +58,7 @@ function getAuthHeaders(): HeadersInit {
 
 export async function getProjects(): Promise<ProjectListItem[]> {
   const profile = await getUserProfile();
-  const url = new URL(`${API_BASE_URL}/api/projects`);
+  const url = new URL(`${API_BASE_URL}api/projects`);
   url.searchParams.set('userId', String(profile.id));
 
   const response = await fetch(url.toString(), {
@@ -89,7 +87,7 @@ export async function getProjects(): Promise<ProjectListItem[]> {
 }
 
 export async function getProject(id: number): Promise<Project> {
-  const response = await fetch(`${API_BASE_URL}/api/projects/${id}`, {
+  const response = await fetch(`${API_BASE_URL}api/projects/${id}`, {
     method: 'GET',
     headers: getAuthHeaders(),
   });
@@ -104,7 +102,7 @@ export async function getProject(id: number): Promise<Project> {
 }
 
 export async function createProject(request: CreateProjectRequest): Promise<ProjectListItem> {
-  const response = await fetch(`${API_BASE_URL}/api/projects`, {
+  const response = await fetch(`${API_BASE_URL}api/projects`, {
     method: 'POST',
     headers: getAuthHeaders(),
     body: JSON.stringify({
@@ -131,7 +129,7 @@ export async function createProject(request: CreateProjectRequest): Promise<Proj
 }
 
 export async function updateProject(id: number, request: UpdateProjectRequest): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/api/projects/${id}`, {
+  const response = await fetch(`${API_BASE_URL}api/projects/${id}`, {
     method: 'PATCH',
     headers: getAuthHeaders(),
     body: JSON.stringify({
@@ -148,7 +146,7 @@ export async function updateProject(id: number, request: UpdateProjectRequest): 
 }
 
 export async function deleteProject(id: number): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/api/projects/${id}`, {
+  const response = await fetch(`${API_BASE_URL}api/projects/${id}`, {
     method: 'DELETE',
     headers: getAuthHeaders(),
   });

@@ -4,13 +4,29 @@ import type { WebSocketStore } from './useWebSocketStore';
 const generateUserId = () =>
   `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-const WS_BASE_URL = (
-  import.meta.env.VITE_WS_BASE_URL ||
-  import.meta.env.VITE_API_BASE_URL ||
-  'ws://localhost:8000'
-)
-  .replace(/^https?:/, 'ws:')
-  .replace(/^http:/, 'ws:');
+const RAW_WS = (import.meta as any).env?.VITE_WS_BASE_URL || '';
+const RAW_API = (import.meta as any).env?.VITE_API_BASE_URL || '';
+
+function resolveWsBase(): string {
+  if (RAW_WS) {
+    if (RAW_WS.startsWith('/')) {
+      return (window.location.origin.replace(/^https?:/, 'ws:')) + RAW_WS;
+    }
+    return RAW_WS.replace(/^https?:/, 'ws:').replace(/^http:/, 'ws:');
+  }
+  if (RAW_API) {
+    if (RAW_API.startsWith('/')) {
+      return (window.location.origin.replace(/^https?:/, 'ws:')) + RAW_API;
+    }
+    return RAW_API.replace(/^https?:/, 'ws:').replace(/^http:/, 'ws:');
+  }
+  if (typeof window !== 'undefined') {
+    return window.location.origin.replace(/^https?:/, 'ws:');
+  }
+  return 'ws://localhost';
+}
+
+const WS_BASE_URL = resolveWsBase();
 
 export const createWebSocketConnection = (
   roomId: string,

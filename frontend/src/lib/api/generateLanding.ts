@@ -19,13 +19,27 @@ export interface GenerateLandingResponse {
   meta?: Record<string, any>;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+const RAW_BASE = (import.meta as any).env?.VITE_API_BASE_URL || '';
+function getApiBaseUrl(): string {
+  if (RAW_BASE) {
+    if (RAW_BASE.startsWith('/')) {
+      return `${window.location.origin}${RAW_BASE}`;
+    }
+    return RAW_BASE;
+  }
+  if (typeof window !== 'undefined') {
+    return window.location.origin;
+  }
+  return 'http://localhost';
+}
+
+const API_BASE_URL = getApiBaseUrl();
 
 export async function generateLanding(
   request: GenerateLandingRequest,
   token?: string | null
 ): Promise<GenerateLandingResponse> {
-  const url = `${API_BASE_URL}/api/ai/generate-landing`;
+  const url = `${API_BASE_URL}api/ai/generate-landing`;
   
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
@@ -50,7 +64,7 @@ export async function generateLanding(
 }
 
 export async function getRandomPalette(token?: string | null): Promise<ColorPalette> {
-  const url = `${API_BASE_URL}/api/palette/random`;
+  const url = `${API_BASE_URL}api/palette/random`;
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
   };

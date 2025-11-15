@@ -9,12 +9,10 @@ function getApiBaseUrl(): string {
   }
   
   if (typeof window !== 'undefined') {
-    const hostname = window.location.hostname;
-    const protocol = window.location.protocol;
-    return `${protocol}//${hostname}:8000`;
+    return window.location.origin;
   }
   
-  return 'http://localhost:8000';
+  return 'http://localhost';
 }
 
 const API_BASE_URL = getApiBaseUrl();
@@ -60,7 +58,7 @@ export async function uploadProjectMedia(
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_BASE_URL}/api/projects/${projectId}/media`, {
+  const response = await fetch(`${API_BASE_URL}api/projects/${projectId}/media`, {
     method: 'POST',
     headers,
     body: formData,
@@ -86,7 +84,7 @@ export async function uploadProjectMedia(
 }
 
 export async function listProjectMedia(projectId: number): Promise<ProjectMedia[]> {
-  const response = await fetch(`${API_BASE_URL}/api/projects/${projectId}/media`, {
+  const response = await fetch(`${API_BASE_URL}api/projects/${projectId}/media`, {
     method: 'GET',
     headers: getAuthHeaders(),
   });
@@ -111,11 +109,11 @@ export async function listProjectMedia(projectId: number): Promise<ProjectMedia[
 }
 
 export function getMediaUrlByEtag(etag: string): string {
-  return `${API_BASE_URL}/api/projects/media/by-etag/${etag}`;
+  return `${API_BASE_URL}api/projects/media/by-etag/${etag}`;
 }
 
 export async function deleteProjectMedia(projectId: number, mediaId: number): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/api/projects/${projectId}/media/${mediaId}`, {
+  const response = await fetch(`${API_BASE_URL}api/projects/${projectId}/media/${mediaId}`, {
     method: 'DELETE',
     headers: getAuthHeaders(),
   });

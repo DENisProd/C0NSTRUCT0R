@@ -14,5 +14,6 @@ ENV/
 .idea/
 .vscode/
 *.log
+./alembic/versions
 
 

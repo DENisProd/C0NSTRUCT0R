@@ -9,12 +9,10 @@ function getApiBaseUrl(): string {
   }
   
   if (typeof window !== 'undefined') {
-    const hostname = window.location.hostname;
-    const protocol = window.location.protocol;
-    return `${protocol}//${hostname}:8000`;
+    return window.location.origin;
   }
   
-  return 'http://localhost:8000';
+  return 'http://localhost';
 }
 
 const API_BASE_URL = getApiBaseUrl();
@@ -52,7 +50,7 @@ function getAuthHeaders(): HeadersInit {
 }
 
 export async function getUserProfile(): Promise<UserProfile> {
-  const response = await fetch(`${API_BASE_URL}/api/user/me`, {
+  const response = await fetch(`${API_BASE_URL}api/user/me`, {
     method: 'GET',
     headers: getAuthHeaders(),
   });
@@ -118,7 +116,7 @@ export async function updateUserProfile(request: UpdateUserProfileRequest): Prom
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_BASE_URL}/api/user/me`, {
+  const response = await fetch(`${API_BASE_URL}api/user/me`, {
     method: 'PUT',
     headers,
     body: formData,
@@ -163,7 +161,7 @@ export async function uploadAvatar(file: File): Promise<UserProfile> {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_BASE_URL}/api/user/avatar`, {
+  const response = await fetch(`${API_BASE_URL}api/user/avatar`, {
     method: 'POST',
     headers,
     body: formData,
@@ -209,7 +207,7 @@ export async function uploadAvatar(file: File): Promise<UserProfile> {
 }
 
 export async function deleteAvatar(): Promise<UserProfile> {
-  const response = await fetch(`${API_BASE_URL}/api/user/avatar`, {
+  const response = await fetch(`${API_BASE_URL}api/user/avatar`, {
     method: 'DELETE',
     headers: getAuthHeaders(),
   });
@@ -243,6 +241,6 @@ export async function deleteAvatar(): Promise<UserProfile> {
 }
 
 export function getUserAvatarUrl(userId: number): string {
-  return `${API_BASE_URL}/api/user/${userId}/avatar`;
+  return `${API_BASE_URL}api/user/${userId}/avatar`;
 }
 

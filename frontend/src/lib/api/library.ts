@@ -27,14 +27,11 @@ function getApiBaseUrl(): string {
     return RAW_BASE;
   }
   
-  // Fallback: используем порт бекенда (8000)
   if (typeof window !== 'undefined') {
-    const hostname = window.location.hostname;
-    const protocol = window.location.protocol;
-    return `${protocol}//${hostname}:8000/api`;
+    return `${window.location.origin}/api`;
   }
   
-  return 'http://localhost:8000/api';
+  return 'http://localhost/api';
 }
 
 const API_BASE_URL = getApiBaseUrl();

@@ -13,6 +13,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 20
+    volumes:
+      - postgresql:/var/lib/postgresql/data
 
   nginx:
     image: nginx:alpine
@@ -48,8 +50,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    ports:
-      - "8000:8000"
     restart: unless-stopped
     command: sh -c "python -m alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000"
 
@@ -124,6 +124,7 @@ services:
       - prometheus
 
 volumes:
+  postgresql: {}
   frontend_dist: {}
   minio:
     driver: local

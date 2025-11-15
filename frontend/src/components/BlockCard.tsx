@@ -1,6 +1,8 @@
 import { Box, VStack, Text, Badge, Image, HStack } from '@chakra-ui/react';
 import { Package } from 'lucide-react';
 import { useDraggable } from '@dnd-kit/core';
+import { useEffect } from 'react';
+import { useProjectStore } from '../store/useProjectStore';
 import type { LibraryBlock } from '../lib/api/library';
 
 interface BlockCardProps {
@@ -15,6 +17,12 @@ export const BlockCard = ({ block, onSelect, draggable = false }: BlockCardProps
     data: { libraryBlockId: block.id, type: 'library' },
     disabled: !draggable,
   });
+  const { setLibraryDragging } = useProjectStore();
+
+  useEffect(() => {
+    setLibraryDragging(!!isDragging);
+    return () => setLibraryDragging(false);
+  }, [isDragging, setLibraryDragging]);
 
   const style = draggable && transform
     ? {

@@ -39,10 +39,12 @@ interface ProjectStore {
   selectedBlockId: string | null;
   isPreviewMode: boolean;
   currentProjectId: number | null;
+  isLibraryDragging: boolean;
 
   // Actions
   setProject: (project: Project) => void;
   setCurrentProjectId: (id: number | null) => void;
+  setLibraryDragging: (flag: boolean) => void;
   addBlock: (type: BlockType) => void;
   addGrid: (columns: number, rows: number) => void;
   addBlockToContainer: (containerId: string, index: number, type: BlockType) => void;
@@ -432,9 +434,11 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   selectedBlockId: null,
   isPreviewMode: false,
   currentProjectId: null,
+  isLibraryDragging: false,
 
   setProject: (project) => set({ project }),
   setCurrentProjectId: (id) => set({ currentProjectId: id }),
+  setLibraryDragging: (flag) => set({ isLibraryDragging: flag }),
 
   addBlock: (type) => {
     const newBlock = createNewBlock(type, get().project.theme);

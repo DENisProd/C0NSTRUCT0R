@@ -1,7 +1,7 @@
 import { Box, VStack, Text } from '@chakra-ui/react';
 import { useState } from 'react';
 import { Trash2 } from 'lucide-react';
-import { useDroppable, useDndMonitor } from '@dnd-kit/core';
+import { useDroppable } from '@dnd-kit/core';
 import type { ContainerBlock as ContainerBlockType, Block } from '../../types';
 import { useProjectStore } from '../../store/useProjectStore';
 import { BlockRenderer } from './BlockRenderer';
@@ -46,26 +46,13 @@ const InnerDropZone = ({ id, isEmpty = false, direction = 'column' }: { id: stri
 };
 
 export const ContainerBlock = ({ block, isSelected, isPreview }: ContainerBlockProps) => {
-  const { selectBlock, project, deleteBlock } = useProjectStore();
+  const { selectBlock, project, deleteBlock, isLibraryDragging } = useProjectStore();
   const { currentBreakpoint } = useResponsiveStore();
   const children = (block.children || []) as Block[];
-  const [isDraggingLibrary, setIsDraggingLibrary] = useState(false);
+  const [isDraggingLibraryLocal] = useState(false);
   
   const responsiveStyle = getStyleForBreakpoint(block.style, currentBreakpoint);
 
-  useDndMonitor({
-    onDragStart(event) {
-      const data = event.active?.data?.current as any;
-      const isLibrary = data?.type === 'library' || (typeof event.active?.id === 'string' && String(event.active.id).startsWith('library-block-'));
-      if (isLibrary) setIsDraggingLibrary(true);
-    },
-    onDragEnd() {
-      setIsDraggingLibrary(false);
-    },
-    onDragCancel() {
-      setIsDraggingLibrary(false);
-    },
-  });
 
   const handleClick = (e: React.MouseEvent) => {
     if (!isPreview) {
@@ -94,7 +81,7 @@ export const ContainerBlock = ({ block, isSelected, isPreview }: ContainerBlockP
         justifyContent: responsiveStyle.justifyContent ?? block.style.justifyContent ?? 'flex-start',
         textAlign: responsiveStyle.textAlign ?? block.style.textAlign,
         boxShadow: isSelected && !isPreview ? `0 0 0 2px ${project.theme.accent}` : 'none',
-        backgroundColor: isDraggingLibrary ? 'transparent' : (block.style.backgroundColor || project.theme.surface),
+        backgroundColor: (isLibraryDragging || isDraggingLibraryLocal) ? 'transparent' : (block.style.backgroundColor || project.theme.surface),
         position: 'relative',
       }}
       borderRadius={responsiveStyle.borderRadius ?? block.style.borderRadius}
